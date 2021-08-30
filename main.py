@@ -1,10 +1,10 @@
 from env import *
 
+from copy import deepcopy
 
 
 
-
-nb_houses = 10
+nb_houses = 1
 
 # Default properties:
 
@@ -31,9 +31,11 @@ default_house_prop = {
 # Creating houses
 houses_properties = []
 for i in range(nb_houses):
-	house_prop = default_house_prop
+	house_prop = deepcopy(default_house_prop)
 	house_prop["id"] = str(i) 
-	hvac_prop = default_hvac_prop
+	print(house_prop["id"])
+	print(default_house_prop["id"])
+	hvac_prop = deepcopy(default_hvac_prop)
 	hvac_prop["id"] = str(i) + "_1"
 	house_prop["hvac_properties"] = [hvac_prop]
 	houses_properties.append(house_prop)
@@ -54,13 +56,14 @@ env_properties = {
 
 }
 
-print(env_properties)
 
-print(env_properties["cluster_properties"]["houses_properties"][0]["hvac_properties"])
 
 
 env = MA_DemandResponseEnv(env_properties)
 
+obs = env.reset()
+
+print(obs)
 
 
 
