@@ -1,4 +1,5 @@
 from env import *
+from agents import *
 
 from copy import deepcopy
 import warnings
@@ -56,29 +57,33 @@ env_properties = {
 
 
 
-# Action
-actions = {
-	'0_1':True,
-	'1_1':True,
-	'2_1':True,
-	'3_1':True,
-	'4_1':True,
-	'5_1':True,
-	'6_1':True,
-	'7_1':True,
-	'8_1':True,
-	'9_1':True,
-}
+
+def getActions(actors, obs_dict):
+	actions = {}
+	for agent_id in actors.keys():
+		actions[agent_id] = actors[agent_id].act(obs_dict[agent_id])
+	return actions
+
 
 
 
 
 env = MA_DemandResponseEnv(env_properties)
+hvacs_id_registry = env.cluster.hvacs_id_registry
+
+actors = {}
+for hvac_id in hvacs_id_registry.keys():
+	agent_prop = {}
+	agent_prop["id"] = hvac_id
+	actors[hvac_id] = BangBangController(agent_prop)
+
 
 obs = env.reset()
 
 for i in range(200):
-	env.step(actions)
+	actions = getActions(actors, obs)
+	obs, _, _, _ = env.step(actions)
+
 
 
 

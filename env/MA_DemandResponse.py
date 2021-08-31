@@ -20,13 +20,15 @@ class MA_DemandResponseEnv(MultiAgentEnv):
 		self.datetime = self.start_datetime		# Start time in hour (24h format, decimal hours)
 		self.time_step = timedelta(seconds = env_properties["time_step"])
 		self.env_properties = env_properties
-		#self.cluster = ClusterHouses(env_properties["cluster_properties"], self.datetime)
+		self.cluster = ClusterHouses(env_properties["cluster_properties"], self.datetime)
 		#self.power_grid = PowerGrid(power_grid_properties)
+
 
 	def reset(self):
 		self.datetime = self.start_datetime
 		self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime)
 		cluster_obs_dict = self.cluster.obsDict(self.datetime)
+
 
 		obs_dict = cluster_obs_dict # TODO: add powergrid
 		return obs_dict 
@@ -34,12 +36,8 @@ class MA_DemandResponseEnv(MultiAgentEnv):
 
 	def step(self, action_dict):
 		self.datetime += self.time_step
-
-
-		cl_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(self.datetime, action_dict, self.time_step)
-
-
-		obs_dict = {}
+		cluster_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(self.datetime, action_dict, self.time_step)
+		obs_dict = cluster_obs_dict # TODO: add powergrid
 		reward_dict = {}
 		dones_dict = {}
 		info_dict = {}
@@ -217,7 +215,7 @@ class ClusterHouses(object):
 
 			# Dynamic values from house
 			obs_dictionary[hvac_id]["house_temp"] = house.current_temp
-			
+
 			# Dynamic values from HVAC
 			obs_dictionary[hvac_id]["hvac_turned_on"] = hvac.turned_on
 			obs_dictionary[hvac_id]["hvac_steps_since_off"] = hvac.steps_since_off
