@@ -62,16 +62,19 @@ class HVAC(object):
 
 	def step(self, command):
 		if command == True:
-			if self.steps_since_off >= self.lockout_duration: # Turn on if possible
-				self.turned_on = True
-				self.steps_since_off = 0
-			else:
-				self.turned_on = self.turned_on		# Otherwise, ignore command
+			if self.steps_since_off >= self.lockout_duration: 
+				self.turned_on = True 				# Turn on
+				self.steps_since_off += 1			# Increment time counter
 
-		else:
-			if self.turned_on:
-				self.steps_since_off = 0  		# Start time counter
 			else:
+				self.turned_on = self.turned_on		# Ignore command
+				self.steps_since_off += 1			# Increment time counter
+
+
+		else: 	# command = off
+			if self.turned_on:						# if turning off
+				self.steps_since_off = 0  			# Start time counter
+			else:	# if already off
 				self.steps_since_off += 1			# Increment time counter
 			self.turned_on = False					# Turn off
 
