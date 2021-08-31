@@ -1,6 +1,7 @@
 import gym
 import ray
 import numpy as np
+import warnings
 
 from datetime import datetime, timedelta
 from datetime import time
@@ -25,29 +26,26 @@ class MA_DemandResponseEnv(MultiAgentEnv):
 	def reset(self):
 		self.datetime = self.start_datetime
 		self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime)
-		cluster_obs_dict = self.cluster.obs_dict(self.datetime)
+		cluster_obs_dict = self.cluster.obsDict(self.datetime)
 
 		obs_dict = cluster_obs_dict # TODO: add powergrid
 		return obs_dict 
 
 
 	def step(self, action_dict):
+		self.datetime += self.time_step
+
+
+		cl_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(self.datetime, action_dict, self.time_step)
+
+
 		obs_dict = {}
 		reward_dict = {}
 		dones_dict = {}
 		info_dict = {}
-		for agent in self.agent_keys:
-			if agent in action_dict.keys():
-				action = action_dict[agent]
-	#		else:
-	#			action = 0
-	#		obs_dict[agent] = [action] 		# Place-holder for agent observations
-	#		reward_dict[agent] = 1 			# Place-holder for agent reward
-	#		dones_dict[agent] = False 		# Place-holder for agent done
-	#		info_dict[agent] = []			# Place-holder for optional info value
+		
 
-
-	#	return obs_dict, reward_dict, dones_dict, info_dict
+		return obs_dict, reward_dict, dones_dict, info_dict
 
 class HVAC(object):
 	""" HVAC simulator """
@@ -55,10 +53,9 @@ class HVAC(object):
 		self.id = hvac_properties["id"]
 		self.hvac_properties = hvac_properties
 		self.COP = hvac_properties["COP"]										# Coefficient of performance (2.5)
-		self.cooling_capacity = hvac_properties["cooling_capacity"]    			# Cooling capacity (1)
-		self.sensible_cooling_ratio = hvac_properties["sensible_cooling_ratio"] # Ratio of sensible cooling/total cooling (vs latent cooling)
-		self.nominal_power = hvac_properties["nominal_power"] 					# Power when on (W) (10)
-		self.lockout_duration = hvac_properties["lockout_duration"] 			# Lockout duration (time steps) (5)
+		self.cooling_capacity = hvac_properties["cooling_capacity"]    			# Cooling capacity (W)
+		self.latent_cooling_fraction = hvac_properties["latent_cooling_fraction"] # Fraction of latent cooling w.r.t. sensible cooling
+		self.lockout_duration = hvac_properties["lockout_duration"] 			# Lockout duration (time steps)
 		self.turned_on = False  												# HVAC can be on (True) or off (False)
 		self.steps_since_off = self.lockout_duration 							# Seconds since last turning off
 
@@ -78,12 +75,22 @@ class HVAC(object):
 				self.steps_since_off += 1			# Increment time counter
 			self.turned_on = False					# Turn off
 
+		return self.turned_on
+
+	def getQ(self):
 		if self.turned_on:
-			Q_hvac = self.nominal_power / (self.COP*self.sensible_cooling_ratio/self.capacity)
+			Q_hvac = -1*self.cooling_capacity/(1+self.latent_cooling_fraction)
 		else:
 			Q_hvac = 0
-			
+
 		return Q_hvac
+
+	def powerConsumption(self):
+		if self.turned_on:
+			return self.cooling_capacity/self.COP
+		else:
+			return 0
+
 
 
 class SingleHouse(object):
@@ -119,9 +126,49 @@ class SingleHouse(object):
 			self.hvacs[hvac.id] = hvac
 			self.hvacs_ids.append(hvac.id)
 
-	def step(self, action):
+	def step(self, OD_temp, time_step):
+		self.updateTemperature(OD_temp, time_step)
+		print("House ID: {} -- OD_temp : {}, ID_temp: {}".format(self.id, OD_temp, self.current_temp))
 
-		pass
+	def updateTemperature(self, OD_temp, time_step):
+		time_step_sec = time_step.seconds
+		Hm, Ca, Ua, Cm = self.Hm, self.Ca, self.Ua, self.Cm
+		
+		# Model taken from http://gridlab-d.shoutwiki.com/wiki/Residential_module_user's_guide
+
+		# Heat addition from hvacs (negative if it is AC)
+		total_Qhvac = 0
+		for hvac_id in self.hvacs_ids:
+			hvac = self.hvacs[hvac_id]
+			total_Qhvac += hvac.getQ()
+
+		# Total heat addition to air 
+		otherQa = 0  					# windows, ...
+		Qa = total_Qhvac + otherQa
+		# Heat addition from inside devices (oven, windows, etc)
+		Qm = 0
+
+		# Variables and constants
+		a = Cm*Ca/Hm
+		b = Cm*(Ua + Hm)/Hm + Ca
+		c = Ua
+		d = Qm + Qa + Ua*OD_temp
+		g = Qm/Hm
+
+		r1 = (-b + np.sqrt(b**2 -4*a*c))/(2*a)
+		r2 = (-b - np.sqrt(b**2 -4*a*c))/(2*a)
+
+
+		dTA0dt = Hm/(Ca * self.current_mass_temp) - (Ua+Hm)/(Ca*self.current_temp) + Ua/(Ca*OD_temp) + Qa/Ca
+
+		A1 = (r2*self.current_temp - dTA0dt - r2*d/c)/(r2-r1)
+		A2 = self.current_temp - d/c - A1
+		A3 = r1*Ca/Hm + (Ua+Hm)/Hm
+		A4 = r2*Ca/Hm + (Ua+Hm)/Hm
+
+		# Updating the temperature
+		self.current_temp = A1*np.exp(r1*time_step_sec) + A2*np.exp(r2*time_step_sec) + d/c
+		self.current_mass_temp = A1*A3*np.exp(r1*time_step_sec) + A2*A4*np.exp(r2*time_step_sec) + g + d/c
 
 
 
@@ -150,7 +197,7 @@ class ClusterHouses(object):
 		self.temp_std = cluster_properties["temp_std"]  	# Std-dev of the white noise applied on outdoors temperature
 		self.current_OD_temp = self.computeODTemp(datetime)
 
-	def obs_dict(self, datetime):
+	def obsDict(self, datetime):
 		obs_dictionary = {}
 		for hvac_id in self.hvacs_id_registry.keys():
 			obs_dictionary[hvac_id] = {}
@@ -161,7 +208,7 @@ class ClusterHouses(object):
 			hvac = house.hvacs[hvac_id]
 
 			# Dynamic values from cluster
-			obs_dictionary[hvac_id]["OD_temp"] = self.computeODTemp(datetime)
+			obs_dictionary[hvac_id]["OD_temp"] = self.current_OD_temp
 			obs_dictionary[hvac_id]["datetime"] = datetime
 			
 
@@ -183,27 +230,63 @@ class ClusterHouses(object):
 			# Supposedly constant values from hvac
 			obs_dictionary[hvac_id]["hvac_COP"] = hvac.COP
 			obs_dictionary[hvac_id]["hvac_cooling_capacity"] = hvac.cooling_capacity
-			obs_dictionary[hvac_id]["hvac_sensible_cooling_ratio"] = hvac.sensible_cooling_ratio
-			obs_dictionary[hvac_id]["hvac_nominal_power"] = hvac.nominal_power
+			obs_dictionary[hvac_id]["hvac_latent_cooling_fraction"] = hvac.latent_cooling_fraction
 			obs_dictionary[hvac_id]["hvac_lockout_duration"] = hvac.lockout_duration
 
 		return obs_dictionary
 
 
-	def step(self, datetime, action):
-		# TODO: Enact ACTIONS
+	def step(self, datetime, actions_dict, time_step):
+		## Enact actions
 
-		# Observations
-		obs_dictionary = self.obs_dict(datetime)
+		# Send commend to the hvacs
+		for hvac_id in self.hvacs_id_registry.keys():
+			# Getting the house and the HVAC
+			house_id = self.hvacs_id_registry[hvac_id]
+			house = self.houses[house_id]
+			hvac = house.hvacs[hvac_id]
+			if hvac_id in actions_dict.keys():
+				command = actions_dict[hvac_id]
+			else:
+				warnings.warn("HVAC {} in house {} did not receive any command.".format(hvac_id, house_id))
+				command = False
+			hvac.step(command)
 
-		# Rewards
-		rewards_dictionary = {} # TODO
 
-		# Done
-		dones_dict = {}  # TODO
+		# Update outdoors temperature
+		self.current_OD_temp = self.computeODTemp(datetime)
+
+
+		# Update houses' temperatures
+		for house_id in self.houses.keys():
+			house = self.houses[house_id]
+			house.step(self.current_OD_temp, time_step)
+
+
+
+		## Observations
+		obs_dictionary = self.obsDict(datetime)
+
+		## Temperature penalties and total cluster power consumption
+		temp_penalty_dict = {}
+		cluster_hvac_power = 0
+
+		for hvac_id in self.hvacs_id_registry.keys():
+			# Getting the house and the HVAC
+			house_id = self.hvacs_id_registry[hvac_id]
+			house = self.houses[house_id]
+			hvac = house.hvacs[hvac_id]
+
+			# Temperature penalties
+			temp_penalty_dict[hvac.id] = self.computeTempPenalty(house.target_temp, house.deadband, house.current_temp)
+
+			# Cluster hvac power consumption
+			cluster_hvac_power += hvac.powerConsumption()
 
 		# Info
 		info_dict = {} # TODO
+
+		return obs_dictionary, temp_penalty_dict, cluster_hvac_power, info_dict
 
 
 	def computeODTemp(self, time):
@@ -217,3 +300,16 @@ class ClusterHouses(object):
 		# TODO : add noise
 
 		return temperature
+
+	def computeTempPenalty(self, target_temp, deadband, house_temp):
+		""" Compute the temperature penalty for one house """
+		if target_temp + deadband/2 < house_temp :
+			temperature_penalty = (house_temp - (target_temp + deadband/2))**2
+		elif target_temp - deadband/2 > house_temp :
+			temperature_penalty = ((target_temp - deadband/2) - house_temp)**2
+		else:
+			temperature_penalty = 0
+
+		return temperature_penalty
+
+
