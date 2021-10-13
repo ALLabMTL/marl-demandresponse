@@ -1,1 +1,1 @@
-from .bangbang_controllers import BangBangController, DeadbandBangBangController
+from .bangbang_controllers import BangBangController, DeadbandBangBangController, BasicController

@@ -1,69 +1,37 @@
 from env import *
 from agents import *
+from config import default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop, default_env_properties
+from utils import noiseHouse, noiseHvac, getActions
 
 from copy import deepcopy
 import warnings
+import random
+import numpy as np
 
 
 
 nb_houses = 1
+num_steps = 200
 
-# Default properties:
+#random.seed(1)
 
-default_house_prop = {
-	"id": 1,
-	"init_temp": 20,
-	"target_temp": 20,
-	"deadband": 2,
-	"Ua" : 84,									# House walls conductance (W/K) (default: 84W/K = 522 Btu/F/hr)
-	"Cm" : 100*40700,							# House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)
-	"Ca" : 100*2.5*1200,						# Air thermal mass in the house (J/K) (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
-	"Hm" : 455*8.29,							# House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.29 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))
-}
-
-default_hvac_prop = {
-	"id": 1,
-	"COP": 2.5,									# Coefficient of performance (power spent vs heat displaced)
-	"cooling_capacity": 84*(30-20),				# Cooling capacity (W) (by design, Ua * (max OD temp - target ID temp))
-	"latent_cooling_fraction": 0.35,			# Fraction of latent cooling w.r.t. sensible cooling
-	"lockout_duration": 1						# In number of steps (TODO: change to seconds)
-}
 
 # Creating houses
 houses_properties = []
 for i in range(nb_houses):
 	house_prop = deepcopy(default_house_prop)
+	noiseHouse(house_prop, noise_house_prop)
 	house_prop["id"] = str(i) 
 	hvac_prop = deepcopy(default_hvac_prop)
+	noiseHvac(hvac_prop, noise_hvac_prop)
 	hvac_prop["id"] = str(i) + "_1"
 	house_prop["hvac_properties"] = [hvac_prop]
 	houses_properties.append(house_prop)
 
 
-
-
 # Setting environment properties
-env_properties = {
-	"start_datetime": '2021-01-01 06:00:00',   	# Start date and time (Y-m-d H:M:S)
-	"time_step": 2000,							# Time step in seconds
-	"cluster_properties": {
-		"day_temp": 30,							# Day temperature
-		"night_temp": 23,						# Night temperature
-		"temp_std": 0.5,						# Noise std dev on the temperature
-		"houses_properties": houses_properties
-	}
-
-}
-
-
-
-
-def getActions(actors, obs_dict):
-	actions = {}
-	for agent_id in actors.keys():
-		actions[agent_id] = actors[agent_id].act(obs_dict[agent_id])
-	return actions
-
+env_properties = deepcopy(default_env_properties)
+env_properties["cluster_properties"]["houses_properties"] = houses_properties
 
 
 
@@ -75,26 +43,23 @@ actors = {}
 for hvac_id in hvacs_id_registry.keys():
 	agent_prop = {}
 	agent_prop["id"] = hvac_id
-	actors[hvac_id] = BangBangController(agent_prop)
+
+	#actors[hvac_id] = DeadbandBangBangController(agent_prop)
+	actors[hvac_id] = DeadbandBangBangController(agent_prop)
 
 
 obs = env.reset()
 
-for i in range(200):
+total_cluster_hvac_power = 0
+for i in range(num_steps):
 	actions = getActions(actors, obs)
-	obs, _, _, _ = env.step(actions)
+	obs, _, _, info = env.step(actions)
+	total_cluster_hvac_power += info["cluster_hvac_power"]
+
+average_cluster_hvac_power = total_cluster_hvac_power/num_steps
+average_hvac_power = average_cluster_hvac_power/nb_houses
+print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(average_cluster_hvac_power, average_hvac_power))
 
 
 
 
-
-
-# Testing environment
-#action_dict = {
-#	"house0": 0,
-#	"house1": 1,
-#	"house2": 2}
-#obs = env.reset()
-#print(obs)
-#obs, rewards, dones, info  = env.step(action_dict)
-#print([obs, rewards, dones, info])

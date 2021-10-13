@@ -2,6 +2,7 @@ import gym
 import ray
 import numpy as np
 import warnings
+import random
 
 from datetime import datetime, timedelta
 from datetime import time
@@ -41,6 +42,7 @@ class MA_DemandResponseEnv(MultiAgentEnv):
 		reward_dict = {}
 		dones_dict = {}
 		info_dict = {}
+		info_dict["cluster_hvac_power"] = cluster_hvac_power
 		
 
 		return obs_dict, reward_dict, dones_dict, info_dict
@@ -129,7 +131,7 @@ class SingleHouse(object):
 
 	def step(self, OD_temp, time_step):
 		self.updateTemperature(OD_temp, time_step)
-		print("House ID: {} -- OD_temp : {}, ID_temp: {}".format(self.id, OD_temp, self.current_temp))
+		print("House ID: {} -- OD_temp : {:f}, ID_temp: {:f}, target_temp: {:f}, diff: {:f}".format(self.id, OD_temp, self.current_temp, self.target_temp, self.current_temp-self.target_temp))
 
 	def updateTemperature(self, OD_temp, time_step):
 		time_step_sec = time_step.seconds
@@ -298,6 +300,8 @@ class ClusterHouses(object):
 		time_day = time.hour + time.minute/60.0
 
 		temperature = amplitude * np.sin(2*np.pi*(time_day + delay)/24) + bias 
+
+		temperature += random.gauss(0, self.temp_std)
 		# TODO : add noise
 
 		return temperature

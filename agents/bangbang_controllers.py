@@ -23,11 +23,11 @@ class DeadbandBangBangController(object):
 
 		if house_temp < house_target_temp-house_deadband/2:
 			action = False
-			print("Too cold!")
+			#print("Too cold!")
 
 		elif house_temp > house_target_temp+house_deadband/2:
 			action = True
-			print("Too hot!")
+			#print("Too hot!")
 		else:
 			action = hvac_turned_on
 
@@ -74,11 +74,11 @@ class BasicController(object):
 
 		if house_temp < house_target_temp-house_deadband/2:
 			action = False
-			print("Too cold!")
+			#print("Too cold!")
 
 		elif house_temp > house_target_temp+house_deadband/2:
 			action = True
-			print("Too hot!")
+			#print("Too hot!")
 		else:
 			action = hvac_turned_on
 
