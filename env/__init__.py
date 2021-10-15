@@ -1,1 +1,1 @@
-from .MA_DemandResponse import MA_DemandResponseEnv
+from .MA_DemandResponse import MADemandResponseEnv
