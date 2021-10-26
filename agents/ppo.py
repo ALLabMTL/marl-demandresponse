@@ -4,6 +4,7 @@ import torch.optim as optim
 
 PPO_CLIP = 0.2
 
+
 class ppo_agent():
     """"
     https://github.com/Rafael1s/Deep-Reinforcement-Learning-Algorithms/blob/master/MountainCarContinuous_PPO/ppo.py
@@ -26,6 +27,7 @@ class ppo_agent():
         self.MSELoss = nn.MSELoss()
 
         self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
+    def loss():
 
     def update(self, rollouts):
         advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
@@ -34,8 +36,7 @@ class ppo_agent():
 
         for e in range(self.ppo_epoch):
 
-            data_generator = rollouts.feed_forward_generator(
-                    advantages, self.num_mini_batch)
+            data_generator = rollouts.feed_forward_generator(advantages, self.num_mini_batch)
             for sample in data_generator:
                 obs_batch, recurrent_hidden_states_batch, actions_batch, \
                    return_batch, masks_batch, old_action_log_probs_batch, \
