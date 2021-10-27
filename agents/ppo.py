@@ -1,61 +1,107 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
+from torch.distributions import Categorical
+from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+import os
+import time
+from network import Actor, Critic
 
-PPO_CLIP = 0.2
 
+class PPO():
+    def __init__(self, seed=1, bs=32, gamma=0.99, buffer_capacity=1000, ppo_update_time=10, max_grad_norm=0.5, clip_param=0.2):
+        super(PPO, self).__init__()
+        self.seed = seed
+        torch.manual_seed(self.seed)
 
-class ppo_agent():
-    """"
-    https://github.com/Rafael1s/Deep-Reinforcement-Learning-Algorithms/blob/master/MountainCarContinuous_PPO/ppo.py
-    """
-    def __init__(self,
-                 actor_critic,
-                 # clip_param,
-                 ppo_epoch,
-                 num_mini_batch,
-                 lr=None,
-                 eps=None,
-                 max_grad_norm=None):
-
-        self.actor_critic = actor_critic
-
-        self.ppo_epoch = ppo_epoch
-        self.num_mini_batch = num_mini_batch
-
+        self.batch_size = bs
+        self.actor_net = Actor()
+        self.critic_net = Critic()
+        self.buffer = []
+        self.buffer_capacity = buffer_capacity
+        self.ppo_update_time = ppo_update_time
         self.max_grad_norm = max_grad_norm
-        self.MSELoss = nn.MSELoss()
+        self.clip_param = clip_param
+        self.gamma = gamma
+        self.counter = 0
+        self.training_step = 0
 
-        self.optimizer = optim.Adam(actor_critic.parameters(), lr=lr, eps=eps)
-    def loss():
+        self.actor_optimizer = optim.Adam(self.actor_net.parameters(), 1e-3)
+        self.critic_net_optimizer = optim.Adam(self.critic_net.parameters(), 3e-3)
+        if not os.path.exists('../param'):
+            os.makedirs('../param/net_param')
+            os.makedirs('../param/img')
 
-    def update(self, rollouts):
-        advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
-        advantages = (advantages - advantages.mean()) / (
-            advantages.std() + 1e-5)
+    def select_action(self, state):
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        with torch.no_grad():
+            action_prob = self.actor_net(state)
+        c = Categorical(action_prob)
+        action = c.sample()
+        return action.item(), action_prob[:,action.item()].item()
 
-        for e in range(self.ppo_epoch):
+    def get_value(self, state):
+        state = torch.from_numpy(state)
+        with torch.no_grad():
+            value = self.critic_net(state)
+        return value.item()
 
-            data_generator = rollouts.feed_forward_generator(advantages, self.num_mini_batch)
-            for sample in data_generator:
-                obs_batch, recurrent_hidden_states_batch, actions_batch, \
-                   return_batch, masks_batch, old_action_log_probs_batch, \
-                        adv_targ = sample
+    def save_param(self):
+        torch.save(self.actor_net.state_dict(), '../param/net_param/actor_net' + str(time.time())[:10], +'.pth')
+        torch.save(self.critic_net.state_dict(), '../param/net_param/critic_net' + str(time.time())[:10], +'.pth')
 
-                # Reshape to do in a single forward pass for all steps
-                values, action_log_probs, dist_entropy, states = self.actor_critic.evaluate_actions(
-                    obs_batch, recurrent_hidden_states_batch,
-                    masks_batch, actions_batch)
+    def store_transition(self, transition):
+        self.buffer.append(transition)
+        self.counter += 1
 
-                ratio = torch.exp(action_log_probs - old_action_log_probs_batch)
-                surr1 = ratio * adv_targ
-                surr2 = torch.clamp(ratio, 1.0 - PPO_CLIP, 1.0 + PPO_CLIP) * adv_targ
+    def update(self, i_ep):
+        state = torch.tensor([t.state for t in self.buffer], dtype=torch.float)
+        action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view(-1, 1)
+        reward = [t.reward for t in self.buffer]
+        # update: don't need next_state
+        # reward = torch.tensor([t.reward for t in self.buffer], dtype=torch.float).view(-1, 1)
+        # next_state = torch.tensor([t.next_state for t in self.buffer], dtype=torch.float)
+        old_action_log_prob = torch.tensor([t.a_log_prob for t in self.buffer], dtype=torch.float).view(-1, 1)
 
-                value_loss = (return_batch - values).pow(2)
+        R = 0
+        Gt = []
+        for r in reward[::-1]:
+            R = r + self.gamma * R
+            Gt.insert(0, R)
+        Gt = torch.tensor(Gt, dtype=torch.float)
+        # print("The agent is updateing....")
+        for i in range(self.ppo_update_time):
+            for index in BatchSampler(SubsetRandomSampler(range(len(self.buffer))), self.batch_size, False):
+                if self.training_step % 1000 == 0:
+                    print('I_ep {} ，train {} times'.format(i_ep, self.training_step))
+                # with torch.no_grad():
+                Gt_index = Gt[index].view(-1, 1)
+                V = self.critic_net(state[index])
+                delta = Gt_index - V
+                advantage = delta.detach()
+                # epoch iteration, PPO core
+                action_prob = self.actor_net(state[index]).gather(1, action[index]) # new policy
 
-                self.optimizer.zero_grad()
-                loss = -torch.min(surr1, surr2) + 0.5 * value_loss - 0.01 * dist_entropy # vers-20
-                loss.mean().backward()
-       
-                nn.utils.clip_grad_norm_(self.actor_critic.parameters(), self.max_grad_norm)
-                self.optimizer.step()
+                ratio = (action_prob / old_action_log_prob[index])
+                surr1 = ratio * advantage
+                surr2 = torch.clamp(ratio, 1 - self.clip_param, 1 + self.clip_param) * advantage
+
+                # update actor network
+                action_loss = -torch.min(surr1, surr2).mean()  # MAX->MIN desent
+                self.writer.add_scalar('loss/action_loss', action_loss, global_step=self.training_step)
+                self.actor_optimizer.zero_grad()
+                action_loss.backward()
+                nn.utils.clip_grad_norm_(self.actor_net.parameters(), self.max_grad_norm)
+                self.actor_optimizer.step()
+
+                # update critic network
+                value_loss = F.mse_loss(Gt_index, V)
+                self.writer.add_scalar('loss/value_loss', value_loss, global_step=self.training_step)
+                self.critic_net_optimizer.zero_grad()
+                value_loss.backward()
+                nn.utils.clip_grad_norm_(self.critic_net.parameters(), self.max_grad_norm)
+                self.critic_net_optimizer.step()
+                self.training_step += 1
+
+        del self.buffer[:] # clear experience
