@@ -1,2 +1,4 @@
 
 *.pyc
+.ipynb_checkpoints/explore-checkpoint.ipynb
+explore.ipynb
