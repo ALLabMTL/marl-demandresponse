@@ -10,7 +10,7 @@ from agents.network import Actor, Critic
 
 
 class PPO():
-    def __init__(self, seed=1, bs=32, gamma=0.99, buffer_capacity=1000, ppo_update_time=10, max_grad_norm=0.5, clip_param=0.2, num_state=19, num_action=1):
+    def __init__(self, seed=1, bs=32, gamma=0.99, buffer_capacity=1000, ppo_update_time=10, max_grad_norm=0.5, clip_param=0.2, num_state=18, num_action=1):
         super(PPO, self).__init__()
         self.seed = seed
         torch.manual_seed(self.seed)

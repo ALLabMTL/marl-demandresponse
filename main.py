@@ -56,3 +56,4 @@ for i in range(num_steps):
 average_cluster_hvac_power = total_cluster_hvac_power / num_steps
 average_hvac_power = average_cluster_hvac_power / nb_houses
 print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(average_cluster_hvac_power, average_hvac_power))
+
