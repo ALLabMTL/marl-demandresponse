@@ -11,7 +11,7 @@ from collections import namedtuple
 from itertools import count
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv as env
-from utils import datetime2List, superDict2List, normSuperDict
+from utils import normSuperDict
 
 
 nb_houses = 100
@@ -80,14 +80,9 @@ if __name__ == '__main__':
             action_prob = {k:action_and_prob[k][1] for k in obs_dict.keys()}
             next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             for k in obs_dict.keys():
-                agent.store_transition(Transition(state[k], action[k], action_prob[k], rewards_dict[k], next_obs_dict[k]))
+                agent.store_transition(Transition(obs_dict[k], action[k], action_prob[k], rewards_dict[k], next_obs_dict[k]))
                 if render:
                     env.render()
             obs_dict = next_obs_dict
-
-    #             if done: ## Question
-    #                 if len(agent.buffer) >= agent.batch_size:
-    #                     agent.update(episode)
-    #                 break
         if len(agent.buffer) >= agent.batch_size:
             agent.update(episode)
