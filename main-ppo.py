@@ -49,7 +49,6 @@ for hvac_id in hvacs_id_registry.keys():
     agent_prop = {"id": hvac_id}
 
     # actors[hvac_id] = DeadbandBangBangController(agent_prop)
-    actors[hvac_id] = DeadbandBangBangController(agent_prop)
 
 # obs = env.reset()
 
