@@ -73,7 +73,9 @@ class MADemandResponseEnv(MultiAgentEnv):
         rewards_dict = self.compute_rewards(temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal)
         dones_dict = self.make_done_dict()
         info_dict = {"cluster_hvac_power": cluster_hvac_power}
+        print(temp_penalty_dict)
         print("cluster_hvac_power: {}, power_grid_reg_signal: {}".format(cluster_hvac_power, power_grid_reg_signal))
+        print(rewards_dict)
 
         return obs_dict, rewards_dict, dones_dict, info_dict
 
@@ -372,4 +374,5 @@ class PowerGrid(object):
             bias = self.avg_power_per_hvac * self.nb_hvac
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
             self.current_signal = amplitude * np.sin(2 * np.pi * time_sec / wavelength) + bias
+            print(self.current_signal)
         return self.current_signal
