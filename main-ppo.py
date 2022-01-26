@@ -72,8 +72,8 @@ if __name__ == '__main__':
         obs_dict = env.reset()
         if render:
             env.render()
-        # for t in count():
-        for t in range(max_iter):
+        # collecting buffer information
+        for t in range(min.(max_iter, env.buffer_capacity)):
             action_and_prob = {k:agent.select_action(np.array(normSuperDict(obs_dict, k))) for k in obs_dict.keys()}
             action = {k:action_and_prob[k][0] for k in obs_dict.keys()}
             action_prob = {k:action_and_prob[k][1] for k in obs_dict.keys()}
@@ -83,5 +83,6 @@ if __name__ == '__main__':
                 if render:
                     env.render()
             obs_dict = next_obs_dict
+        # if we have enough buffer, we start updating
         if len(agent.buffer) >= agent.batch_size:
             agent.update(episode)
