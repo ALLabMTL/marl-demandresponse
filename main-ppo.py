@@ -73,7 +73,7 @@ if __name__ == '__main__':
         if render:
             env.render()
         # collecting buffer information
-        for t in range(min.(max_iter, env.buffer_capacity)):
+        for t in range(min(max_iter, env.buffer_capacity)):
             action_and_prob = {k:agent.select_action(np.array(normSuperDict(obs_dict, k))) for k in obs_dict.keys()}
             action = {k:action_and_prob[k][0] for k in obs_dict.keys()}
             action_prob = {k:action_and_prob[k][1] for k in obs_dict.keys()}
