@@ -8,8 +8,8 @@ import warnings
 import random
 import numpy as np
 
-nb_houses = 100
-num_steps = 2000
+nb_houses = 1
+num_steps = 1000
 
 # random.seed(1)
 
@@ -42,7 +42,6 @@ actors = {}
 for hvac_id in hvacs_id_registry.keys():
     agent_prop = {"id": hvac_id}
 
-    # actors[hvac_id] = DeadbandBangBangController(agent_prop)
     actors[hvac_id] = DeadbandBangBangController(agent_prop)
 
 obs = env.reset()

@@ -3,7 +3,15 @@
 
 
 
+class AlwaysOnController(object):
+	""" Bang bang controller taking deadband into account: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
+	def __init__(self, agent_properties):
+		self.agent_properties = agent_properties
+		self.id = agent_properties["id"]
+
+	def act(self,obs):
+		return True
 
 
 

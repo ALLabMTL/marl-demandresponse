@@ -2,3 +2,13 @@
 *.pyc
 .ipynb_checkpoints/explore-checkpoint.ipynb
 explore.ipynb
+
+*.odp
+
+wandb/
+
+.idea/
+
+*.pdf
+
+Rendering.png
