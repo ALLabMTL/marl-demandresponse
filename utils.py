@@ -86,3 +86,31 @@ def normSuperDict(sDict, id, returnDict=False):
     result["hvac_seconds_since_off"] = sDict[id]["hvac_seconds_since_off"]/sDict[id]["hvac_lockout_duration"]
     result["hvac_lockout_duration"] = sDict[id]["hvac_lockout_duration"]/sDict[id]["hvac_lockout_duration"]
     return result if returnDict else list(result.values())
+
+def normStateDict(sDict, returnDict=False):
+    result = {}
+    k_temp = ['OD_temp','house_temp','house_target_temp']
+    k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']
+    # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
+    for k in k_temp:
+        result[k] = (sDict[k]-default_house_prop["target_temp"])/noise_house_prop["std_target_temp"]
+    result["house_deadband"] = sDict["house_deadband"]/noise_house_prop["std_target_temp"]
+    day = sDict['datetime'].timetuple().tm_yday
+    hour = sDict['datetime'].hour
+    result["sin_day"] = (np.sin(day*2*np.pi/365))
+    result["cos_day"] = (np.cos(day*2*np.pi/365))
+    result["sin_hr"] = np.sin(hour*2*np.pi/24)
+    result["cos_hr"] = np.cos(hour*2*np.pi/24)
+    for k in k_div:
+        k1 = "_".join(k.split("_")[1:])
+        if k1 in list(default_house_prop.keys()):
+            result[k] = sDict[k]/default_house_prop[k1]
+        elif k1 in list(default_hvac_prop.keys()):
+            result[k] = sDict[k]/default_hvac_prop[k1]
+        else:
+            print(k)
+            raise Exception("Error Key Matching.")
+    result["hvac_turned_on"] = sDict["hvac_turned_on"]
+    result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
+    result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"]/sDict["hvac_lockout_duration"]
+    return result if returnDict else np.array(list(result.values()))

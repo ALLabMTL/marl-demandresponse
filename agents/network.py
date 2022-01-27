@@ -8,9 +8,10 @@ class Actor(nn.Module):
         self.fc1 = nn.Linear(num_state, 100)
         self.action_head = nn.Linear(100, num_action)
 
-    def forward(self, x):
+    def forward(self, x, temp = 1):
         x = F.relu(self.fc1(x))
-        action_prob = F.softmax(self.action_head(x), dim=1)
+        x = self.action_head(x)
+        action_prob = F.softmax(x/temp, dim=1)
         return action_prob
 
 

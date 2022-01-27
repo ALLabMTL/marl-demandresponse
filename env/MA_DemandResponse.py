@@ -73,7 +73,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         rewards_dict = self.compute_rewards(temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal)
         dones_dict = self.make_done_dict()
         info_dict = {"cluster_hvac_power": cluster_hvac_power}
-        print("cluster_hvac_power: {}, power_grid_reg_signal: {}".format(cluster_hvac_power, power_grid_reg_signal))
+        #print("cluster_hvac_power: {}, power_grid_reg_signal: {}".format(cluster_hvac_power, power_grid_reg_signal))
 
         return obs_dict, rewards_dict, dones_dict, info_dict
 
@@ -86,7 +86,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         rewards_dict: dict[str, float] = {}
         signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal)
         for agent_id in self.agent_ids:
-            rewards_dict[agent_id] = temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty
+            rewards_dict[agent_id] = -1 * (temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty)
         return rewards_dict
 
     def make_done_dict(self):
@@ -180,16 +180,26 @@ class SingleHouse(object):
             self.hvacs[hvac.id] = hvac
             self.hvacs_ids.append(hvac.id)
 
+        self.disp_count = 0
+
     def step(self, od_temp, time_step):
         self.update_temperature(od_temp, time_step)
-        print(
-            "House ID: {} -- OD_temp : {:f}, ID_temp: {:f}, target_temp: {:f}, diff: {:f}, HVAC on: {}, HVAC lockdown: {}".format(
+
+        self.disp_count += 1
+        if self.disp_count >= 100:
+            print("House ID: {} -- OD_temp : {:f}, ID_temp: {:f}, target_temp: {:f}, diff: {:f}, HVAC on: {}, HVAC lockdown: {}".format(
                 self.id, od_temp, self.current_temp, self.target_temp, self.current_temp - self.target_temp,
                 self.hvacs[self.id + "_1"].turned_on, self.hvacs[self.id + "_1"].seconds_since_off))
+            self.disp_count = 0
 
     def update_temperature(self, od_temp, time_step):
         time_step_sec = time_step.seconds
         Hm, Ca, Ua, Cm = self.Hm, self.Ca, self.Ua, self.Cm
+
+        # Temperatures in K
+        od_temp_K = od_temp + 273
+        current_temp_K = self.current_temp + 273
+        current_mass_temp_K = self.current_mass_temp + 273
 
         # Model taken from http://gridlab-d.shoutwiki.com/wiki/Residential_module_user's_guide
 
@@ -209,23 +219,32 @@ class SingleHouse(object):
         a = Cm * Ca / Hm
         b = Cm * (Ua + Hm) / Hm + Ca
         c = Ua
-        d = Qm + Qa + Ua * od_temp
+        d = Qm + Qa + Ua * od_temp_K
         g = Qm / Hm
 
         r1 = (-b + np.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
         r2 = (-b - np.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
 
-        dTA0dt = Hm / (Ca * self.current_mass_temp) - (Ua + Hm) / (Ca * self.current_temp) + Ua / (
-                Ca * od_temp) + Qa / Ca
+        dTA0dt = Hm / (Ca * current_mass_temp_K) - (Ua + Hm) / (Ca * current_temp_K) + Ua / (
+                Ca * od_temp_K) + Qa / Ca
 
-        A1 = (r2 * self.current_temp - dTA0dt - r2 * d / c) / (r2 - r1)
-        A2 = self.current_temp - d / c - A1
+        A1 = (r2 * current_temp_K - dTA0dt - r2 * d / c) / (r2 - r1)
+        A2 = current_temp_K - d / c - A1
         A3 = r1 * Ca / Hm + (Ua + Hm) / Hm
         A4 = r2 * Ca / Hm + (Ua + Hm) / Hm
 
         # Updating the temperature
-        self.current_temp = A1 * np.exp(r1 * time_step_sec) + A2 * np.exp(r2 * time_step_sec) + d / c
-        self.current_mass_temp = A1 * A3 * np.exp(r1 * time_step_sec) + A2 * A4 * np.exp(r2 * time_step_sec) + g + d / c
+        old_temp_K = current_temp_K
+        new_current_temp_K = A1 * np.exp(r1 * time_step_sec) + A2 * np.exp(r2 * time_step_sec) + d / c
+        new_current_mass_temp_K = A1 * A3 * np.exp(r1 * time_step_sec) + A2 * A4 * np.exp(r2 * time_step_sec) + g + d / c
+
+
+        self.current_temp = new_current_temp_K - 273   
+        self.current_mass_temp = new_current_mass_temp_K - 273
+
+        #if np.abs(old_temp_K - current_temp_K) > 1 or True:
+        #    print("Old ID temp: {}, current ID temp: {}, time_step_sec: {}".format(old_temp_K, current_temp_K, time_step_sec))
+        #    print("A1: {}, r1: {}, A2: {}, r2: {}, d: {}, c: {}, dTA0dt: {}".format(A1, r1, A2, r2, d, c, dTA0dt))
 
 
 class ClusterHouses(object):
