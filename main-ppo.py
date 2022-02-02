@@ -16,7 +16,7 @@ from collections import namedtuple
 from itertools import count
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv as env
-from utils import normSuperDict, normStateDict
+from utils import normSuperDict, normStateDict, testAgentHouseTemperature, colorPlotTestAgentHouseTemp
 
 
 os.environ["WANDB_SILENT"] = "true"
@@ -50,6 +50,9 @@ parser.add_argument("--exp", type=str, required=True,
 parser.add_argument("--no_wandb", action="store_true",
                     help="Add to prevent logging to wandb")
 
+parser.add_argument("--cooling_capacity", type=int, default=-1,
+                    help="Default cooling capacity of the HVACs")
+
 opt = parser.parse_args()
 
 
@@ -61,8 +64,11 @@ if log_wandb:
 
 
 # Creating environment
-
 random.seed(opt.env_seed)
+
+if opt.cooling_capacity != -1:
+    default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
+
 
 ## Creating houses
 houses_properties = []
@@ -95,6 +101,7 @@ if __name__ == '__main__':
     agent = PPO(seed=opt.net_seed ,bs=opt.ppo_bs, log_wandb=log_wandb)
     render = False
     temp = 1.1
+    prob_on_episode = np.empty(100)
     for episode in range(opt.nb_tr_episodes):
         obs_dict = env.reset()
         mean_return = 0
@@ -115,3 +122,8 @@ if __name__ == '__main__':
                 wandb.log({"Mean return": mean_return})
         if len(agent.buffer) >= agent.batch_size:
             agent.update(episode)
+        prob_on = testAgentHouseTemperature(agent, obs_dict['0_1'], 10, 30)
+        prob_on_episode = np.vstack((prob_on_episode, testAgentHouseTemperature(agent, obs_dict['0_1'], 10, 30)))
+    prob_on_episode = prob_on_episode[1:]
+    colorPlotTestAgentHouseTemp(prob_on_episode, 10, 30, log_wandb)
+

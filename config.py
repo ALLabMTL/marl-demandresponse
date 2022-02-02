@@ -24,9 +24,9 @@ noise_house_prop = {
 default_hvac_prop = {
 	"id": 1,
 	"COP": 2.5,									# Coefficient of performance (power spent vs heat displaced)
-	"cooling_capacity": 1500,					# Cooling capacity (W) (by design, theoretical Ua * (max OD temp - target ID temp). Equivalent to 5200 BTU)
+	"cooling_capacity": 150,#1500,					# Cooling capacity (W) (by design, theoretical Ua * (max OD temp - target ID temp). Equivalent to 5200 BTU)
 	"latent_cooling_fraction": 0.35,			# Fraction of latent cooling w.r.t. sensible cooling
-	"lockout_duration": 60						# In seconds
+	"lockout_duration": 4						# In seconds
 }
 
 noise_hvac_prop = {
@@ -41,7 +41,7 @@ noise_hvac_prop = {
 
 default_env_properties = {
 	"start_datetime": '2021-01-01 06:00:00',   	# Start date and time (Y-m-d H:M:S)
-	"time_step": 60,							# Time step in seconds
+	"time_step": 4,							# Time step in seconds
 	"cluster_properties": {
 		"day_temp": 30,							# Day temperature
 		"night_temp": 23,						# Night temperature

@@ -26,6 +26,7 @@ def compute_temp_penalty(target_temp, deadband, house_temp) -> float:
     else:
         temperature_penalty = 0.0
 
+    #temperature_penalty = np.clip(temperature_penalty, -20, 0)
     return temperature_penalty
 
 
@@ -186,7 +187,7 @@ class SingleHouse(object):
         self.update_temperature(od_temp, time_step)
 
         self.disp_count += 1
-        if self.disp_count >= 100:
+        if self.disp_count >= 1000:
             print("House ID: {} -- OD_temp : {:f}, ID_temp: {:f}, target_temp: {:f}, diff: {:f}, HVAC on: {}, HVAC lockdown: {}".format(
                 self.id, od_temp, self.current_temp, self.target_temp, self.current_temp - self.target_temp,
                 self.hvacs[self.id + "_1"].turned_on, self.hvacs[self.id + "_1"].seconds_since_off))
