@@ -1,6 +1,10 @@
 import numpy as np
 import random
 from config import *
+import matplotlib.pyplot as plt
+import wandb
+import uuid
+import os
 
 
 # Applying noise on properties
@@ -114,3 +118,62 @@ def normStateDict(sDict, returnDict=False):
     result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
     result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"]/sDict["hvac_lockout_duration"]
     return result if returnDict else np.array(list(result.values()))
+
+
+def testAgentHouseTemperature(agent, state, low_temp, high_temp):
+    '''
+    Receives an agent and a given state. Tests the agent probability output for 100 points a given range of indoors temperature, returning a vector for the probability of True (on).
+    '''
+    temp_range = np.linspace(low_temp, high_temp, num=100)
+    prob_on = np.zeros(100)
+    for i in range(100):
+        temp = temp_range[i]
+        state['house_temp'] = temp
+        norm_state = normStateDict(state)
+        action, action_prob = agent.select_action(norm_state)
+        if not action: # we want probability of True
+            prob_on[i] = 1 - action_prob
+        else:
+            prob_on[i] = action_prob
+    return prob_on
+
+def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, log_wandb):
+    '''
+    Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
+    '''
+    
+
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    img = plt.imshow(np.transpose(prob_on_per_training), extent = [0, np.size(prob_on_per_training,0), high_temp,low_temp])
+    ax = plt.gca()
+    ax.invert_yaxis()
+
+    forceAspect(ax,aspect=2.0)
+
+    plt.xlabel("Training episodes")
+    plt.ylabel("Indoors temperature")
+
+
+    v1 = np.linspace(0, 1, 8, endpoint=True)
+    cb = plt.colorbar(ticks=v1)
+    cb.ax.set_yticklabels(["{:4.2f}".format(i) for i in v1], fontsize='7')
+
+    if log_wandb:
+        name = uuid.uuid1().hex + "probTestAgent.png"
+        plt.savefig(name)
+        wandb.log({"Probability of agent vs Indoor temperature vs Episode ": wandb.Image(name)})
+        os.remove(name)
+
+    else:
+        plt.show()
+    return 0
+
+
+
+def forceAspect(ax,aspect):
+    im = ax.get_images()
+    extent =  im[0].get_extent()
+    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
