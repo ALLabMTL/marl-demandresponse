@@ -1,6 +1,12 @@
 from env import *
 from agents import *
-from config import default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop, default_env_properties
+from config import (
+    default_house_prop,
+    noise_house_prop,
+    default_hvac_prop,
+    noise_hvac_prop,
+    default_env_properties,
+)
 from utils import apply_house_noise, apply_hvac_noise, get_actions
 
 import argparse
@@ -16,6 +22,7 @@ from collections import namedtuple
 from itertools import count
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv as env
+from env.renderer import Renderer
 from utils import normSuperDict, normStateDict
 
 
@@ -26,38 +33,49 @@ os.environ["WANDB_SILENT"] = "true"
 
 parser = argparse.ArgumentParser(description="Training options")
 
-parser.add_argument("--nb_agents", type=int, default=1,
-                    help="Number of agents (TCLs)")
+parser.add_argument("--nb_agents", type=int, default=1, help="Number of agents (TCLs)")
 
-parser.add_argument("--nb_tr_episodes", type=int, default=1000,
-                    help="Number of episodes for training")
+parser.add_argument(
+    "--nb_tr_episodes", type=int, default=1000, help="Number of episodes for training"
+)
 
-parser.add_argument("--nb_time_steps", type=int, default=1000,
-                    help="Number of time steps in an episode")
+parser.add_argument(
+    "--nb_time_steps", type=int, default=1000, help="Number of time steps in an episode"
+)
 
-parser.add_argument("--ppo_bs", type=int, default=32,
-                    help="Batch size of PPO")
+parser.add_argument("--ppo_bs", type=int, default=32, help="Batch size of PPO")
 
-parser.add_argument("--net_seed", type=int, default=1,
-                    help="Neural network seed")
+parser.add_argument("--net_seed", type=int, default=1, help="Neural network seed")
 
-parser.add_argument("--env_seed", type=int, default=1,
-                    help="Environment seed")
+parser.add_argument("--env_seed", type=int, default=1, help="Environment seed")
 
-parser.add_argument("--exp", type=str, required=True,
-                    help="Experiment name")
+parser.add_argument("--exp", type=str, required=True, help="Experiment name")
 
-parser.add_argument("--no_wandb", action="store_true",
-                    help="Add to prevent logging to wandb")
+parser.add_argument(
+    "--no_wandb", action="store_true", help="Add to prevent logging to wandb"
+)
+
+parser.add_argument(
+    "--render",
+    action="store_true",
+    help="Add to generate a visual render of the simulation",
+)
 
 opt = parser.parse_args()
 
 
 log_wandb = not opt.no_wandb
-
+render = opt.render
 # Starting WandB
 if log_wandb:
-    wandb.init(settings=wandb.Settings(start_method='fork'), project="ProofConcept", entity="marl-dr", config=opt, name="%s_TCLs-%d_envseed-%d_netseed-%d"%(opt.exp, opt.nb_agents, opt.env_seed, opt.net_seed))
+    wandb.init(
+        settings=wandb.Settings(start_method="fork"),
+        project="ProofConcept",
+        entity="marl-dr",
+        config=opt,
+        name="%s_TCLs-%d_envseed-%d_netseed-%d"
+        % (opt.exp, opt.nb_agents, opt.env_seed, opt.net_seed),
+    )
 
 
 # Creating environment
@@ -89,29 +107,50 @@ env = MADemandResponseEnv(env_properties)
 hvacs_id_registry = env.cluster.hvacs_id_registry
 
 
-## Training loop          
-if __name__ == '__main__':
-    Transition = namedtuple('Transition', ['state', 'action', 'a_log_prob', 'reward', 'next_state'])
-    agent = PPO(seed=opt.net_seed ,bs=opt.ppo_bs, log_wandb=log_wandb)
-    render = False
+## Training loop
+if __name__ == "__main__":
+    Transition = namedtuple(
+        "Transition", ["state", "action", "a_log_prob", "reward", "next_state"]
+    )
+    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb)
     temp = 1.1
+    if render:
+        renderer = Renderer(opt.nb_agents)
     for episode in range(opt.nb_tr_episodes):
+
         obs_dict = env.reset()
+
         mean_return = 0
-        if render:
-            env.render()
         for t in range(opt.nb_time_steps):
-            action_and_prob = {k:agent.select_action(normStateDict(obs_dict[k]), temp=temp) for k in obs_dict.keys()}
-            action = {k:action_and_prob[k][0] for k in obs_dict.keys()}
-            action_prob = {k:action_and_prob[k][1] for k in obs_dict.keys()}
+
+            action_and_prob = {
+                k: agent.select_action(normStateDict(obs_dict[k]), temp=temp)
+                for k in obs_dict.keys()
+            }
+            action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
+            action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
             next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             mean_reward = 0
             for k in obs_dict.keys():
-                agent.store_transition(Transition(normStateDict(obs_dict[k]), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k])))
-                mean_reward += rewards_dict[k]/opt.nb_agents
+                agent.store_transition(
+                    Transition(
+                        normStateDict(obs_dict[k]),
+                        action[k],
+                        action_prob[k],
+                        rewards_dict[k],
+                        normStateDict(next_obs_dict[k]),
+                    )
+                )
+                mean_reward += rewards_dict[k] / opt.nb_agents
+
             obs_dict = next_obs_dict
-            mean_return += float(mean_reward)/opt.nb_time_steps
+            mean_return += float(mean_reward) / opt.nb_time_steps
+            if render:
+
+                renderer.render(obs_dict)
+
         if log_wandb:
-                wandb.log({"Mean return": mean_return})
+            wandb.log({"Mean return": mean_return})
         if len(agent.buffer) >= agent.batch_size:
+
             agent.update(episode)

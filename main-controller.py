@@ -1,6 +1,12 @@
 from env import *
 from agents import *
-from config import default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop, default_env_properties
+from config import (
+    default_house_prop,
+    noise_house_prop,
+    default_hvac_prop,
+    noise_hvac_prop,
+    default_env_properties,
+)
 from utils import apply_house_noise, apply_hvac_noise, get_actions
 
 from copy import deepcopy
@@ -54,5 +60,8 @@ for i in range(num_steps):
 
 average_cluster_hvac_power = total_cluster_hvac_power / num_steps
 average_hvac_power = average_cluster_hvac_power / nb_houses
-print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(average_cluster_hvac_power, average_hvac_power))
-
+print(
+    "Average cluster hvac power: {:f} W, per hvac: {:f} W".format(
+        average_cluster_hvac_power, average_hvac_power
+    )
+)
