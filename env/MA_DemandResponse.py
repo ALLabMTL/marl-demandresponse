@@ -226,7 +226,7 @@ class SingleHouse(object):
         r1 = (-b + np.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
         r2 = (-b - np.sqrt(b ** 2 - 4 * a * c)) / (2 * a)
 
-        dTA0dt = Hm / (Ca * current_mass_temp_K) - (Ua + Hm) / (Ca * current_temp_K) + Ua / (
+        dTA0dt = Hm*current_mass_temp_K / Ca  - (Ua + Hm)*current_temp_K / Ca  + Ua*od_temp_K / Ca  + Qa / Ca
                 Ca * od_temp_K) + Qa / Ca
 
         A1 = (r2 * current_temp_K - dTA0dt - r2 * d / c) / (r2 - r1)

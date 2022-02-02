@@ -53,6 +53,9 @@ parser.add_argument("--no_wandb", action="store_true",
 parser.add_argument("--cooling_capacity", type=int, default=-1,
                     help="Default cooling capacity of the HVACs")
 
+parser.add_argument("--time_step", type=int, default=-1,
+                    help="Time step in seconds")
+
 opt = parser.parse_args()
 
 
@@ -68,6 +71,8 @@ random.seed(opt.env_seed)
 
 if opt.cooling_capacity != -1:
     default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
+if opt.time_step != -1:
+    default_env_properties['time_step'] = opt.time_step
 
 
 ## Creating houses
