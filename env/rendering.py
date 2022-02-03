@@ -565,11 +565,9 @@ class SimpleImageViewer(object):
         self.window.flip()
 
     def close(self):
-        print("close1")
         if self.isopen and sys.meta_path:
             # ^^^ check sys.meta_path to avoid 'ImportError: sys.meta_path is None, Python is likely shutting down'
             self.window.close()
-            print("close")
             self.isopen = False
 
     def __del__(self):

@@ -166,7 +166,6 @@ if __name__ == "__main__":
             obs_dict = next_obs_dict
             mean_return += float(mean_reward) / opt.nb_time_steps
             if render:
-
                 renderer.render(obs_dict)
 
         if log_wandb:

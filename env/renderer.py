@@ -209,8 +209,7 @@ class Renderer(object):
             )
 
     def edit_data(self, df):
-        print(df)
-        print(df.columns)
+
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
         self.data_messages["Number of HVAC Turned ON"] = str(df["hvac_turned_on"].sum())

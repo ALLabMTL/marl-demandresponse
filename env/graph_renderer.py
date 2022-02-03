@@ -43,22 +43,25 @@ def make_graph(temperature, signal, timestep):
 
     gs = fig.add_gridspec(2, hspace=0)
     axs = gs.subplots(sharex=True)
-    fig.suptitle("Sharing both axes", color="white")
+    fig.suptitle(
+        "Evolution of the temperature and \nthe energy consumption for the last timesteps",
+        color="white",
+    )
     fig.set_size_inches(6.4, 6.6)
     plt.xticks(x)
     axs[0].plot(x, signal, color="dodgerblue")
     # axs[0].plot(signal , color="orange")
-    axs[0].set_ylabel("Énergie", color="white")
+    axs[0].set_ylabel("Regulation signal", color="white")
     axs[0].legend(
-        ["Consommation totale", "Consommation totale cible"],
+        ["Target Signal", "Consommation totale cible"],
         loc="lower right",
         framealpha=0.3,
     )
     axs[0].grid(color="0.3")
     axs[1].plot(x, temperature, color="orangered")
-    axs[1].legend(["Température"], loc="lower right", framealpha=0.3)
+    axs[1].legend(["Temperature"], loc="lower right", framealpha=0.3)
 
-    axs[1].set_ylabel("Température", color="white")
+    axs[1].set_ylabel("Average temperature difference", color="white")
     axs[1].grid(color="0.3")
 
     # cax = divider.append_axes("bottom", size="100%", pad=0.05)
