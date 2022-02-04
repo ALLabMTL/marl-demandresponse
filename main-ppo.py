@@ -38,26 +38,59 @@ os.environ["WANDB_SILENT"] = "true"
 
 parser = argparse.ArgumentParser(description="Training options")
 
-parser.add_argument("--nb_agents", type=int, default=1, help="Number of agents (TCLs)")
-
 parser.add_argument(
-    "--nb_tr_episodes", type=int, default=1000, help="Number of episodes for training"
+    "--nb_agents", 
+    type=int, 
+    default=1, 
+    help="Number of agents (TCLs)",
 )
 
 parser.add_argument(
-    "--nb_time_steps", type=int, default=1000, help="Number of time steps in an episode"
+    "--nb_tr_episodes", 
+    type=int, 
+    default=1000, 
+    help="Number of episodes for training",
 )
 
-parser.add_argument("--ppo_bs", type=int, default=32, help="Batch size of PPO")
-
-parser.add_argument("--net_seed", type=int, default=1, help="Neural network seed")
-
-parser.add_argument("--env_seed", type=int, default=1, help="Environment seed")
-
-parser.add_argument("--exp", type=str, required=True, help="Experiment name")
+parser.add_argument(
+    "--nb_time_steps", 
+    type=int, 
+    default=1000, 
+    help="Number of time steps in an episode",
+)
 
 parser.add_argument(
-    "--no_wandb", action="store_true", help="Add to prevent logging to wandb"
+    "--ppo_bs", 
+    type=int, 
+    default=32, 
+    help="Batch size of PPO",
+)
+
+parser.add_argument(
+    "--net_seed", 
+    type=int, 
+    default=1, 
+    help="Neural network seed",
+)
+
+parser.add_argument(
+    "--env_seed", 
+    type=int, 
+    default=1, 
+    help="Environment seed",
+)
+
+parser.add_argument(
+    "--exp", 
+    type=str, 
+    required=True, 
+    help="Experiment name",
+)
+
+parser.add_argument(
+    "--no_wandb", 
+    action="store_true", 
+    help="Add to prevent logging to wandb",
 )
 
 parser.add_argument(
@@ -73,8 +106,19 @@ parser.add_argument(
     help="Default cooling capacity of the HVACs",
 )
 
-parser.add_argument("--lockout_duration", type=int, default=-1,
-                    help="Default AC lockout duration, in seconds")
+parser.add_argument(
+    "--time_step",
+    type=int, 
+    default=-1, 
+    help="Time step in seconds",
+)
+
+parser.add_argument(
+    "--lockout_duration", 
+    type=int, 
+    default=-1,
+    help="Default AC lockout duration, in seconds",
+)
 
 opt = parser.parse_args()
 
@@ -177,8 +221,6 @@ if __name__ == "__main__":
 
             agent.update(episode)
         prob_on = testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)
-        prob_on_episode = np.vstack(
-            (prob_on_episode, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30))
-        )
+        prob_on_episode = np.vstack((prob_on_episode, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
     prob_on_episode = prob_on_episode[1:]
     colorPlotTestAgentHouseTemp(prob_on_episode, 10, 30, log_wandb)
