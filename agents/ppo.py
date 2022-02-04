@@ -38,6 +38,7 @@ class PPO():
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
             action_prob = self.actor_net(state, temp)
+        #print(action_prob)
         c = Categorical(action_prob)
         action = c.sample()
         return action.item(), action_prob[:,action.item()].item()
@@ -75,7 +76,6 @@ class PPO():
                     print('I_ep {} ，train {} times'.format(i_ep, self.training_step))
                 # with torch.no_grad():
                 Gt_index = Gt[index].view(-1, 1)
-
 
                 V = self.critic_net(state[index])
                 delta = Gt_index - V

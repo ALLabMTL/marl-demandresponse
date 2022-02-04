@@ -73,7 +73,8 @@ parser.add_argument(
     help="Default cooling capacity of the HVACs",
 )
 
-parser.add_argument("--time_step", type=int, default=-1, help="Time step in seconds")
+parser.add_argument("--lockout_duration", type=int, default=-1,
+                    help="Default AC lockout duration, in seconds")
 
 opt = parser.parse_args()
 
@@ -95,10 +96,12 @@ if log_wandb:
 # Creating environment
 random.seed(opt.env_seed)
 
-if opt.cooling_capacity != -1:
-    default_hvac_prop["cooling_capacity"] = opt.cooling_capacity
 if opt.time_step != -1:
-    default_env_properties["time_step"] = opt.time_step
+    default_env_properties['time_step'] = opt.time_step
+if opt.cooling_capacity != -1:
+    default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
+if opt.lockout_duration != -1:
+    default_hvac_prop['lockout_duration'] = opt.lockout_duration
 
 
 ## Creating houses

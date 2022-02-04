@@ -15,7 +15,7 @@ import random
 import numpy as np
 
 nb_houses = 1
-num_steps = 1000
+num_steps = 10000000
 
 # random.seed(1)
 
@@ -25,10 +25,10 @@ houses_properties = []
 agent_ids = []
 for i in range(nb_houses):
     house_prop = deepcopy(default_house_prop)
-    apply_house_noise(house_prop, noise_house_prop)
+    #apply_house_noise(house_prop, noise_house_prop)
     house_prop["id"] = str(i)
     hvac_prop = deepcopy(default_hvac_prop)
-    apply_hvac_noise(hvac_prop, noise_hvac_prop)
+    #apply_hvac_noise(hvac_prop, noise_hvac_prop)
     hvac_id = str(i) + "_1"
     hvac_prop["id"] = hvac_id
     agent_ids.append(hvac_id)
@@ -48,7 +48,7 @@ actors = {}
 for hvac_id in hvacs_id_registry.keys():
     agent_prop = {"id": hvac_id}
 
-    actors[hvac_id] = DeadbandBangBangController(agent_prop)
+    actors[hvac_id] = AlwaysOnController(agent_prop)
 
 obs = env.reset()
 
