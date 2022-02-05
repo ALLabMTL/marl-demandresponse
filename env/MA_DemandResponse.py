@@ -451,3 +451,91 @@ class PowerGrid(object):
                 amplitude * np.sin(2 * np.pi * time_sec / wavelength) + bias
             )
         return self.current_signal
+
+def solar_cooling_load(t):
+    """
+    Return: A float (The solar cooling load for a given time in a region of latitude 30 in W/(m*m))
+
+    CIBSE. (2015). Environmental Design - CIBSE Guide A (8th Edition) - 5.9.7 Solar Cooling Load Tables. CIBSE.
+    Retrieved from https://app.knovel.com/hotlink/pdf/id:kt0114THK9/environmental-design/solar-cooling-load-tables
+    Table available: https://www.cibse.org/Knowledge/Guide-A-2015-Supplementary-Files/Chapter-5
+
+    Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
+
+    Based on the following assumptions.
+    - Latitude is 30. (The latitude of Austin in Texas is 30.266666)
+    - The SCL before 7:30 and after 17:30 is negligible for latitude 30.
+    - The windows are distributed perfectly evenly around the building.
+    - There are no horizontal windows, for example on the roof.
+
+    Parameters
+    ----------
+    t : a time structure time.struct_time available after importing the time module
+    Represents the time of year and day for which the formula is applied.
+    """
+    x = time.tm_hour + time.tm_min / 60 - 7.5
+    # The SCL before 7:30 and after 17:30 is negligible for latitude 30
+    if x < 0 or x > 10:
+        return 0
+    y = time.tm_mon + time.tm_mday / 30
+    # Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
+    coeff = [
+        4.36579418e01,
+        1.58055357e02,
+        8.76635241e01,
+        -4.55944821e01,
+        3.24275366e00,
+        -4.56096472e-01,
+        -1.47795612e01,
+        4.68950855e00,
+        -3.73313090e01,
+        5.78827663e00,
+        1.04354810e00,
+        2.12969604e-02,
+        2.58881400e-03,
+        -5.11397219e-04,
+        1.56398008e-02,
+        -1.18302764e-01,
+        -2.71446436e-01,
+        -3.97855577e-02,
+    ]
+    return (
+        coeff[0]
+        + x * coeff[1]
+        + y * coeff[2]
+        + x ** 2 * coeff[3]
+        + x ** 2 * y * coeff[4]
+        + x ** 2 * y ** 2 * coeff[5]
+        + y ** 2 * coeff[6]
+        + x * y ** 2 * coeff[7]
+        + x * y * coeff[8]
+        + x ** 3 * coeff[9]
+        + y ** 3 * coeff[10]
+        + x ** 3 * y * coeff[11]
+        + x ** 3 * y ** 2 * coeff[12]
+        + x ** 3 * y ** 3 * coeff[13]
+        + x ** 2 * y ** 3 * coeff[14]
+        + x * y ** 3 * coeff[15]
+        + x ** 4 * coeff[16]
+        + y ** 4 * coeff[17]
+    )
+
+
+def direct_solar_radiation(area, shading_coefficient, t):
+    """
+    Return: A float
+    (An approximation of the direct solar radiation passing through the windows at a given moment in Watt)
+
+    Parameters
+    ----------
+    area : A float
+    Represents the total glazed area in square meters for which the calculation is applied.
+
+    shading_coefficient : A float
+    Represent the ratio of the solar heat going through a given glass type under specific conditions.
+    Is usually given by the manufacturer and has no unit.
+
+    t : A time structure time.struct_time available after importing the time module
+    Represents the time of year and day for which the formula is applied.
+    """
+    return area * shading_coefficient * solar_cooling_load(time)
