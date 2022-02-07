@@ -10,6 +10,8 @@ default_house_prop = {
 	"Cm" : 3.45e06,							# House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)
 	"Ca" : 9.08e05,						# Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
 	"Hm" : 2.84e03,							# House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.14 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))
+	"window_area" : 7.175, 						# Gross window area, in m^2  
+	"shading_coeff": 0.67 					# Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
 }
 
 noise_house_prop = {
@@ -23,7 +25,7 @@ noise_house_prop = {
 default_hvac_prop = {
 	"id": 1,
 	"COP": 2.5,									# Coefficient of performance (power spent vs heat displaced)
-	"cooling_capacity": 1500,#1500,					# Cooling capacity (W) (by design, theoretical Ua * (max OD temp - target ID temp). Equivalent to 5200 BTU)
+	"cooling_capacity": 4000,#1500,					# Cooling capacity (W) (by design, theoretical Ua * (max OD temp - target ID temp). Equivalent to 5200 BTU)
 	"latent_cooling_fraction": 0.35,			# Fraction of latent cooling w.r.t. sensible cooling
 	"lockout_duration": 0.1						# In seconds
 }
@@ -48,9 +50,9 @@ default_env_properties = {
 	},
 	"power_grid_properties": {
 		"avg_power_per_hvac": 29,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
-		"init_signal": 29, 							# Per hvac.
-		"noise_mode": "none",					# Mode of the noise. Currently available: none, sinusoidal
-		"noise_parameters": {
+		"init_signal_per_hvac": 29, 				# Per hvac.
+		"signal_mode": "none",					# Mode of the signal. Currently available: none, sinusoidal
+		"signal_parameters": {
 			"none": {},
 			"sinusoidal": {
 				"wavelength": 1200,					# In seconds
