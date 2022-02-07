@@ -22,7 +22,6 @@ from collections import namedtuple
 from itertools import count
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv as env
-from env.renderer import Renderer
 from utils import (
     normSuperDict,
     normStateDict,
@@ -121,6 +120,10 @@ parser.add_argument(
 )
 
 opt = parser.parse_args()
+
+if opt.render:
+    from env.renderer import Renderer
+
 
 
 log_wandb = not opt.no_wandb
