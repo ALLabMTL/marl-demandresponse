@@ -29,6 +29,7 @@ from utils import (
     colorPlotTestAgentHouseTemp,
     saveActorNetDict,
 )
+from wandb_setup import wandb_setup
 
 
 os.environ["WANDB_SILENT"] = "true"
@@ -144,14 +145,7 @@ render = opt.render
 log_wandb = not opt.no_wandb
 
 if log_wandb:
-    wandb.init(
-        settings=wandb.Settings(start_method="fork"),
-        project="ProofConcept",
-        entity="marl-dr",
-        config=opt,
-        name="%s_TCLs-%d_envseed-%d_netseed-%d"
-        % (opt.exp, opt.nb_agents, opt.env_seed, opt.net_seed),
-    )
+    wandb_run = wandb_setup(opt)
 
 
 # Creating environment
@@ -187,6 +181,7 @@ if __name__ == "__main__":
         obs_dict = env.reset()
 
         mean_return = 0
+        mean_temp_offset = 0
         for t in range(time_steps_per_ep):
             action_and_prob = {
                 k: agent.select_action(normStateDict(obs_dict[k]), temp=opt.exploration_temp)
@@ -196,6 +191,7 @@ if __name__ == "__main__":
             action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
             next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             mean_reward = 0
+            cumul_temp_offset = 0
             for k in obs_dict.keys():
                 agent.store_transition(
                     Transition(
@@ -207,14 +203,16 @@ if __name__ == "__main__":
                     )
                 )
                 mean_reward += rewards_dict[k] / nb_agents
+                cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / nb_agents
 
             obs_dict = next_obs_dict
-            mean_return += float(mean_reward) / opt.nb_time_steps
+            mean_return += float(mean_reward) / time_steps_per_ep
+            mean_temp_offset += cumul_temp_offset / time_steps_per_ep
             if render:
                 renderer.render(obs_dict)
 
         if log_wandb:
-            wandb.log({"Mean return": mean_return})
+            wandb_run.log({"Mean train return": mean_return, "Mean temperature offset": mean_temp_offset, "Training steps": time_steps_per_ep*episode + t})
         if len(agent.buffer) >= agent.batch_size:
 
             agent.update(episode)
