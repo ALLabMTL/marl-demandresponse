@@ -12,3 +12,5 @@ wandb/
 *.pdf
 
 Rendering.png
+
+*.pth

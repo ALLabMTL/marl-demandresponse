@@ -6,12 +6,16 @@ import random
 from copy import deepcopy
 
 
-from datetime import datetime, timedelta
-from datetime import time
+from datetime import datetime, timedelta, time
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from ray.rllib.utils.annotations import override, PublicAPI
 from ray.rllib.utils.typing import MultiAgentDict, AgentID
 from typing import Tuple, Dict, List, Any
+import sys
+sys.path.append("..")
+from utils import applyPropertyNoise
+
+
 
 
 def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal):
@@ -27,7 +31,7 @@ def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal):
     return penalty
 
 
-def compute_temp_penalty(target_temp, deadband, house_temp) -> float:
+def compute_temp_penalty(target_temp, deadband, house_temp):
     """
     Returns: a float, representing the positive penalty due to distance between the target (indoors) temperature and the indoors temperature in a house.
 
@@ -53,16 +57,22 @@ class MADemandResponseEnv(MultiAgentEnv):
     
     Attributes:
 
+    default_env_properties: dictionary, containing the default configuration properties of the environment
+    default_house_prop: dictionary, containing the default configuration properties of houses
+    noise_house_prop: dictionary, containing the noise properties of houses' properties
+    default_hvac_prop: dictionary, containing the default configuration properties of HVACs
+    noise_hvac_prop: dictionary, containing the noise properties of HVACs' properties
+    env_properties: a dictionary, containing the current configuration properties of the environment.
     start_datetime: a datetime object, representing the date and time at which the simulation starts.
     datetime: a datetime object, representing the current date and time.
     time_step: a timedelta object, representing the time step for the simulation.
-    env_properties: a dictionary, containing the configuration properties of the environment.
     agent_ids: a list, containing the ids of every agents of the environment.
     cluster: a ClusterHouses object modeling all the houses.
     power_grid: a PowerGrid object, modeling the power grid.
 
     Main functions:
-
+    
+    build_environment(self): Builds a new environment with noise on properties
     reset(self): Reset the environment
     step(self, action_dict): take a step in time for each TCL, given actions of TCL agents
     compute_rewards(self, temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal): compute the reward of each TCL agent
@@ -76,33 +86,42 @@ class MADemandResponseEnv(MultiAgentEnv):
     datetime: datetime
     time_step: timedelta
 
-    def __init__(self, env_properties):
+    def __init__(self, default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
         """
         Initialize the environment
 
         Parameters:
-        env_properties: dictionary, containing the configuration properties of the environment
+        default_env_properties: dictionary, containing the default configuration properties of the environment
+        default_house_prop: dictionary, containing the default configuration properties of houses
+        noise_house_prop: dictionary, containing the noise properties of houses' properties
+        default_hvac_prop: dictionary, containing the default configuration properties of HVACs
+        noise_hvac_prop: dictionary, containing the noise properties of HVACs' properties
+
         """
         super(MADemandResponseEnv, self).__init__()
 
-        datetime_format = "%Y-%m-%d %H:%M:%S"
-        self.start_datetime = datetime.strptime(
-            env_properties["start_datetime"], datetime_format
-        )  # Start date and time (Y,M,D, H, min, s)
-        self.datetime = (
-            self.start_datetime
-        )  # Start time in hour (24h format, decimal hours)
-        self.time_step = timedelta(seconds=env_properties["time_step"])
+        self.default_env_properties = default_env_properties
+        self.default_house_prop = default_house_prop
+        self.noise_house_prop = noise_house_prop
+        self.default_hvac_prop = default_hvac_prop
+        self.noise_hvac_prop = noise_hvac_prop
 
-        self.env_properties = env_properties
-        self.agent_ids = env_properties["agent_ids"]
+        self.build_environment()
 
-        self.cluster = ClusterHouses(
-            env_properties["cluster_properties"], self.datetime, self.time_step
-        )
-        self.power_grid = PowerGrid(
-            env_properties["power_grid_properties"], env_properties["nb_hvac"]
-        )
+
+    def build_environment(self):
+        self.env_properties = applyPropertyNoise(self.default_env_properties, self.default_house_prop, self.noise_house_prop, self.default_hvac_prop, self.noise_hvac_prop)
+
+        self.start_datetime = self.env_properties["start_datetime"]  # Start date and time
+        self.datetime = self.start_datetime  # Current time
+
+        self.time_step = timedelta(seconds=self.env_properties["time_step"])
+
+        self.agent_ids = self.env_properties["agent_ids"]
+
+        self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime, self.time_step)
+        self.power_grid = PowerGrid(self.env_properties["power_grid_properties"], self.env_properties["nb_hvac"])
+
 
     def reset(self):
         """
@@ -115,8 +134,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         self
         """
 
-        self.datetime = self.start_datetime
-        self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime, self.time_step)
+        self.build_environment()
         
         cluster_obs_dict = self.cluster.make_cluster_obs_dict(self.datetime)
         power_grid_reg_signal = self.power_grid.current_signal

@@ -9,7 +9,7 @@ import numpy as np
 WIDTH = 1600
 HEIGHT = 960
 TEMPERATURE_SCALE = 10
-GRAPH_MEMORY = 200
+GRAPH_MEMORY = 5000
 
 
 class Renderer(object):

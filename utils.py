@@ -3,31 +3,65 @@ import random
 import torch
 from config import *
 import matplotlib.pyplot as plt
+from copy import deepcopy
+from datetime import datetime, timedelta, time
+
+
 import wandb
 import uuid
 import os
+
+# Applying noise on environment properties
+def applyPropertyNoise(default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
+
+    env_properties = deepcopy(default_env_properties)
+    nb_agents = default_env_properties["cluster_properties"]["nb_agents"]
+
+    # Creating the houses
+    houses_properties = []
+    agent_ids = []
+    for i in range(nb_agents):
+        house_prop = deepcopy(default_house_prop)
+        apply_house_noise(house_prop, noise_house_prop)
+        house_prop["id"] = str(i)
+        hvac_prop = deepcopy(default_hvac_prop)
+        apply_hvac_noise(hvac_prop, noise_hvac_prop)
+        hvac_id = str(i) + "_1"
+        hvac_prop["id"] = hvac_id
+        agent_ids.append(hvac_id)
+        house_prop["hvac_properties"] = [hvac_prop]
+        houses_properties.append(house_prop)
+
+    env_properties["cluster_properties"]["houses_properties"] = houses_properties
+    env_properties["agent_ids"] = agent_ids
+    env_properties["nb_hvac"] = len(agent_ids)
+
+    # Setting the 
+    env_properties["start_datetime"]= get_random_date_time(datetime.strptime(default_env_properties["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+
+    return env_properties
+
+
 
 
 # Applying noise on properties
 def apply_house_noise(house_prop, noise_house_prop):
     # Gaussian noise: target temp
-    house_prop["target_temp"] += - np.abs(random.gauss(0, noise_house_prop["std_target_temp"]))
+    house_prop["init_temp"] += np.abs(random.gauss(0, noise_house_prop["std_start_temp"]))
+    house_prop["target_temp"] += np.abs(random.gauss(0, noise_house_prop["std_target_temp"]))
+
 
     # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-    factor_Ua = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"],
-                                  1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ua = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ua"] *= factor_Ua
 
-    factor_Cm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"],
-                                  1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Cm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Cm"] *= factor_Cm
 
-    factor_Ca = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"],
-                                  1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ca = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ca"] *= factor_Ca
 
-    factor_Hm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"],
-                                  1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Hm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Hm"] *= factor_Hm
 
 
@@ -44,6 +78,15 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
                                                 noise_hvac_prop["factor_cooling_capacity_high"],
                                                 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
+
+def get_random_date_time(start_date_time):
+    # Gets a uniformly sampled random date and time within a year from the start_date_time
+    days_in_year = 364    
+    seconds_in_day = 60*60*24
+    random_days = random.randrange(days_in_year)
+    random_seconds = random.randrange(seconds_in_day)
+    random_date = start_date_time + timedelta(days=random_days, seconds=random_seconds)
+    return random_date
 
 
 # Multi agent management

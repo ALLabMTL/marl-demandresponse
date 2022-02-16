@@ -15,6 +15,7 @@ default_house_prop = {
 }
 
 noise_house_prop = {
+	"std_start_temp": 3,		# Std noise on starting temperature
 	"std_target_temp": 1,     # Std Noise on target temperature
 	"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
 	"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
@@ -41,12 +42,13 @@ noise_hvac_prop = {
 # Env properties
 
 default_env_properties = {
-	"start_datetime": '2021-01-01 06:00:00',   	# Start date and time (Y-m-d H:M:S)
+	"base_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
 	"time_step": 4,							# Time step in seconds
 	"cluster_properties": {
 		"day_temp": 26.5,							# Day temperature
 		"night_temp": 26.5,						# Night temperature
 		"temp_std": 0.5,						# Noise std dev on the temperature
+		"nb_agents": 1,							# Number of agents (or houses)
 	},
 	"power_grid_properties": {
 		"avg_power_per_hvac": 29,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
