@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import torch
 from config import *
 import matplotlib.pyplot as plt
 import wandb
@@ -177,3 +178,9 @@ def forceAspect(ax,aspect):
     im = ax.get_images()
     extent =  im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
+def saveActorNetDict(agent, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    actor_net = agent.actor_net
+    torch.save(actor_net.state_dict(), os.path.join(path, 'actor.pth'))

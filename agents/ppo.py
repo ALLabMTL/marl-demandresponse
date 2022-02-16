@@ -30,9 +30,6 @@ class PPO():
 
         self.actor_optimizer = optim.Adam(self.actor_net.parameters(), 1e-3)
         self.critic_net_optimizer = optim.Adam(self.critic_net.parameters(), 3e-3)
-        if not os.path.exists('../param'):
-            os.makedirs('../param/net_param')
-            os.makedirs('../param/img')
 
     def select_action(self, state, temp=1):
         state = torch.from_numpy(state).float().unsqueeze(0)
@@ -48,10 +45,6 @@ class PPO():
         with torch.no_grad():
             value = self.critic_net(state)
         return value.item()
-
-    def save_param(self):
-        torch.save(self.actor_net.state_dict(), '../param/net_param/actor_net' + str(time.time())[:10], +'.pth')
-        torch.save(self.critic_net.state_dict(), '../param/net_param/critic_net' + str(time.time())[:10], +'.pth')
 
     def store_transition(self, transition):
         self.buffer.append(transition)

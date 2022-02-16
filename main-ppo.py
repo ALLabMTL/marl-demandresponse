@@ -27,6 +27,7 @@ from utils import (
     normStateDict,
     testAgentHouseTemperature,
     colorPlotTestAgentHouseTemp,
+    saveActorNetDict,
 )
 
 
@@ -117,6 +118,13 @@ parser.add_argument(
     type=int, 
     default=-1,
     help="Default AC lockout duration, in seconds",
+)
+
+parser.add_argument(
+    "--save_actor_name",
+    type=str,
+    default=None,
+    help="Name to store the actor agent after training",
 )
 
 opt = parser.parse_args()
@@ -227,3 +235,7 @@ if __name__ == "__main__":
         prob_on_episode = np.vstack((prob_on_episode, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
     prob_on_episode = prob_on_episode[1:]
     colorPlotTestAgentHouseTemp(prob_on_episode, 10, 30, log_wandb)
+
+    if opt.save_actor_name:
+        path = os.path.join(".","actors", opt.save_actor_name) 
+        saveActorNetDict(agent, path)
