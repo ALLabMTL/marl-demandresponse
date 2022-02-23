@@ -181,7 +181,7 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp):
             prob_on[i] = action_prob
     return prob_on
 
-def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, log_wandb):
+def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, time_steps_test_log, log_wandb):
     '''
     Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
     '''
@@ -191,13 +191,13 @@ def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, log_w
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    img = plt.imshow(np.transpose(prob_on_per_training), extent = [0, np.size(prob_on_per_training,0), high_temp,low_temp])
+    img = plt.imshow(np.transpose(prob_on_per_training), extent = [0, np.size(prob_on_per_training,0)*time_steps_test_log, high_temp,low_temp])
     ax = plt.gca()
     ax.invert_yaxis()
 
     forceAspect(ax,aspect=2.0)
 
-    plt.xlabel("Training episodes")
+    plt.xlabel("Training time steps")
     plt.ylabel("Indoors temperature")
 
 

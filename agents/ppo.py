@@ -50,7 +50,7 @@ class PPO():
         self.buffer.append(transition)
         self.counter += 1
 
-    def update(self, i_ep):
+    def update(self, t):
         state = torch.tensor([t.state for t in self.buffer], dtype=torch.float)
         action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view(-1, 1)
         reward = [t.reward for t in self.buffer]
@@ -66,7 +66,7 @@ class PPO():
         for i in range(self.ppo_update_time):
             for index in BatchSampler(SubsetRandomSampler(range(len(self.buffer))), self.batch_size, False):
                 if self.training_step % 1000 == 0:
-                    print('I_ep {} ，train {} times'.format(i_ep, self.training_step))
+                    print('Time step: {} ，train {} times'.format(t, self.training_step))
                 # with torch.no_grad():
                 Gt_index = Gt[index].view(-1, 1)
 

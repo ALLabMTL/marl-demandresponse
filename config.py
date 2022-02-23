@@ -21,6 +21,13 @@ noise_house_prop = {
 	"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
 }
 
+noise_house_prop_test = {
+	"std_start_temp": 1,		# Std noise on starting temperature
+	"std_target_temp": 1,     # Std Noise on target temperature
+	"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
+	"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
+}
+
 # HVAC properties
 
 default_hvac_prop = {
@@ -38,6 +45,15 @@ noise_hvac_prop = {
 	"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
 	"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 }
+
+noise_hvac_prop_test = {
+	"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
+	"factor_COP_low": 0.9,   # Lowest random factor for COP
+	"factor_COP_high": 1.1,   # Highest random factor for COP
+	"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
+	"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
+}
+
 
 # Env properties
 

@@ -67,6 +67,7 @@ class MADemandResponseEnv(MultiAgentEnv):
     datetime: a datetime object, representing the current date and time.
     time_step: a timedelta object, representing the time step for the simulation.
     agent_ids: a list, containing the ids of every agents of the environment.
+    nb_agents: an int, with the number of agents
     cluster: a ClusterHouses object modeling all the houses.
     power_grid: a PowerGrid object, modeling the power grid.
 
@@ -118,6 +119,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.time_step = timedelta(seconds=self.env_properties["time_step"])
 
         self.agent_ids = self.env_properties["agent_ids"]
+        self.nb_agents = len(self.agent_ids)
 
         self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime, self.time_step)
         self.power_grid = PowerGrid(self.env_properties["power_grid_properties"], self.env_properties["nb_hvac"])
