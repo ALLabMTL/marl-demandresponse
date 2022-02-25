@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import torch
-from config import *
+from config import config_dict
 import matplotlib.pyplot as plt
 from copy import deepcopy
 from datetime import datetime, timedelta, time
@@ -136,6 +136,10 @@ def normSuperDict(sDict, id, returnDict=False):
     return result if returnDict else list(result.values())
 
 def normStateDict(sDict, returnDict=False):
+    default_house_prop = config_dict["default_house_prop"]
+    noise_house_prop = config_dict["noise_house_prop"]
+    default_hvac_prop = config_dict["default_hvac_prop"]
+
     result = {}
     k_temp = ['OD_temp','house_temp','house_target_temp']
     k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']

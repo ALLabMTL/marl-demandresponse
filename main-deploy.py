@@ -1,12 +1,6 @@
 from env import *
 from agents import *
-from config import (
-    default_house_prop,
-    noise_house_prop,
-    default_hvac_prop,
-    noise_hvac_prop,
-    default_env_properties,
-)
+from config import config_dict
 from utils import get_actions
 
 from copy import deepcopy
@@ -133,19 +127,19 @@ if opt.render:
 random.seed(opt.env_seed)
 
 if opt.nb_agents != -1:
-    default_env_properties["cluster_properties"]["nb_agents"] = opt.nb_agents
+    config_dict["default_env_properties"]["cluster_properties"]["nb_agents"] = opt.nb_agents
 if opt.time_step != -1:
-    default_env_properties['time_step'] = opt.time_step
+    config_dict["default_env_properties"]['time_step'] = opt.time_step
 if opt.cooling_capacity != -1:
-    default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
+    config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
-    default_hvac_prop['lockout_duration'] = opt.lockout_duration
+    config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
 
 nb_time_steps = opt.nb_time_steps
 
 
-env = MADemandResponseEnv(default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop)
-nb_agents = default_env_properties["cluster_properties"]["nb_agents"]
+env = MADemandResponseEnv(config_dict)
+nb_agents = config_dict["default_env_properties"]["cluster_properties"]["nb_agents"]
 hvacs_id_registry = env.cluster.hvacs_id_registry
 
 actors = {}
@@ -163,17 +157,23 @@ for hvac_id in hvacs_id_registry.keys():
 obs_dict = env.reset()
 
 total_cluster_hvac_power = 0
+on_off_ratio = 0
+
 for i in range(nb_time_steps):
     actions = get_actions(actors, obs_dict)
     obs_dict, _, _, info = env.step(actions)
     if opt.render:
         renderer.render(obs_dict)
     total_cluster_hvac_power += info["cluster_hvac_power"]
+    for k in actions.keys():
+        if actions[k]:
+            on_off_ratio += 1./len(actions.keys())
+print()
+
+
 
 average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
 average_hvac_power = average_cluster_hvac_power / nb_agents
-print(
-    "Average cluster hvac power: {:f} W, per hvac: {:f} W".format(
-        average_cluster_hvac_power, average_hvac_power
-    )
-)
+on_off_timeratio = on_off_ratio / nb_time_steps
+print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(average_cluster_hvac_power, average_hvac_power))
+print("On_off time ratio: {}".format(on_off_timeratio))

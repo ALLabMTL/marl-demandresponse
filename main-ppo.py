@@ -1,14 +1,6 @@
 from env import *
 from agents import *
-from config import (
-    default_house_prop,
-    noise_house_prop,
-    noise_house_prop_test,
-    default_hvac_prop,
-    noise_hvac_prop,
-    noise_hvac_prop_test,
-    default_env_properties,
-)
+from config import config_dict
 from utils import apply_house_noise, apply_hvac_noise, get_actions
 
 import argparse
@@ -190,27 +182,29 @@ render = opt.render
 # Starting WandB
 log_wandb = not opt.no_wandb
 
-if log_wandb:
-    wandb_run = wandb_setup(opt)
 
 
 # Creating environment
 random.seed(opt.env_seed)
 
 if opt.nb_agents != -1:
-    default_env_properties["cluster_properties"]["nb_agents"] = opt.nb_agents
+    config_dict["default_env_properties"]["cluster_properties"]["nb_agents"] = opt.nb_agents
 if opt.time_step != -1:
-    default_env_properties['time_step'] = opt.time_step
+    config_dict["default_env_properties"]['time_step'] = opt.time_step
 if opt.cooling_capacity != -1:
-    default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
+    config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
-    default_hvac_prop['lockout_duration'] = opt.lockout_duration
+    config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
 if opt.signal_mode != "config":
-    default_env_properties['power_grid_properties']["signal_mode"] = opt.signal_mode
+    config_dict["default_env_properties"]['power_grid_properties']["signal_mode"] = opt.signal_mode
 if opt.alpha != -1:
-    default_env_properties["alpha"] = opt.alpha
+    config_dict["default_env_properties"]["alpha"] = opt.alpha
 
-env = MADemandResponseEnv(default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop)
+
+if log_wandb:
+    wandb_run = wandb_setup(opt, config_dict)
+
+env = MADemandResponseEnv(config_dict)
 
 time_steps_per_episode = int(opt.nb_time_steps/opt.nb_tr_episodes)
 time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
@@ -253,6 +247,9 @@ if __name__ == "__main__":
 
     cumul_avg_reward = 0
     cumul_temp_offset = 0
+    cumul_temp_error = 0
+    cumul_signal_offset = 0
+    cumul_signal_error = 0
 
     for t in range(opt.nb_time_steps):
         # Taking action in environment
@@ -263,13 +260,17 @@ if __name__ == "__main__":
 
         # Storing in replay buffer
         for k in obs_dict.keys():
-                agent.store_transition(Transition(normStateDict(obs_dict[k]), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k])))
+            agent.store_transition(Transition(normStateDict(obs_dict[k]), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k])))
+            cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
+            cumul_temp_error += np.abs(next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
+            cumul_avg_reward += rewards_dict[k] / env.nb_agents
 
         obs_dict = next_obs_dict
 
         # Mean values
-        cumul_avg_reward += rewards_dict[k] / env.nb_agents
-        cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
+        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"]
+        cumul_signal_error += np.abs(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
+        #print(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
 
         if t % time_steps_per_episode == time_steps_per_episode - 1:     # Episode: reset environment
             print("New episode at time {}".format(t))
@@ -285,17 +286,25 @@ if __name__ == "__main__":
 
             mean_avg_return = cumul_avg_reward/time_steps_train_log
             mean_temp_offset = cumul_temp_offset/time_steps_train_log
+            mean_temp_error = cumul_temp_error/time_steps_train_log
+            mean_signal_offset = cumul_signal_offset/time_steps_train_log
+            mean_signal_error = cumul_signal_error/time_steps_train_log
+
             if log_wandb:
-                wandb_run.log({"Mean train return": mean_avg_return, "Mean temperature offset": mean_temp_offset, "Training steps": t})
+                wandb_run.log({"Mean train return": mean_avg_return, "Mean temperature offset": mean_temp_offset, "Mean temperature error": mean_temp_error, "Mean signal offset": mean_signal_offset, "Mean signal error": mean_signal_error, "Training steps": t})
 
             cumul_temp_offset = 0
+            cumul_temp_error = 0
             cumul_avg_reward = 0
+            cumul_signal_offset = 0
+            cumul_signal_error = 0
+
 
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
             prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
             random.seed(t)            
-            test_env = MADemandResponseEnv(default_env_properties, default_house_prop, noise_house_prop_test, default_hvac_prop, noise_hvac_prop_test)
+            test_env = MADemandResponseEnv(config_dict, test=True)
 
             mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
             if log_wandb:

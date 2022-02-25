@@ -87,25 +87,29 @@ class MADemandResponseEnv(MultiAgentEnv):
     datetime: datetime
     time_step: timedelta
 
-    def __init__(self, default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
+    def __init__(self, config, test = False):
         """
         Initialize the environment
 
         Parameters:
-        default_env_properties: dictionary, containing the default configuration properties of the environment
-        default_house_prop: dictionary, containing the default configuration properties of houses
-        noise_house_prop: dictionary, containing the noise properties of houses' properties
-        default_hvac_prop: dictionary, containing the default configuration properties of HVACs
-        noise_hvac_prop: dictionary, containing the noise properties of HVACs' properties
+        config: dictionary, containing the default configuration properties of the environment, house, hvac, and noise
+        test: boolean, true it is a testing environment, false if it is for training
 
         """
         super(MADemandResponseEnv, self).__init__()
 
-        self.default_env_properties = default_env_properties
-        self.default_house_prop = default_house_prop
-        self.noise_house_prop = noise_house_prop
-        self.default_hvac_prop = default_hvac_prop
-        self.noise_hvac_prop = noise_hvac_prop
+        self.test = test
+
+        self.default_env_properties = config["default_env_properties"]
+        self.default_house_prop = config["default_house_prop"]
+        self.default_hvac_prop = config["default_hvac_prop"]
+        if test: 
+            self.noise_house_prop = config["noise_house_prop_test"]
+            self.noise_hvac_prop = config["noise_hvac_prop_test"]
+        else:
+            self.noise_house_prop = config["noise_house_prop"]
+            self.noise_hvac_prop = config["noise_hvac_prop"]
+
 
         self.build_environment()
 
@@ -440,7 +444,7 @@ class SingleHouse(object):
 
         # Printing
         self.disp_count += 1
-        if self.disp_count >= 1000:
+        if self.disp_count >= 10000:
             print(
                 "House ID: {} -- OD_temp : {:f}, ID_temp: {:f}, target_temp: {:f}, diff: {:f}, HVAC on: {}, HVAC lockdown: {}, date: {}".format(
                     self.id,
