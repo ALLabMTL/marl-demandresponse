@@ -18,7 +18,7 @@ from utils import applyPropertyNoise
 
 
 
-def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal):
+def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
     """
     Returns: a float, representing the positive penalty due to the distance between the regulation signal and the total power used by the TCLs.
 
@@ -27,7 +27,7 @@ def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal):
     power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
     """
 
-    penalty = (cluster_hvac_power - power_grid_reg_signal) ** 2
+    penalty = (cluster_hvac_power - power_grid_reg_signal) ** 2 / nb_agents
     return penalty
 
 
@@ -216,7 +216,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         """
 
         rewards_dict: dict[str, float] = {}
-        signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal)
+        signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, self.nb_agents)
         for agent_id in self.agent_ids:
             rewards_dict[agent_id] = -1 * (temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty)
         return rewards_dict
@@ -828,16 +828,43 @@ class PowerGrid(object):
         self
         date_time: datetime, current date and time 
         """
-        if self.signal_mode == "none":
-            pass
-        elif self.signal_mode == "sinusoidal":
-            """Compute the outdoors temperature based on the time, according to a noisy sinusoidal model"""
-            amplitude = self.signal_params["amplitude_per_hvac"] * self.nb_hvac
-            wavelength = self.signal_params["wavelength"]
+        if self.signal_mode == "flat":
+            self.current_signal = self.init_signal_per_hvac*self.nb_hvac
+
+        elif self.signal_mode == "sinusoidals":
+            """Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals"""
+            amplitudes =  [self.nb_hvac * self.avg_power_per_hvac * ratio for ratio in self.signal_params["amplitude_ratios"]]
+            periods = self.signal_params["periods"]
+            if len(periods) != len(amplitudes):
+                raise ValueError("Power grid signal parameters: periods and amplitude_ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(amplitude_ratios): {}.".format(len(periods), len(amplitude_ratios)))
+
             bias = self.avg_power_per_hvac * self.nb_hvac
+
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
-            self.current_signal = (
-                amplitude * np.sin(2 * np.pi * time_sec / wavelength) + bias
-            )
+
+            signal = bias
+            for i in range(len(periods)):
+                signal += amplitudes[i] * np.sin(2 * np.pi * time_sec / periods[i])
+            self.current_signal = signal
+
+
+        elif self.signal_mode == "regular_steps":
+            """Compute the outdoors temperature based on the time, being the sum of several rectangular signals"""
+            ratios = self.signal_params["ratios"]
+            amplitudes = [self.avg_power_per_hvac/len(ratios) * self.nb_hvac /ratio for ratio in ratios]
+            periods = self.signal_params["periods"]
+
+            if len(periods) != len(ratios):
+                raise ValueError("Power grid signal parameters: periods and ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(ratios): {}.".format(len(periods), len(ratios)))
+
+            signal = 0
+            time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
+
+            for i in range(len(periods)):
+                signal += amplitudes[i] * np.heaviside((time_sec%periods[i]) - (1-ratios[i])*periods[i], 1)
+            self.current_signal = signal
+
+        else:
+            raise ValueError("Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode))
         return self.current_signal
 

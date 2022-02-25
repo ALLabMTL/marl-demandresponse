@@ -162,7 +162,23 @@ parser.add_argument(
     "--exploration_temp",
     type=float,
     default=1.0,
-    help="Temperature of the policy softmax. Higher temp -> more exploration.")
+    help="Temperature of the policy softmax. Higher temp -> more exploration."
+)
+
+parser.add_argument(
+    "--signal_mode",
+    type=str,
+    default="config",
+    help="Mode of power grid regulation signal simulation."
+)
+
+parser.add_argument(
+    "--alpha",
+    type=float,
+    default=-1,
+    help="Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty."
+)
+
 
 opt = parser.parse_args()
 
@@ -189,6 +205,10 @@ if opt.cooling_capacity != -1:
     default_hvac_prop['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
     default_hvac_prop['lockout_duration'] = opt.lockout_duration
+if opt.signal_mode != "config":
+    default_env_properties['power_grid_properties']["signal_mode"] = opt.signal_mode
+if opt.alpha != -1:
+    default_env_properties["alpha"] = opt.alpha
 
 env = MADemandResponseEnv(default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop)
 

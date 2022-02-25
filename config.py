@@ -35,7 +35,7 @@ default_hvac_prop = {
 	"COP": 2.5,									# Coefficient of performance (power spent vs heat displaced)
 	"cooling_capacity": 4000,#1500,					# Cooling capacity (W) (by design, theoretical Ua * (max OD temp - target ID temp). Equivalent to 5200 BTU)
 	"latent_cooling_fraction": 0.35,			# Fraction of latent cooling w.r.t. sensible cooling
-	"lockout_duration": 0.1						# In seconds
+	"lockout_duration": 40						# In seconds
 }
 
 noise_hvac_prop = {
@@ -69,14 +69,18 @@ default_env_properties = {
 	"power_grid_properties": {
 		"avg_power_per_hvac": 29,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
 		"init_signal_per_hvac": 29, 				# Per hvac.
-		"signal_mode": "none",					# Mode of the signal. Currently available: none, sinusoidal
+		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
 		"signal_parameters": {
 			"none": {},
-			"sinusoidal": {
-				"wavelength": 1200,					# In seconds
-				"amplitude_per_hvac": 10,			# In watts per hvac
+			"sinusoidals": {
+				"periods": [400, 1200],					# In seconds
+				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
 			},
+			"regular_steps": {
+				"periods": [60],					# In seconds
+				"ratios": [0.5],					# Ratio of time "on"
+			}
 		}
 	},
-	"alpha": 0, #1e-4,									# Balance parameter for loss function: temperature penalty + alpha * regulation signal penalty
+	"alpha": 1e-5,									# Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty
 }
