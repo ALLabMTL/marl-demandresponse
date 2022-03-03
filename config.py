@@ -61,16 +61,16 @@ config_dict = {
 
 # Env properties
 
-"default_env_properties" : {
+"default_env_prop" : {
 	"base_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
 	"time_step": 4,							# Time step in seconds
-	"cluster_properties": {
+	"cluster_prop": {
 		"day_temp": 26.5,							# Day temperature
 		"night_temp": 26.5,						# Night temperature
 		"temp_std": 0.5,						# Noise std dev on the temperature
 		"nb_agents": 1,							# Number of agents (or houses)
 	},
-	"power_grid_properties": {
+	"power_grid_prop": {
 		"avg_power_per_hvac": 910,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
 		"init_signal_per_hvac": 910, 				# Per hvac.
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps

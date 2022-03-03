@@ -57,7 +57,7 @@ class MADemandResponseEnv(MultiAgentEnv):
     
     Attributes:
 
-    default_env_properties: dictionary, containing the default configuration properties of the environment
+    default_env_prop: dictionary, containing the default configuration properties of the environment
     default_house_prop: dictionary, containing the default configuration properties of houses
     noise_house_prop: dictionary, containing the noise properties of houses' properties
     default_hvac_prop: dictionary, containing the default configuration properties of HVACs
@@ -100,7 +100,7 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         self.test = test
 
-        self.default_env_properties = config["default_env_properties"]
+        self.default_env_prop = config["default_env_prop"]
         self.default_house_prop = config["default_house_prop"]
         self.default_hvac_prop = config["default_hvac_prop"]
         if test: 
@@ -115,7 +115,7 @@ class MADemandResponseEnv(MultiAgentEnv):
 
 
     def build_environment(self):
-        self.env_properties = applyPropertyNoise(self.default_env_properties, self.default_house_prop, self.noise_house_prop, self.default_hvac_prop, self.noise_hvac_prop)
+        self.env_properties = applyPropertyNoise(self.default_env_prop, self.default_house_prop, self.noise_house_prop, self.default_hvac_prop, self.noise_hvac_prop)
 
         self.start_datetime = self.env_properties["start_datetime"]  # Start date and time
         self.datetime = self.start_datetime  # Current time
@@ -125,8 +125,8 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.agent_ids = self.env_properties["agent_ids"]
         self.nb_agents = len(self.agent_ids)
 
-        self.cluster = ClusterHouses(self.env_properties["cluster_properties"], self.datetime, self.time_step)
-        self.power_grid = PowerGrid(self.env_properties["power_grid_properties"], self.env_properties["nb_hvac"])
+        self.cluster = ClusterHouses(self.env_properties["cluster_prop"], self.datetime, self.time_step)
+        self.power_grid = PowerGrid(self.env_properties["power_grid_prop"], self.env_properties["nb_hvac"])
 
 
     def reset(self):
@@ -594,7 +594,7 @@ class ClusterHouses(object):
     A cluster contains several houses, with the same outdoors temperature.
 
     Attributes:
-    cluster_properties: dictionary, containing the configuration properties of the cluster
+    cluster_prop: dictionary, containing the configuration properties of the cluster
     houses: dictionary, containing all the houses in the Cluster
     hvacs_id_registry: dictionary, mapping each HVAC to its house
     day_temp: float, maximal temperature during the day, in Celsius
@@ -609,29 +609,29 @@ class ClusterHouses(object):
     compute_OD_temp(self, date_time): models the outdoors temperature
     """
 
-    def __init__(self, cluster_properties, date_time, time_step):
+    def __init__(self, cluster_prop, date_time, time_step):
         """
         Initialize the cluster of houses
 
         Parameters:
-        cluster_properties: dictionary, containing the configuration properties of the cluster
+        cluster_prop: dictionary, containing the configuration properties of the cluster
         date_time: datetime, initial date and time 
         time_step: timedelta, time step of the simulation
         """
-        self.cluster_properties = cluster_properties
+        self.cluster_prop = cluster_prop
 
         # Houses
         self.houses = {}
         self.hvacs_id_registry = {} 
-        for house_properties in cluster_properties["houses_properties"]:
+        for house_properties in cluster_prop["houses_properties"]:
             house = SingleHouse(house_properties, time_step)
             self.houses[house.id] = house
             for hvac_id in house.hvacs_ids:
                 self.hvacs_id_registry[hvac_id] = house.id
 
-        self.day_temp = cluster_properties["day_temp"]
-        self.night_temp = cluster_properties["night_temp"]
-        self.temp_std = cluster_properties["temp_std"]
+        self.day_temp = cluster_prop["day_temp"]
+        self.night_temp = cluster_prop["night_temp"]
+        self.temp_std = cluster_prop["temp_std"]
         self.current_OD_temp = self.compute_OD_temp(date_time)
 
         # Compute the Initial cluster_hvac_power
@@ -804,21 +804,21 @@ class PowerGrid(object):
     """
 
 
-    def __init__(self, power_grid_properties, nb_hvacs):
+    def __init__(self, power_grid_prop, nb_hvacs):
         """
         Initialize PowerGrid.
 
         Returns: -
 
         Parameters:
-        power_grid_properties: dictionary, containing the configuration properties of the power grid
+        power_grid_prop: dictionary, containing the configuration properties of the power grid
         nb_hvacs: int, number of HVACs in the cluster
         """
-        self.avg_power_per_hvac = power_grid_properties["avg_power_per_hvac"]
-        self.signal_mode = power_grid_properties["signal_mode"]
-        self.signal_params = power_grid_properties["signal_parameters"][self.signal_mode]
+        self.avg_power_per_hvac = power_grid_prop["avg_power_per_hvac"]
+        self.signal_mode = power_grid_prop["signal_mode"]
+        self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
         self.nb_hvac = nb_hvacs
-        self.init_signal_per_hvac = power_grid_properties["init_signal_per_hvac"]
+        self.init_signal_per_hvac = power_grid_prop["init_signal_per_hvac"]
         self.current_signal = self.init_signal_per_hvac*self.nb_hvac
 
     def step(self, date_time) -> float:

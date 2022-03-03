@@ -1,7 +1,6 @@
 import numpy as np
 import random
 import torch
-from config import config_dict
 import matplotlib.pyplot as plt
 from copy import deepcopy
 from datetime import datetime, timedelta, time
@@ -12,10 +11,10 @@ import uuid
 import os
 
 # Applying noise on environment properties
-def applyPropertyNoise(default_env_properties, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
+def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
 
-    env_properties = deepcopy(default_env_properties)
-    nb_agents = default_env_properties["cluster_properties"]["nb_agents"]
+    env_properties = deepcopy(default_env_prop)
+    nb_agents = default_env_prop["cluster_prop"]["nb_agents"]
 
     # Creating the houses
     houses_properties = []
@@ -32,12 +31,12 @@ def applyPropertyNoise(default_env_properties, default_house_prop, noise_house_p
         house_prop["hvac_properties"] = [hvac_prop]
         houses_properties.append(house_prop)
 
-    env_properties["cluster_properties"]["houses_properties"] = houses_properties
+    env_properties["cluster_prop"]["houses_properties"] = houses_properties
     env_properties["agent_ids"] = agent_ids
     env_properties["nb_hvac"] = len(agent_ids)
 
     # Setting the 
-    env_properties["start_datetime"]= get_random_date_time(datetime.strptime(default_env_properties["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    env_properties["start_datetime"]= get_random_date_time(datetime.strptime(default_env_prop["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
 
     return env_properties
 
@@ -107,38 +106,11 @@ def superDict2List(SDict, id):
         if not isinstance(tmp[k],list): tmp[k] = [v]
     return sum(list(tmp.values()), [])
 
-def normSuperDict(sDict, id, returnDict=False):
-    result = {}
-    k_temp = ['OD_temp','house_temp','house_target_temp']
-    k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']
-    # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
-    for k in k_temp:
-        result[k] = (sDict[id][k]-default_house_prop["target_temp"])/noise_house_prop["std_target_temp"]
-    result["house_deadband"] = sDict[id]["house_deadband"]/noise_house_prop["std_target_temp"]
-    day = sDict[id]['datetime'].timetuple().tm_yday
-    hour = sDict[id]['datetime'].hour
-    result["sin_day"] = (np.sin(day*2*np.pi/365))
-    result["cos_day"] = (np.cos(day*2*np.pi/365))
-    result["sin_hr"] = np.sin(hour*2*np.pi/24)
-    result["cos_hr"] = np.cos(hour*2*np.pi/24)
-    for k in k_div:
-        k1 = "_".join(k.split("_")[1:])
-        if k1 in list(default_house_prop.keys()):
-            result[k] = sDict[id][k]/default_house_prop[k1]
-        elif k1 in list(default_hvac_prop.keys()):
-            result[k] = sDict[id][k]/default_hvac_prop[k1]
-        else:
-            print(k)
-            raise Exception("Error Key Matching.")
-    result["hvac_turned_on"] = sDict[id]["hvac_turned_on"]
-    result["hvac_seconds_since_off"] = sDict[id]["hvac_seconds_since_off"]/sDict[id]["hvac_lockout_duration"]
-    result["hvac_lockout_duration"] = sDict[id]["hvac_lockout_duration"]/sDict[id]["hvac_lockout_duration"]
-    return result if returnDict else list(result.values())
-
-def normStateDict(sDict, returnDict=False):
+def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
     noise_house_prop = config_dict["noise_house_prop"]
     default_hvac_prop = config_dict["default_hvac_prop"]
+    default_env_prop = config_dict["default_env_prop"]
 
     result = {}
     k_temp = ['OD_temp','house_temp','house_target_temp']
@@ -165,10 +137,13 @@ def normStateDict(sDict, returnDict=False):
     result["hvac_turned_on"] = sDict["hvac_turned_on"]
     result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
     result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"]/sDict["hvac_lockout_duration"]
+
+    result["reg_signal"] = sDict["reg_signal"] / (default_env_prop["power_grid_prop"]["avg_power_per_hvac"] * default_env_prop["cluster_prop"]["nb_agents"])
+    result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (default_env_prop["power_grid_prop"]["avg_power_per_hvac"] * default_env_prop["cluster_prop"]["nb_agents"])
     return result if returnDict else np.array(list(result.values()))
 
 
-def testAgentHouseTemperature(agent, state, low_temp, high_temp):
+def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict):
     '''
     Receives an agent and a given state. Tests the agent probability output for 100 points a given range of indoors temperature, returning a vector for the probability of True (on).
     '''
@@ -177,7 +152,7 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp):
     for i in range(100):
         temp = temp_range[i]
         state['house_temp'] = temp
-        norm_state = normStateDict(state)
+        norm_state = normStateDict(state, config_dict)
         action, action_prob = agent.select_action(norm_state)
         if not action: # we want probability of True
             prob_on[i] = 1 - action_prob

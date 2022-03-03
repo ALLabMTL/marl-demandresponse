@@ -17,7 +17,6 @@ from itertools import count
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv as env
 from utils import (
-    normSuperDict,
     normStateDict,
     testAgentHouseTemperature,
     colorPlotTestAgentHouseTemp,
@@ -188,17 +187,17 @@ log_wandb = not opt.no_wandb
 random.seed(opt.env_seed)
 
 if opt.nb_agents != -1:
-    config_dict["default_env_properties"]["cluster_properties"]["nb_agents"] = opt.nb_agents
+    config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
 if opt.time_step != -1:
-    config_dict["default_env_properties"]['time_step'] = opt.time_step
+    config_dict["default_env_prop"]['time_step'] = opt.time_step
 if opt.cooling_capacity != -1:
     config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
     config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
 if opt.signal_mode != "config":
-    config_dict["default_env_properties"]['power_grid_properties']["signal_mode"] = opt.signal_mode
+    config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
 if opt.alpha != -1:
-    config_dict["default_env_properties"]["alpha"] = opt.alpha
+    config_dict["default_env_prop"]["alpha"] = opt.alpha
 
 
 if log_wandb:
@@ -223,7 +222,7 @@ def testAgent(agent, env, nb_time_steps_test):
     obs_dict = env.reset()
 
     for t in range(nb_time_steps_test):
-        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k]), temp=opt.exploration_temp) for k in obs_dict.keys() }
+        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys() }
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
         cumul_avg_reward += rewards_dict[k] / env.nb_agents
@@ -238,12 +237,17 @@ def testAgent(agent, env, nb_time_steps_test):
 ## Training loop
 if __name__ == "__main__":
     Transition =  namedtuple("Transition", ["state", "action", "a_log_prob", "reward", "next_state"])
-    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb)
     if render:
         renderer = Renderer(env.nb_agents)
     prob_on_test = np.empty(100)
 
     obs_dict = env.reset()
+    print(obs_dict)
+    print(next(iter(obs_dict)))
+    num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
+
+    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb, num_state=num_state)
+
 
     cumul_avg_reward = 0
     cumul_temp_offset = 0
@@ -253,14 +257,14 @@ if __name__ == "__main__":
 
     for t in range(opt.nb_time_steps):
         # Taking action in environment
-        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k]), temp=opt.exploration_temp) for k in obs_dict.keys() }
+        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k] ,config_dict), temp=opt.exploration_temp) for k in obs_dict.keys() }
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
 
         # Storing in replay buffer
         for k in obs_dict.keys():
-            agent.store_transition(Transition(normStateDict(obs_dict[k]), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k])))
+            agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
             cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
             cumul_temp_error += np.abs(next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
             cumul_avg_reward += rewards_dict[k] / env.nb_agents
@@ -302,7 +306,7 @@ if __name__ == "__main__":
 
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
-            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
+            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict)))
             random.seed(t)            
             test_env = MADemandResponseEnv(config_dict, test=True)
 

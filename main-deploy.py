@@ -127,9 +127,9 @@ if opt.render:
 random.seed(opt.env_seed)
 
 if opt.nb_agents != -1:
-    config_dict["default_env_properties"]["cluster_properties"]["nb_agents"] = opt.nb_agents
+    config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
 if opt.time_step != -1:
-    config_dict["default_env_properties"]['time_step'] = opt.time_step
+    config_dict["default_env_prop"]['time_step'] = opt.time_step
 if opt.cooling_capacity != -1:
     config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
@@ -139,7 +139,7 @@ nb_time_steps = opt.nb_time_steps
 
 
 env = MADemandResponseEnv(config_dict)
-nb_agents = config_dict["default_env_properties"]["cluster_properties"]["nb_agents"]
+nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
 hvacs_id_registry = env.cluster.hvacs_id_registry
 
 actors = {}
@@ -151,7 +151,7 @@ for hvac_id in hvacs_id_registry.keys():
         agent_prop["net_seed"]=opt.net_seed
         agent_prop["exploration_temp"]=opt.exploration_temp
 
-    actors[hvac_id] = agents_dict[opt.agent](agent_prop)
+    actors[hvac_id] = agents_dict[opt.agent](agent_prop, config_dict)
 
 
 obs_dict = env.reset()
