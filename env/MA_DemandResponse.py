@@ -221,8 +221,13 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         rewards_dict: dict[str, float] = {}
         signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, self.nb_agents)
+
+        norm_temp_penalty = compute_temp_penalty(self.default_house_prop["target_temp"], 2, self.default_house_prop["target_temp"] + 3)
+        norm_sig_penalty = reg_signal_penalty(0, self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"]/2, 1)
+        reward_norm = norm_temp_penalty + self.env_properties["alpha"] * norm_sig_penalty
+
         for agent_id in self.agent_ids:
-            rewards_dict[agent_id] = -1 * (temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty)
+            rewards_dict[agent_id] = -1 * (temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty) / reward_norm
         return rewards_dict
 
     def make_dones_dict(self):
