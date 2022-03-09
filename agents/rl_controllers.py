@@ -10,7 +10,7 @@ from utils import normStateDict
 
 
 class PPOAgent():
-    def __init__(self, agent_properties, config_dict, num_state=18, num_action=2):
+    def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         super(PPOAgent, self).__init__()
         self.id = agent_properties["id"]
         self.actor_name = agent_properties["actor_name"]
