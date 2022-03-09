@@ -670,6 +670,7 @@ class ClusterHouses(object):
 
             # Dynamic values from house
             cluster_obs_dict[hvac_id]["house_temp"] = house.current_temp
+            cluster_obs_dict[hvac_id]["house_mass_temp"] = house.current_mass_temp
 
             # Dynamic values from HVAC
             cluster_obs_dict[hvac_id]["hvac_turned_on"] = hvac.turned_on

@@ -122,6 +122,12 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--render_after",
+    type=int,
+    default=-1,
+    help="Delay in time steps before rendering")
+
+parser.add_argument(
     "--cooling_capacity",
     type=int,
     default=-1,
@@ -242,12 +248,9 @@ if __name__ == "__main__":
     prob_on_test = np.empty(100)
 
     obs_dict = env.reset()
-    print(obs_dict)
-    print(next(iter(obs_dict)))
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
 
     agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb, num_state=num_state)
-
 
     cumul_avg_reward = 0
     cumul_temp_offset = 0
@@ -261,6 +264,9 @@ if __name__ == "__main__":
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+        if render and t >= opt.render_after:
+            renderer.render(next_obs_dict)
+
 
         # Storing in replay buffer
         for k in obs_dict.keys():

@@ -168,7 +168,6 @@ for i in range(nb_time_steps):
     for k in actions.keys():
         if actions[k]:
             on_off_ratio += 1./len(actions.keys())
-print()
 
 
 

@@ -22,8 +22,13 @@ class Renderer(object):
         self.screen_width = WIDTH
         self.screen_height = HEIGHT
         self.nb_house = nb_agents
-        self.temperature = np.array([])
+        self.temp_diff = np.array([])
+        self.air_temp = np.array([])
+        self.mass_temp = np.array([])
+        self.target_temp = np.array([])
+        self.OD_temp = np.array([])
         self.signal = np.array([])
+        self.consumption = np.array([])
         print("-- Renderer ready --")
 
     def draw_grid(self, nb_horizontal, nb_vertical, max_x, max_y, min_x=0, min_y=0):
@@ -170,8 +175,13 @@ class Renderer(object):
 
     def draw_graph(self):
         fig = graph_renderer.make_graph(
-            self.temperature[max(-GRAPH_MEMORY, -len(self.temperature)) :],
-            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
+            self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
+            self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
+            self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
+            self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
+            self.OD_temp[max(-GRAPH_MEMORY, -len(self.OD_temp)) :],
+            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :], 
+            self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :],
             self.time,
         )
 
@@ -236,10 +246,13 @@ class Renderer(object):
 
         df = pd.DataFrame(obs).transpose()
         df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
-        self.temperature = np.append(
-            self.temperature, df["temperature_difference"].mean()
-        )
+        self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean() )
+        self.air_temp = np.append(self.air_temp, df["house_temp"].mean() )
+        self.mass_temp = np.append(self.mass_temp, df["house_mass_temp"].mean() )
+        self.target_temp = np.append(self.target_temp, df["house_target_temp"].mean() )
+        self.OD_temp = np.append(self.OD_temp, df["OD_temp"].mean() )
         self.signal = np.append(self.signal, df["reg_signal"][0])
+        self.consumption = np.append(self.consumption, df["cluster_hvac_power"][0])
 
         if self.viewer is None:
 

@@ -113,7 +113,7 @@ def normStateDict(sDict, config_dict, returnDict=False):
     default_env_prop = config_dict["default_env_prop"]
 
     result = {}
-    k_temp = ['OD_temp','house_temp','house_target_temp']
+    k_temp = ['OD_temp','house_temp','house_mass_temp','house_target_temp']
     k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
