@@ -33,85 +33,85 @@ os.environ["WANDB_SILENT"] = "true"
 parser = argparse.ArgumentParser(description="Training options")
 
 parser.add_argument(
-    "--nb_agents", 
-    type=int, 
-    default=-1, 
+    "--nb_agents",
+    type=int,
+    default=-1,
     help="Number of agents (TCLs)",
 )
 
 parser.add_argument(
-    "--nb_tr_episodes", 
-    type=int, 
-    default=1000, 
+    "--nb_tr_episodes",
+    type=int,
+    default=1000,
     help="Number of episodes (environment resets) for training",
 )
 
 parser.add_argument(
-    "--nb_tr_epochs", 
-    type=int, 
-    default=20, 
+    "--nb_tr_epochs",
+    type=int,
+    default=20,
     help="Number of epochs (policy updates) for training",
 )
 
 parser.add_argument(
-    "--nb_tr_logs", 
-    type=int, 
-    default=100, 
+    "--nb_tr_logs",
+    type=int,
+    default=100,
     help="Number of logging points for training stats",
 )
 
 parser.add_argument(
-    "--nb_test_logs", 
-    type=int, 
-    default=100, 
+    "--nb_test_logs",
+    type=int,
+    default=100,
     help="Number of logging points for testing stats (and thus, testing sessions)",
 )
 
 parser.add_argument(
-    "--nb_time_steps", 
-    type=int, 
-    default=10000, 
+    "--nb_time_steps",
+    type=int,
+    default=10000,
     help="Total number of time steps",
 )
 
 parser.add_argument(
-    "--nb_time_steps_test", 
-    type=int, 
-    default=50000, 
+    "--nb_time_steps_test",
+    type=int,
+    default=50000,
     help="Total number of time steps in an episode at test time",
 )
 
 parser.add_argument(
-    "--ppo_bs", 
-    type=int, 
-    default=32, 
+    "--ppo_bs",
+    type=int,
+    default=32,
     help="Batch size of PPO",
 )
 
 parser.add_argument(
-    "--net_seed", 
-    type=int, 
-    default=1, 
+    "--net_seed",
+    type=int,
+    default=1,
     help="Neural network seed",
 )
 
 parser.add_argument(
-    "--env_seed", 
-    type=int, 
-    default=1, 
+    "--env_seed",
+    type=int,
+    default=1,
     help="Environment seed",
 )
 
 parser.add_argument(
-    "--exp", 
-    type=str, 
-    required=True, 
+    "--exp",
+    type=str,
+    required=True,
     help="Experiment name",
 )
 
 parser.add_argument(
-    "--no_wandb", 
-    action="store_true", 
+    "--no_wandb",
+    action="store_true",
     help="Add to prevent logging to wandb",
 )
 
@@ -136,14 +136,14 @@ parser.add_argument(
 
 parser.add_argument(
     "--time_step",
-    type=int, 
-    default=-1, 
+    type=int,
+    default=-1,
     help="Time step in seconds",
 )
 
 parser.add_argument(
-    "--lockout_duration", 
-    type=int, 
+    "--lockout_duration",
+    type=int,
     default=-1,
     help="Default AC lockout duration, in seconds",
 )
@@ -188,7 +188,6 @@ render = opt.render
 log_wandb = not opt.no_wandb
 
 
-
 # Creating environment
 random.seed(opt.env_seed)
 
@@ -217,7 +216,6 @@ time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
 time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
 
 
-
 def testAgent(agent, env, nb_time_steps_test):
     """
     Test agent on an episode of nb_test_timesteps, with 
@@ -228,7 +226,8 @@ def testAgent(agent, env, nb_time_steps_test):
     obs_dict = env.reset()
 
     for t in range(nb_time_steps_test):
-        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys() }
+        action_and_prob = {k: agent.select_action(normStateDict(
+            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
         cumul_avg_reward += rewards_dict[k] / env.nb_agents
@@ -238,11 +237,10 @@ def testAgent(agent, env, nb_time_steps_test):
     return mean_avg_return
 
 
-    
-
-## Training loop
+# Training loop
 if __name__ == "__main__":
-    Transition =  namedtuple("Transition", ["state", "action", "a_log_prob", "reward", "next_state"])
+    Transition = namedtuple(
+        "Transition", ["state", "action", "a_log_prob", "reward", "next_state"])
     if render:
         renderer = Renderer(env.nb_agents)
     prob_on_test = np.empty(100)
@@ -250,7 +248,8 @@ if __name__ == "__main__":
     obs_dict = env.reset()
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
 
-    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb, num_state=num_state)
+    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs,
+                log_wandb=log_wandb, num_state=num_state)
 
     cumul_avg_reward = 0
     cumul_temp_offset = 0
@@ -259,8 +258,11 @@ if __name__ == "__main__":
     cumul_signal_error = 0
 
     for t in range(opt.nb_time_steps):
+        if render:
+            renderer.render(obs_dict)
         # Taking action in environment
-        action_and_prob = { k: agent.select_action(normStateDict(obs_dict[k] ,config_dict), temp=opt.exploration_temp) for k in obs_dict.keys() }
+        action_and_prob = {k: agent.select_action(normStateDict(
+            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
@@ -270,23 +272,29 @@ if __name__ == "__main__":
 
         # Storing in replay buffer
         for k in obs_dict.keys():
-            agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
-            cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
-            cumul_temp_error += np.abs(next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
+            agent.store_transition(Transition(normStateDict(
+                obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
+            cumul_temp_offset += (next_obs_dict[k]["house_temp"] -
+                                  next_obs_dict[k]["house_target_temp"]) / env.nb_agents
+            cumul_temp_error += np.abs(next_obs_dict[k]["house_temp"] -
+                                       next_obs_dict[k]["house_target_temp"]) / env.nb_agents
             cumul_avg_reward += rewards_dict[k] / env.nb_agents
 
         obs_dict = next_obs_dict
 
         # Mean values
-        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"]
-        cumul_signal_error += np.abs(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
+        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - \
+            next_obs_dict['0_1']["cluster_hvac_power"]
+        cumul_signal_error += np.abs(
+            next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
         #print(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
 
         if t % time_steps_per_episode == time_steps_per_episode - 1:     # Episode: reset environment
             print("New episode at time {}".format(t))
             obs_dict = env.reset()
 
-        if t % time_steps_per_epoch == time_steps_per_epoch - 1 and len(agent.buffer) >= agent.batch_size:   # Epoch: update agent
+        # Epoch: update agent
+        if t % time_steps_per_epoch == time_steps_per_epoch - 1 and len(agent.buffer) >= agent.batch_size:
             print("Updating agent at time {}".format(t))
 
             agent.update(t)
@@ -301,7 +309,8 @@ if __name__ == "__main__":
             mean_signal_error = cumul_signal_error/time_steps_train_log
 
             if log_wandb:
-                wandb_run.log({"Mean train return": mean_avg_return, "Mean temperature offset": mean_temp_offset, "Mean temperature error": mean_temp_error, "Mean signal offset": mean_signal_offset, "Mean signal error": mean_signal_error, "Training steps": t})
+                wandb_run.log({"Mean train return": mean_avg_return, "Mean temperature offset": mean_temp_offset, "Mean temperature error": mean_temp_error,
+                              "Mean signal offset": mean_signal_offset, "Mean signal error": mean_signal_error, "Training steps": t})
 
             cumul_temp_offset = 0
             cumul_temp_error = 0
@@ -309,29 +318,33 @@ if __name__ == "__main__":
             cumul_signal_offset = 0
             cumul_signal_error = 0
 
-
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
-            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict)))
-            random.seed(t)            
+            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(
+                agent, obs_dict["0_1"], 10, 30, config_dict)))
+            random.seed(t)
             test_env = MADemandResponseEnv(config_dict, test=True)
 
-            mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
+            mean_test_return = testAgent(
+                agent, test_env, opt.nb_time_steps_test)
             if log_wandb:
-                wandb_run.log({"Mean test return": mean_test_return, "Training steps": t})
+                wandb_run.log(
+                    {"Mean test return": mean_test_return, "Training steps": t})
             else:
-                print("Training step - {} - Mean test return: {}".format(t, mean_test_return))
+                print(
+                    "Training step - {} - Mean test return: {}".format(t, mean_test_return))
 
+    if render:
 
+        renderer.__del__(obs_dict)
     prob_on_test = prob_on_test[1:]
 
-    colorPlotTestAgentHouseTemp(prob_on_test, 10, 30, time_steps_test_log, log_wandb)
+    colorPlotTestAgentHouseTemp(
+        prob_on_test, 10, 30, time_steps_test_log, log_wandb)
 
     if opt.save_actor_name:
-        path = os.path.join(".","actors", opt.save_actor_name) 
+        path = os.path.join(".", "actors", opt.save_actor_name)
         saveActorNetDict(agent, path)
-
-
 
 
 '''
