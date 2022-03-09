@@ -1,3 +1,4 @@
+
 import env.rendering as rendering
 import env.turbo as turbo
 import math
@@ -24,6 +25,7 @@ class Renderer(object):
         self.nb_house = nb_agents
         self.temperature = np.array([])
         self.signal = np.array([])
+        self.power_consumption = np.array([])
         print("-- Renderer ready --")
 
     def draw_grid(self, nb_horizontal, nb_vertical, max_x, max_y, min_x=0, min_y=0):
@@ -32,7 +34,8 @@ class Renderer(object):
 
         for i in range(nb_horizontal):
             self.viewer.draw_polyline(
-                ((i * horizontal_distance, min_y), (i * horizontal_distance, max_y))
+                ((i * horizontal_distance, min_y),
+                 (i * horizontal_distance, max_y))
             )
 
         for i in range(nb_vertical):
@@ -162,16 +165,21 @@ class Renderer(object):
             temperature = min(TEMPERATURE_SCALE, temperature)
             temperature = max(-TEMPERATURE_SCALE, temperature)
             color_index = int(
-                127 * (math.sin((temperature) / TEMPERATURE_SCALE * math.pi / 2)) + 128
+                127 * (math.sin((temperature) /
+                       TEMPERATURE_SCALE * math.pi / 2)) + 128
             )
 
             t = turbo.colormap[color_index]
             house.set_color(t[0], t[1], t[2])
 
     def draw_graph(self):
+        print(len(self.signal))
+        print(len(self.power_consumption))
         fig = graph_renderer.make_graph(
-            self.temperature[max(-GRAPH_MEMORY, -len(self.temperature)) :],
-            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
+            self.temperature[max(-GRAPH_MEMORY, -len(self.temperature)):],
+            self.signal[max(-GRAPH_MEMORY, -len(self.signal)):],
+            self.power_consumption[max(-GRAPH_MEMORY, -
+                                       len(self.power_consumption)):],
             self.time,
         )
 
@@ -212,7 +220,8 @@ class Renderer(object):
 
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
-        self.data_messages["Number of HVAC Turned ON"] = str(df["hvac_turned_on"].sum())
+        self.data_messages["Number of HVAC Turned ON"] = str(
+            df["hvac_turned_on"].sum())
         self.data_messages["Number of HVAC Turned OFF"] = str(
             df.shape[0] - df["hvac_turned_on"].sum()
         )
@@ -236,15 +245,20 @@ class Renderer(object):
 
         df = pd.DataFrame(obs).transpose()
         df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
+        print(df['reg_signal'])
+        print(df['cluster_hvac_power'])
         self.temperature = np.append(
             self.temperature, df["temperature_difference"].mean()
         )
         self.signal = np.append(self.signal, df["reg_signal"][0])
+        self.power_consumption = np.append(
+            self.power_consumption, df['cluster_hvac_power'][0])
 
         if self.viewer is None:
 
             self.legend_data = self.draw_legend()
-            self.viewer = rendering.Viewer(self.screen_width, self.screen_height)
+            self.viewer = rendering.Viewer(
+                self.screen_width, self.screen_height)
             self.viewer.draw_legend(self.screen_height, 0)
             self.draw_house(obs)
             self.define_data_box()

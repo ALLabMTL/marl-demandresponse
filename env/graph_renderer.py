@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def make_graph(temperature, signal, timestep):
+def make_graph(temperature, signal, power, timestep):
     start_point_graph = max(0, timestep - len(temperature))
 
     if len(temperature) < 20:
@@ -27,8 +27,13 @@ def make_graph(temperature, signal, timestep):
     if nb_of_ignored_timestep > 0:
         temperature = temperature[:-nb_of_ignored_timestep]
         signal = signal[:-nb_of_ignored_timestep]
+        power = power[:-nb_of_ignored_timestep]
     temperature = np.mean(temperature.reshape(-1, array_step), axis=1)
+
+    print(signal)
+    print(power)
     signal = np.mean(signal.reshape(-1, array_step), axis=1)
+    power = np.mean(power.reshape(-1, array_step), axis=1)
 
     x = [
         i + start_point_graph
@@ -50,10 +55,12 @@ def make_graph(temperature, signal, timestep):
     fig.set_size_inches(6.4, 6.6)
     plt.xticks(x)
     axs[0].plot(x, signal, color="dodgerblue")
-    # axs[0].plot(signal , color="orange")
+    axs[0].plot(x, power, color="orange")
+
+    axs[0].set_ylabel("cluster power", color="white")
     axs[0].set_ylabel("Regulation signal", color="white")
     axs[0].legend(
-        ["Target Signal", "Consommation totale cible"],
+        ["Target Signal", "Total cluster power consumptio"],
         loc="lower right",
         framealpha=0.3,
     )
