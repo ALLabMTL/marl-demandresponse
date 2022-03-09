@@ -115,8 +115,7 @@ class Renderer(object):
                     house_dimension / 7,
                 )
             elif (
-                obs[str(i) + "_1"]["hvac_seconds_since_off"]
-                > obs[str(i) + "_1"]["hvac_lockout_duration"]
+                obs[str(i) + "_1"]["hvac_lockout"]
             ):
                 self.viewer.add_labels(
                     "Lockout",

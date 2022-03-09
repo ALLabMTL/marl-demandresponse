@@ -280,7 +280,8 @@ class HVAC(object):
         self.latent_cooling_fraction = hvac_properties["latent_cooling_fraction"]
         self.lockout_duration = hvac_properties["lockout_duration"]
         self.turned_on = False  
-        self.seconds_since_off = self.lockout_duration 
+        self.lockout = False
+        self.seconds_since_off = self.lockout_duration
         self.time_step = time_step
 
         if self.latent_cooling_fraction > 1 or self.latent_cooling_fraction < 0:
@@ -304,23 +305,26 @@ class HVAC(object):
         command: bool, action of the TCL agent (True: ON, False: OFF)
         """
 
-        if command:  # command = on
-            if self.turned_on:  # Ignore command
-                self.seconds_since_off = 0  # Keep time counter at 0
-            elif self.seconds_since_off >= self.lockout_duration:  # If lockout is over
-                self.turned_on = True  # Turn on
-                self.seconds_since_off = 0  # Keep time counter at 0
-            else:  # Ignore command
-                self.seconds_since_off += self.time_step.seconds  # Increment
+        if self.turned_on == False:
+            self.seconds_since_off += self.time_step.seconds
 
-        else:  # command = off
+        if self.turned_on or self.seconds_since_off >= self.lockout_duration:
+            self.lockout = False
+        else:
+            self.lockout = True 
+            print("lockout for {} seconds".format(self.lockout_duration - self.seconds_since_off))
+
+
+        if self.lockout:
+            self.turned_on = False
+        else:
+            self.turned_on = command
             if self.turned_on:
-                self.turned_on = False  # Turn off
-                self.seconds_since_off = 0  # Start time counter
-            else:  # if already off
-                self.seconds_since_off += self.time_step.seconds # Increment time counter
+                self.seconds_since_off = 0
+            elif self.seconds_since_off + self.time_step.seconds < self.lockout_duration:
+                self.lockout = True
 
-
+ 
     def get_Q(self): 
         """
         Compute the rate of heat transfer produced by the HVAC
@@ -675,6 +679,7 @@ class ClusterHouses(object):
             # Dynamic values from HVAC
             cluster_obs_dict[hvac_id]["hvac_turned_on"] = hvac.turned_on
             cluster_obs_dict[hvac_id]["hvac_seconds_since_off"] = hvac.seconds_since_off
+            cluster_obs_dict[hvac_id]["hvac_lockout"] = hvac.lockout
 
             # Supposedly constant values from house (may be changed later)
             cluster_obs_dict[hvac_id]["house_target_temp"] = house.target_temp

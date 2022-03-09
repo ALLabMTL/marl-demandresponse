@@ -134,7 +134,9 @@ def normStateDict(sDict, config_dict, returnDict=False):
         else:
             print(k)
             raise Exception("Error Key Matching.")
-    result["hvac_turned_on"] = sDict["hvac_turned_on"]
+    result["hvac_turned_on"] = 1 if sDict["hvac_turned_on"] else 0
+    result["hvac_lockout"] = 1 if sDict["hvac_lockout"] else 0
+
     result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
     result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"]/sDict["hvac_lockout_duration"]
 
