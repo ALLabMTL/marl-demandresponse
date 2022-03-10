@@ -317,7 +317,6 @@ class HVAC(object):
             self.lockout = False
         else:
             self.lockout = True 
-            print("lockout for {} seconds".format(self.lockout_duration - self.seconds_since_off))
 
 
         if self.lockout:

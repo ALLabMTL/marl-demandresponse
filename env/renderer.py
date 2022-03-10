@@ -176,8 +176,6 @@ class Renderer(object):
             house.set_color(t[0], t[1], t[2])
 
     def draw_graph(self):
-        print(len(self.signal))
-        print(len(self.power_consumption))
         fig = graph_renderer.make_graph(
             self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
             self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
@@ -226,11 +224,11 @@ class Renderer(object):
 
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
-        self.data_messages["Number of HVAC Turned ON"] = str(
-            df["hvac_turned_on"].sum())
-        self.data_messages["Number of HVAC Turned OFF"] = str(
-            df.shape[0] - df["hvac_turned_on"].sum()
-        )
+        #self.data_messages["Number of HVAC Turned ON"] = str(
+        #    df["hvac_turned_on"].sum())
+        #self.data_messages["Number of HVAC Turned OFF"] = str(
+        #    df.shape[0] - df["hvac_turned_on"].sum()
+        #)
         self.data_messages["Number of locked HVAC"] = str(
             np.where(
                 df["hvac_seconds_since_off"] > df["hvac_lockout_duration"], 1, 0
