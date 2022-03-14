@@ -176,6 +176,28 @@ parser.add_argument(
     help="Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty."
 )
 
+parser.add_argument(
+    "--house_noise_mode",
+    type=str,
+    default="config",
+    help="Mode of noise over house parameters.")
+
+parser.add_argument(
+    "--hvac_noise_mode",
+    type=str,
+    default="config",
+    help="Mode of noise over hvac parameters.")
+
+parser.add_argument(
+    "--OD_temp_mode",
+    type=str,
+    default="config",
+    help="Mode of outdoors temperature.")
+
+parser.add_argument(
+    "--no_solar_gain",
+    action="store_true",
+    help="Removes the solar gain from the simulation.")
 
 opt = parser.parse_args()
 
@@ -201,10 +223,16 @@ if opt.lockout_duration != -1:
     config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
 if opt.signal_mode != "config":
     config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
+if opt.house_noise_mode != "config":
+    config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
+if opt.hvac_noise_mode != "config":
+    config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
+if opt.OD_temp_mode != "config":
+    config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
+if opt.no_solar_gain:
+    config_dict["default_house_prop"]["shading_coeff"] = 0
 if opt.alpha != -1:
     config_dict["default_env_prop"]["alpha"] = opt.alpha
-
-
 if log_wandb:
     wandb_run = wandb_setup(opt, config_dict)
 

@@ -637,9 +637,11 @@ class ClusterHouses(object):
             for hvac_id in house.hvacs_ids:
                 self.hvacs_id_registry[hvac_id] = house.id
 
-        self.day_temp = cluster_prop["day_temp"]
-        self.night_temp = cluster_prop["night_temp"]
-        self.temp_std = cluster_prop["temp_std"]
+        self.temp_mode = cluster_prop["temp_mode"]
+        self.temp_params = cluster_prop["temp_parameters"][self.temp_mode]
+        self.day_temp = self.temp_params["day_temp"]
+        self.night_temp = self.temp_params["night_temp"]
+        self.temp_std = self.temp_params["temp_std"]
         self.current_OD_temp = self.compute_OD_temp(date_time)
 
         # Compute the Initial cluster_hvac_power
@@ -782,6 +784,8 @@ class ClusterHouses(object):
         date_time: datetime, current date and time.
 
         """
+
+
 
         # Sinusoidal model
         amplitude = (self.day_temp - self.night_temp) / 2

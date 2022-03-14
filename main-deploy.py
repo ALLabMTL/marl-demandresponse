@@ -117,6 +117,29 @@ parser.add_argument(
     default=1.0,
     help="Temperature of the policy softmax. Higher temp -> more exploration.")
 
+parser.add_argument(
+    "--house_noise_mode",
+    type=str,
+    default="config",
+    help="Mode of noise over house parameters.")
+
+parser.add_argument(
+    "--hvac_noise_mode",
+    type=str,
+    default="config",
+    help="Mode of noise over hvac parameters.")
+
+parser.add_argument(
+    "--OD_temp_mode",
+    type=str,
+    default="config",
+    help="Mode of outdoors temperature.")
+
+parser.add_argument(
+    "--no_solar_gain",
+    action="store_true",
+    help="Removes the solar gain from the simulation.")
+
 opt = parser.parse_args()
 
 if opt.render:
@@ -134,6 +157,14 @@ if opt.cooling_capacity != -1:
     config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
 if opt.lockout_duration != -1:
     config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
+if opt.house_noise_mode != "config":
+    config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
+if opt.hvac_noise_mode != "config":
+    config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
+if opt.OD_temp_mode != "config":
+    config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
+if opt.no_solar_gain:
+    config_dict["default_house_prop"]["shading_coeff"] = 0
 
 nb_time_steps = opt.nb_time_steps
 

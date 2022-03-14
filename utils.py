@@ -45,36 +45,42 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
 
 # Applying noise on properties
 def apply_house_noise(house_prop, noise_house_prop):
+    noise_house_mode = noise_house_prop["noise_mode"]
+    noise_house_params = noise_house_prop["noise_parameters"][noise_house_mode]
+
     # Gaussian noise: target temp
-    house_prop["init_temp"] += np.abs(random.gauss(0, noise_house_prop["std_start_temp"]))
-    house_prop["target_temp"] += np.abs(random.gauss(0, noise_house_prop["std_target_temp"]))
+    house_prop["init_temp"] += np.abs(random.gauss(0, noise_house_params["std_start_temp"]))
+    house_prop["target_temp"] += np.abs(random.gauss(0, noise_house_params["std_target_temp"]))
 
 
     # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-    factor_Ua = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ua = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ua"] *= factor_Ua
 
-    factor_Cm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Cm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Cm"] *= factor_Cm
 
-    factor_Ca = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ca = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ca"] *= factor_Ca
 
-    factor_Hm = random.triangular(noise_house_prop["factor_thermo_low"], noise_house_prop["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Hm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Hm"] *= factor_Hm
 
 
 def apply_hvac_noise(hvac_prop, noise_hvac_prop):
+    noise_hvac_mode = noise_hvac_prop["noise_mode"]
+    noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
+
     # Gaussian noise: latent_cooling_fraction
-    hvac_prop["latent_cooling_fraction"] += random.gauss(0, noise_hvac_prop["std_latent_cooling_fraction"])
+    hvac_prop["latent_cooling_fraction"] += random.gauss(0, noise_hvac_params["std_latent_cooling_fraction"])
 
     # Factor noise: COP, cooling_capacity
-    factor_COP = random.triangular(noise_hvac_prop["factor_COP_low"], noise_hvac_prop["factor_COP_high"],
+    factor_COP = random.triangular(noise_hvac_params["factor_COP_low"], noise_hvac_params["factor_COP_high"],
                                    1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["COP"] *= factor_COP
 
-    factor_cooling_capacity = random.triangular(noise_hvac_prop["factor_cooling_capacity_low"],
-                                                noise_hvac_prop["factor_cooling_capacity_high"],
+    factor_cooling_capacity = random.triangular(noise_hvac_params["factor_cooling_capacity_low"],
+                                                noise_hvac_params["factor_cooling_capacity_high"],
                                                 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
 

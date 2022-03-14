@@ -19,10 +19,27 @@ config_dict = {
 },
 
 "noise_house_prop" : {
-	"std_start_temp": 3,		# Std noise on starting temperature
-	"std_target_temp": 1,     # Std Noise on target temperature
-	"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
-	"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_parameters": {
+		"no_noise": {
+			"std_start_temp": 0,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"small_noise": {
+			"std_start_temp": 3,		# Std noise on starting temperature
+			"std_target_temp": 1,     # Std Noise on target temperature
+			"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"big_noise": {
+			"std_start_temp": 5,		# Std noise on starting temperature
+			"std_target_temp": 2,     # Std Noise on target temperature
+			"factor_thermo_low": 0.8,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1.2,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+	},
 },
 
 "noise_house_prop_test" : {
@@ -43,11 +60,34 @@ config_dict = {
 },
 
 "noise_hvac_prop" : {
-	"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
-	"factor_COP_low": 0.99,   # Lowest random factor for COP
-	"factor_COP_high": 1.01,   # Highest random factor for COP
-	"factor_cooling_capacity_low": 0.99,   # Lowest random factor for cooling_capacity
-	"factor_cooling_capacity_high": 1.01,   # Highest random factor for cooling_capacity
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_parameters": {
+		"no_noise": {
+			"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 1,   # Lowest random factor for COP
+			"factor_COP_high": 1,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 1,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
+		},
+		"small_noise": {
+			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 0.95,   # Lowest random factor for COP
+			"factor_COP_high": 1.05,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+		},
+		"big_noise": {
+			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 0.85,   # Lowest random factor for COP
+			"factor_COP_high": 1.15,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+		},
+
+
+
+	},
+
 },
 
 "noise_hvac_prop_test" : {
@@ -65,9 +105,25 @@ config_dict = {
 	"base_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
 	"time_step": 4,							# Time step in seconds
 	"cluster_prop": {
-		"day_temp": 30,							# Day temperature
-		"night_temp": 23,						# Night temperature
-		"temp_std": 0.5,						# Noise std dev on the temperature
+		"temp_mode": "noisy_sinusoidal",			# Can be: constant, sinusoidal, noisy_sinusoidal
+		"temp_parameters": {
+			"constant": {
+				"day_temp": 26.5,				# Day temperature
+				"night_temp": 26.5,				# Night temperature
+				"temp_std": 0,					# Noise std dev on the temperature
+			},
+			"sinusoidal": {
+				"day_temp": 30,
+				"night_temp": 23,
+				"temp_std": 0,
+			},
+			"noisy_sinusoidal": {
+				"day_temp": 30,
+				"night_temp": 23,
+				"temp_std": 0.5,
+			},
+
+		},
 		"nb_agents": 1,							# Number of agents (or houses)
 	},
 	"power_grid_prop": {
