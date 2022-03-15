@@ -43,11 +43,30 @@ config_dict = {
 },
 
 "noise_house_prop_test" : {
-	"std_start_temp": 1,		# Std noise on starting temperature
-	"std_target_temp": 1,     # Std Noise on target temperature
-	"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
-	"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_parameters": {
+		"no_noise": {
+			"std_start_temp": 0,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"small_noise": {
+			"std_start_temp": 3,		# Std noise on starting temperature
+			"std_target_temp": 1,     # Std Noise on target temperature
+			"factor_thermo_low": 0.9,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1.1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"big_noise": {
+			"std_start_temp": 5,		# Std noise on starting temperature
+			"std_target_temp": 2,     # Std Noise on target temperature
+			"factor_thermo_low": 0.8,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1.2,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+	},
 },
+
+
 
 # HVAC properties
 
@@ -83,20 +102,36 @@ config_dict = {
 			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
 			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
 		},
-
-
-
 	},
-
 },
 
 "noise_hvac_prop_test" : {
-	"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
-	"factor_COP_low": 0.99,   # Lowest random factor for COP
-	"factor_COP_high": 1.01,   # Highest random factor for COP
-	"factor_cooling_capacity_low": 0.99,   # Lowest random factor for cooling_capacity
-	"factor_cooling_capacity_high": 1.01,   # Highest random factor for cooling_capacity
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_parameters": {
+		"no_noise": {
+			"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 1,   # Lowest random factor for COP
+			"factor_COP_high": 1,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 1,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
+		},
+		"small_noise": {
+			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 0.95,   # Lowest random factor for COP
+			"factor_COP_high": 1.05,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+		},
+		"big_noise": {
+			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
+			"factor_COP_low": 0.85,   # Lowest random factor for COP
+			"factor_COP_high": 1.15,   # Highest random factor for COP
+			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+		},
+	},
 },
+
 
 
 # Env properties

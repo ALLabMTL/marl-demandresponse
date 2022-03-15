@@ -225,8 +225,10 @@ if opt.signal_mode != "config":
     config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
 if opt.house_noise_mode != "config":
     config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
+    config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode
 if opt.hvac_noise_mode != "config":
     config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
+    config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode
 if opt.OD_temp_mode != "config":
     config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
 if opt.no_solar_gain:

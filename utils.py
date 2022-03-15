@@ -114,7 +114,6 @@ def superDict2List(SDict, id):
 
 def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
-    noise_house_prop = config_dict["noise_house_prop"]
     default_hvac_prop = config_dict["default_hvac_prop"]
     default_env_prop = config_dict["default_env_prop"]
 
@@ -123,8 +122,8 @@ def normStateDict(sDict, config_dict, returnDict=False):
     k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
-        result[k] = (sDict[k]-default_house_prop["target_temp"])/noise_house_prop["std_target_temp"]
-    result["house_deadband"] = sDict["house_deadband"]/noise_house_prop["std_target_temp"]
+        result[k] = (sDict[k]-20)/5    # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
+    result["house_deadband"] = sDict["house_deadband"]
     day = sDict['datetime'].timetuple().tm_yday
     hour = sDict['datetime'].hour
     result["sin_day"] = (np.sin(day*2*np.pi/365))

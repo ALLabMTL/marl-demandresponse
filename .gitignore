@@ -14,3 +14,5 @@ wandb/
 Rendering.png
 
 *.pth
+
+environment.yml
