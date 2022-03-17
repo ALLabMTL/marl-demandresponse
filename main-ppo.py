@@ -351,11 +351,11 @@ if __name__ == "__main__":
             print("Testing at time {}".format(t))
             prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(
                 agent, obs_dict["0_1"], 10, 30, config_dict)))
-            random.seed(t)
-            test_env = MADemandResponseEnv(config_dict, test=True)
+            #random.seed(t)
+            test_env = env
+            #test_env = MADemandResponseEnv(config_dict, test=True)
 
-            mean_test_return = testAgent(
-                agent, test_env, opt.nb_time_steps_test)
+            mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
             if log_wandb:
                 wandb_run.log(
                     {"Mean test return": mean_test_return, "Training steps": t})
