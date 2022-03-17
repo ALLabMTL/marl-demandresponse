@@ -7,6 +7,7 @@ import argparse
 
 import wandb
 import os
+import torch
 
 from copy import deepcopy
 import warnings
@@ -70,7 +71,7 @@ parser.add_argument(
 parser.add_argument(
     "--nb_time_steps",
     type=int,
-    default=10000,
+    default=1000000,
     help="Total number of time steps",
 )
 
@@ -254,13 +255,12 @@ def testAgent(agent, env, nb_time_steps_test):
     cumul_avg_reward = 0
 
     obs_dict = env.reset()
-
-    for t in range(nb_time_steps_test):
-        action_and_prob = {k: agent.select_action(normStateDict(
-            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
-        action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
-        obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-        cumul_avg_reward += rewards_dict[k] / env.nb_agents
+    with torch.no_grad():
+        for t in range(nb_time_steps_test):
+            action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+            action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
+            obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+            cumul_avg_reward += rewards_dict[k] / env.nb_agents
 
     mean_avg_return = cumul_avg_reward/nb_time_steps_test
 
@@ -291,8 +291,7 @@ if __name__ == "__main__":
         if render:
             renderer.render(obs_dict)
         # Taking action in environment
-        action_and_prob = {k: agent.select_action(normStateDict(
-            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
