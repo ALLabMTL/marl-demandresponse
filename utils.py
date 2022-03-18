@@ -11,6 +11,8 @@ import uuid
 import os
 
 # Applying noise on environment properties
+
+
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
 
     env_properties = deepcopy(default_env_prop)
@@ -35,12 +37,11 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     env_properties["agent_ids"] = agent_ids
     env_properties["nb_hvac"] = len(agent_ids)
 
-    # Setting the 
-    env_properties["start_datetime"]= get_random_date_time(datetime.strptime(default_env_prop["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    # Setting the
+    env_properties["start_datetime"] = get_random_date_time(datetime.strptime(
+        default_env_prop["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
 
     return env_properties
-
-
 
 
 # Applying noise on properties
@@ -49,21 +50,30 @@ def apply_house_noise(house_prop, noise_house_prop):
     noise_house_params = noise_house_prop["noise_parameters"][noise_house_mode]
 
     # Gaussian noise: target temp
-    house_prop["init_temp"] += np.abs(random.gauss(0, noise_house_params["std_start_temp"]))
-    house_prop["target_temp"] += np.abs(random.gauss(0, noise_house_params["std_target_temp"]))
-
+    house_prop["init_temp"] += np.abs(random.gauss(0,
+                                      noise_house_params["std_start_temp"]))
+    house_prop["target_temp"] += np.abs(random.gauss(0,
+                                        noise_house_params["std_target_temp"]))
 
     # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-    factor_Ua = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ua = random.triangular(
+        noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)
     house_prop["Ua"] *= factor_Ua
 
-    factor_Cm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Cm = random.triangular(
+        noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)
     house_prop["Cm"] *= factor_Cm
 
-    factor_Ca = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ca = random.triangular(
+        noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)
     house_prop["Ca"] *= factor_Ca
 
-    factor_Hm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Hm = random.triangular(
+        noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)
     house_prop["Hm"] *= factor_Hm
 
 
@@ -72,7 +82,8 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
 
     # Gaussian noise: latent_cooling_fraction
-    hvac_prop["latent_cooling_fraction"] += random.gauss(0, noise_hvac_params["std_latent_cooling_fraction"])
+    hvac_prop["latent_cooling_fraction"] += random.gauss(
+        0, noise_hvac_params["std_latent_cooling_fraction"])
 
     # Factor noise: COP, cooling_capacity
     factor_COP = random.triangular(noise_hvac_params["factor_COP_low"], noise_hvac_params["factor_COP_high"],
@@ -84,13 +95,15 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
                                                 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
 
+
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
-    days_in_year = 364    
+    days_in_year = 364
     seconds_in_day = 60*60*24
     random_days = random.randrange(days_in_year)
     random_seconds = random.randrange(seconds_in_day)
-    random_date = start_date_time + timedelta(days=random_days, seconds=random_seconds)
+    random_date = start_date_time + \
+        timedelta(days=random_days, seconds=random_seconds)
     return random_date
 
 
@@ -99,18 +112,22 @@ def get_random_date_time(start_date_time):
 def get_actions(actors, obs_dict):
     actions = {}
     for agent_id in actors.keys():
-        actions[agent_id] = actors[agent_id].act(obs_dict[agent_id])
+        actions[agent_id] = actors[agent_id].act(obs_dict)
     return actions
+
 
 def datetime2List(dt):
     return [dt.year, dt.month, dt.day, dt.hour, dt.minute]
 
+
 def superDict2List(SDict, id):
     tmp = SDict[id].copy()
     tmp['datetime'] = datetime2List(tmp['datetime'])
-    for k,v in tmp.items():
-        if not isinstance(tmp[k],list): tmp[k] = [v]
+    for k, v in tmp.items():
+        if not isinstance(tmp[k], list):
+            tmp[k] = [v]
     return sum(list(tmp.values()), [])
+
 
 def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
@@ -118,11 +135,13 @@ def normStateDict(sDict, config_dict, returnDict=False):
     default_env_prop = config_dict["default_env_prop"]
 
     result = {}
-    k_temp = ['OD_temp','house_temp','house_mass_temp','house_target_temp']
-    k_div = ['house_Ua','house_Cm','house_Ca','house_Hm','hvac_COP','hvac_cooling_capacity','hvac_latent_cooling_fraction']
+    k_temp = ['OD_temp', 'house_temp', 'house_mass_temp', 'house_target_temp']
+    k_div = ['house_Ua', 'house_Cm', 'house_Ca', 'house_Hm', 'hvac_COP',
+             'hvac_cooling_capacity', 'hvac_latent_cooling_fraction']
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
-        result[k] = (sDict[k]-20)/5    # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
+        # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
+        result[k] = (sDict[k]-20)/5
     result["house_deadband"] = sDict["house_deadband"]
     day = sDict['datetime'].timetuple().tm_yday
     hour = sDict['datetime'].hour
@@ -142,11 +161,17 @@ def normStateDict(sDict, config_dict, returnDict=False):
     result["hvac_turned_on"] = 1 if sDict["hvac_turned_on"] else 0
     result["hvac_lockout"] = 1 if sDict["hvac_lockout"] else 0
 
-    result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
-    result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"]/sDict["hvac_lockout_duration"]
+    result["hvac_seconds_since_off"] = sDict["hvac_seconds_since_off"] / \
+        sDict["hvac_lockout_duration"]
+    result["hvac_lockout_duration"] = sDict["hvac_lockout_duration"] / \
+        sDict["hvac_lockout_duration"]
 
-    result["reg_signal"] = sDict["reg_signal"] / (default_env_prop["power_grid_prop"]["avg_power_per_hvac"] * default_env_prop["cluster_prop"]["nb_agents"])
-    result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (default_env_prop["power_grid_prop"]["avg_power_per_hvac"] * default_env_prop["cluster_prop"]["nb_agents"])
+    result["reg_signal"] = sDict["reg_signal"] / \
+        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+         * default_env_prop["cluster_prop"]["nb_agents"])
+    result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / \
+        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+         * default_env_prop["cluster_prop"]["nb_agents"])
     return result if returnDict else np.array(list(result.values()))
 
 
@@ -161,31 +186,30 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict):
         state['house_temp'] = temp
         norm_state = normStateDict(state, config_dict)
         action, action_prob = agent.select_action(norm_state)
-        if not action: # we want probability of True
+        if not action:  # we want probability of True
             prob_on[i] = 1 - action_prob
         else:
             prob_on[i] = action_prob
     return prob_on
 
+
 def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, time_steps_test_log, log_wandb):
     '''
     Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
     '''
-    
-
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    img = plt.imshow(np.transpose(prob_on_per_training), extent = [0, np.size(prob_on_per_training,0)*time_steps_test_log, high_temp,low_temp])
+    img = plt.imshow(np.transpose(prob_on_per_training), extent=[0, np.size(
+        prob_on_per_training, 0)*time_steps_test_log, high_temp, low_temp])
     ax = plt.gca()
     ax.invert_yaxis()
 
-    forceAspect(ax,aspect=2.0)
+    forceAspect(ax, aspect=2.0)
 
     plt.xlabel("Training time steps")
     plt.ylabel("Indoors temperature")
-
 
     v1 = np.linspace(0, 1, 8, endpoint=True)
     cb = plt.colorbar(ticks=v1)
@@ -194,7 +218,8 @@ def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, time_
     if log_wandb:
         name = uuid.uuid1().hex + "probTestAgent.png"
         plt.savefig(name)
-        wandb.log({"Probability of agent vs Indoor temperature vs Episode ": wandb.Image(name)})
+        wandb.log(
+            {"Probability of agent vs Indoor temperature vs Episode ": wandb.Image(name)})
         os.remove(name)
 
     else:
@@ -202,11 +227,11 @@ def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, time_
     return 0
 
 
-
-def forceAspect(ax,aspect):
+def forceAspect(ax, aspect):
     im = ax.get_images()
-    extent =  im[0].get_extent()
+    extent = im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+
 
 def saveActorNetDict(agent, path):
     if not os.path.exists(path):

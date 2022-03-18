@@ -13,7 +13,6 @@ import argparse
 import wandb
 
 
-
 os.environ["WANDB_SILENT"] = "true"
 
 agents_dict = {
@@ -22,6 +21,7 @@ agents_dict = {
     "Basic": BasicController,
     "AlwaysOn": AlwaysOnController,
     "PPO": PPOAgent,
+    "GreedyMyopic": GreedyMyopic
 }
 
 
@@ -38,43 +38,43 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--nb_agents", 
-    type=int, 
-    default=1, 
+    "--nb_agents",
+    type=int,
+    default=1,
     help="Number of agents (TCLs)",
 )
 
 parser.add_argument(
-    "--nb_time_steps", 
-    type=int, 
-    default=1000, 
+    "--nb_time_steps",
+    type=int,
+    default=1000,
     help="Number of time steps in an episode",
 )
 
 parser.add_argument(
-    "--env_seed", 
-    type=int, 
-    default=1, 
+    "--env_seed",
+    type=int,
+    default=1,
     help="Environment seed",
 )
 
 parser.add_argument(
-    "--net_seed", 
-    type=int, 
-    default=1, 
+    "--net_seed",
+    type=int,
+    default=1,
     help="Network and torch seed",
 )
 
 parser.add_argument(
-    "--exp", 
-    type=str, 
-    default="Deploy", 
+    "--exp",
+    type=str,
+    default="Deploy",
     help="Experiment name",
 )
 
 parser.add_argument(
-    "--no_wandb", 
-    action="store_true", 
+    "--no_wandb",
+    action="store_true",
     help="Add to prevent logging to wandb",
 )
 
@@ -93,14 +93,14 @@ parser.add_argument(
 
 parser.add_argument(
     "--time_step",
-    type=int, 
-    default=-1, 
+    type=int,
+    default=-1,
     help="Time step in seconds",
 )
 
 parser.add_argument(
-    "--lockout_duration", 
-    type=int, 
+    "--lockout_duration",
+    type=int,
     default=-1,
     help="Default AC lockout duration, in seconds",
 )
@@ -178,9 +178,9 @@ for hvac_id in hvacs_id_registry.keys():
     agent_prop = {"id": hvac_id}
 
     if opt.actor_name:
-        agent_prop["actor_name"]=opt.actor_name
-        agent_prop["net_seed"]=opt.net_seed
-        agent_prop["exploration_temp"]=opt.exploration_temp
+        agent_prop["actor_name"] = opt.actor_name
+        agent_prop["net_seed"] = opt.net_seed
+        agent_prop["exploration_temp"] = opt.exploration_temp
 
     actors[hvac_id] = agents_dict[opt.agent](agent_prop, config_dict)
 
@@ -201,9 +201,9 @@ for i in range(nb_time_steps):
             on_off_ratio += 1./len(actions.keys())
 
 
-
 average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
 average_hvac_power = average_cluster_hvac_power / nb_agents
 on_off_timeratio = on_off_ratio / nb_time_steps
-print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(average_cluster_hvac_power, average_hvac_power))
+print("Average cluster hvac power: {:f} W, per hvac: {:f} W".format(
+    average_cluster_hvac_power, average_hvac_power))
 print("On_off time ratio: {}".format(on_off_timeratio))
