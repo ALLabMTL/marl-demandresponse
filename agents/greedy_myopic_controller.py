@@ -4,7 +4,8 @@ from torch import Tensor
 
 
 class GreedyMyopic(object):
-    """ Not really a bang bang controller but: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
+    """Try to distribute the energy budget among all the agents prioritizing the agents 
+    with a high temperature compared to the target temperature in a greedy way"""
 
     actions_df = []
 
