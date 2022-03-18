@@ -257,7 +257,8 @@ def testAgent(agent, env, nb_time_steps_test):
     obs_dict = env.reset()
     with torch.no_grad():
         for t in range(nb_time_steps_test):
-            action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+            action_and_prob = {k: agent.select_action(normStateDict(
+                obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             cumul_avg_reward += rewards_dict[k] / env.nb_agents
@@ -291,13 +292,13 @@ if __name__ == "__main__":
         if render:
             renderer.render(obs_dict)
         # Taking action in environment
-        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+        action_and_prob = {k: agent.select_action(normStateDict(
+            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
         if render and t >= opt.render_after:
             renderer.render(next_obs_dict)
-
 
         # Storing in replay buffer
         for k in obs_dict.keys():
@@ -351,11 +352,12 @@ if __name__ == "__main__":
             print("Testing at time {}".format(t))
             prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(
                 agent, obs_dict["0_1"], 10, 30, config_dict)))
-            #random.seed(t)
+            # random.seed(t)
             test_env = env
             #test_env = MADemandResponseEnv(config_dict, test=True)
 
-            mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
+            mean_test_return = testAgent(
+                agent, test_env, opt.nb_time_steps_test)
             if log_wandb:
                 wandb_run.log(
                     {"Mean test return": mean_test_return, "Training steps": t})

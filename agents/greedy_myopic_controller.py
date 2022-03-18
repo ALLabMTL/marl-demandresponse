@@ -15,7 +15,6 @@ class GreedyMyopic(object):
             "temperature_difference", "power_consumption", "hvac_lockout",  "reg_signal"))
 
     def act(self, obs):
-        print(self.id)
         if (self.id == "0_1"):
             self.last_obs = obs
             self.get_action(obs)
@@ -26,8 +25,8 @@ class GreedyMyopic(object):
 
     def get_action(self, obs):
         obs = pd.DataFrame(obs).transpose()
-        obs["temperature_difference"] = obs["house_temp"] - \
-            obs["house_target_temp"]
+        obs["temperature_difference"] = -(obs["house_temp"] -
+                                          obs["house_target_temp"])
 
         obs["power_consumption"] = obs["hvac_cooling_capacity"] / \
             obs["hvac_COP"]
