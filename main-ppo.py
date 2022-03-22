@@ -312,10 +312,8 @@ if __name__ == "__main__":
         obs_dict = next_obs_dict
 
         # Mean values
-        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - \
-            next_obs_dict['0_1']["cluster_hvac_power"]
-        cumul_signal_error += np.abs(
-            next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
+        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"]
+        cumul_signal_error += np.abs(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
         #print(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
 
         if t % time_steps_per_episode == time_steps_per_episode - 1:     # Episode: reset environment
@@ -374,66 +372,3 @@ if __name__ == "__main__":
     if opt.save_actor_name:
         path = os.path.join(".", "actors", opt.save_actor_name)
         saveActorNetDict(agent, path)
-
-
-'''
-
-
-if __name__ == "__main__":
-    Transition = namedtuple(
-        "Transition", ["state", "action", "a_log_prob", "reward", "next_state"]
-    )
-    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb)
-    if render:
-        renderer = Renderer(nb_agents)
-    prob_on_episode = np.empty(100)
-    for episode in range(opt.nb_tr_episodes):
-
-        obs_dict = env.reset()
-
-        mean_return = 0
-        mean_temp_offset = 0
-        for t in range(time_steps_per_episode):
-            action_and_prob = {
-                k: agent.select_action(normStateDict(obs_dict[k]), temp=opt.exploration_temp)
-                for k in obs_dict.keys()
-            }
-            action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
-            action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
-            next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            mean_reward = 0
-            cumul_temp_offset = 0
-            for k in obs_dict.keys():
-                agent.store_transition(
-                    Transition(
-                        normStateDict(obs_dict[k]),
-                        action[k],
-                        action_prob[k],
-                        rewards_dict[k],
-                        normStateDict(next_obs_dict[k]),
-                    )
-                )
-                mean_reward += rewards_dict[k] / nb_agents
-                cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / nb_agents
-
-            obs_dict = next_obs_dict
-            mean_return += float(mean_reward) / time_steps_per_episode
-            mean_temp_offset += cumul_temp_offset / time_steps_per_episode
-            if render:
-                renderer.render(obs_dict)
-
-        if log_wandb:
-            wandb_run.log({"Mean train return": mean_return, "Mean temperature offset": mean_temp_offset, "Training steps": time_steps_per_episode*episode + t})
-        
-        if len(agent.buffer) >= agent.batch_size:
-            agent.update(episode)
-        prob_on = testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)
-        prob_on_episode = np.vstack((prob_on_episode, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
-    prob_on_episode = prob_on_episode[1:]
-
-    colorPlotTestAgentHouseTemp(prob_on_episode, 10, 30, log_wandb)
-
-    if opt.save_actor_name:
-        path = os.path.join(".","actors", opt.save_actor_name) 
-        saveActorNetDict(agent, path)
-'''

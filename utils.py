@@ -54,16 +54,16 @@ def apply_house_noise(house_prop, noise_house_prop):
 
 
     # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-    factor_Ua = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ua = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ua"] *= factor_Ua
 
-    factor_Cm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Cm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Cm"] *= factor_Cm
 
-    factor_Ca = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Ca = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ca"] *= factor_Ca
 
-    factor_Hm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_low"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    factor_Hm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Hm"] *= factor_Hm
 
 
