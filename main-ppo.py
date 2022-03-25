@@ -191,10 +191,22 @@ parser.add_argument(
     help="Mode of noise over house parameters.")
 
 parser.add_argument(
+    "--house_noise_mode_test",
+    type=str,
+    default="train",
+    help="Mode of noise over house parameters for test environment.")
+
+parser.add_argument(
     "--hvac_noise_mode",
     type=str,
     default="config",
-    help="Mode of noise over hvac parameters.")
+    help="Mode of noise over HVAC parameters.")
+
+parser.add_argument(
+    "--hvac_noise_mode_test",
+    type=str,
+    default="train",
+    help="Mode of noise over HVAC parameters for test environment.")
 
 parser.add_argument(
     "--OD_temp_mode",
@@ -233,10 +245,17 @@ if opt.signal_mode != "config":
     config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
 if opt.house_noise_mode != "config":
     config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
-    config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode
+if opt.house_noise_mode_test == "train":
+    config_dict["noise_house_prop_test"]['noise_mode'] = config_dict["noise_house_prop"]['noise_mode']
+else:
+    config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode_test
+
 if opt.hvac_noise_mode != "config":
     config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
-    config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode
+if opt.hvac_noise_mode_test == "train":
+    config_dict["noise_hvac_prop_test"]['noise_mode'] = config_dict["noise_hvac_prop_test"]['noise_mode']
+else:
+    config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode_test
 if opt.OD_temp_mode != "config":
     config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
 if opt.no_solar_gain:
