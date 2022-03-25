@@ -198,8 +198,8 @@ def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_of
     print(axes)
 
     normalizer = clr.Normalize(vmin=0, vmax=1)
-    map0 = axes[0].imshow(np.transpose(prob_on_per_training_on), extent=[0, np.size(prob_on_per_training_on, 0)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
-    map1 = axes[1].imshow(np.transpose(prob_on_per_training_off), extent=[0, np.size(prob_on_per_training_off, 0)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    map0 = axes[0].imshow(np.transpose(prob_on_per_training_on), extent=[0, np.size(prob_on_per_training_on, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    map1 = axes[1].imshow(np.transpose(prob_on_per_training_off), extent=[0, np.size(prob_on_per_training_off, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
     #axes[0] = plt.gca()
     axes[0].invert_yaxis()
     axes[1].invert_yaxis()

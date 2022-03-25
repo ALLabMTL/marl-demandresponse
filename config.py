@@ -177,7 +177,8 @@ config_dict = {
 			}
 		}
 	},
-	"alpha": 2e-5,									# Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty
+	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
 },
 
 }

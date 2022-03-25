@@ -171,10 +171,17 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--alpha",
+    "--alpha_temp",
     type=float,
     default=-1,
-    help="Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty."
+    help="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
+)
+
+parser.add_argument(
+    "--alpha_sig",
+    type=float,
+    default=-1,
+    help="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
 )
 
 parser.add_argument(
@@ -234,8 +241,10 @@ if opt.OD_temp_mode != "config":
     config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
 if opt.no_solar_gain:
     config_dict["default_house_prop"]["shading_coeff"] = 0
-if opt.alpha != -1:
-    config_dict["default_env_prop"]["alpha"] = opt.alpha
+if opt.alpha_temp != -1:
+    config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
+if opt.alpha_sig != -1:
+    config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
 if log_wandb:
     wandb_run = wandb_setup(opt, config_dict)
 
