@@ -283,7 +283,8 @@ if __name__ == "__main__":
         "Transition", ["state", "action", "a_log_prob", "reward", "next_state"])
     if render:
         renderer = Renderer(env.nb_agents)
-    prob_on_test = np.empty(100)
+    prob_on_test_on = np.empty(100)
+    prob_on_test_off = np.empty(100)
 
     obs_dict = env.reset()
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
@@ -357,8 +358,8 @@ if __name__ == "__main__":
 
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
-            prob_on_test_on = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
-            prob_on_test_off = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
+            prob_on_test_on = np.vstack((prob_on_test_on, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
+            prob_on_test_off = np.vstack((prob_on_test_off, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
 
             # random.seed(t)
             test_env = deepcopy(env)

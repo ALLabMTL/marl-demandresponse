@@ -19,7 +19,7 @@ config_dict = {
 },
 
 "noise_house_prop" : {
-	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise, small_start_temp, big_start_temp
 	"noise_parameters": {
 		"no_noise": {
 			"std_start_temp": 0,		# Std noise on starting temperature
@@ -38,12 +38,24 @@ config_dict = {
 			"std_target_temp": 2,     # Std Noise on target temperature
 			"factor_thermo_low": 0.8,   # Lowest random factor for Ua, Cm, Ca, Hm
 			"factor_thermo_high": 1.2,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"small_start_temp": {
+			"std_start_temp": 3,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"big_start_temp": {
+			"std_start_temp": 5,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
 		},
 	},
 },
 
 "noise_house_prop_test" : {
-	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
+	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise, small_start_temp, big_start_temp
 	"noise_parameters": {
 		"no_noise": {
 			"std_start_temp": 0,		# Std noise on starting temperature
@@ -62,6 +74,18 @@ config_dict = {
 			"std_target_temp": 2,     # Std Noise on target temperature
 			"factor_thermo_low": 0.8,   # Lowest random factor for Ua, Cm, Ca, Hm
 			"factor_thermo_high": 1.2,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"small_start_temp": {
+			"std_start_temp": 3,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
+		},
+		"big_start_temp": {
+			"std_start_temp": 5,		# Std noise on starting temperature
+			"std_target_temp": 0,     # Std Noise on target temperature
+			"factor_thermo_low": 1,   # Lowest random factor for Ua, Cm, Ca, Hm
+			"factor_thermo_high": 1,   # Highest random factor for Ua, Cm, Ca, Hm
 		},
 	},
 },
