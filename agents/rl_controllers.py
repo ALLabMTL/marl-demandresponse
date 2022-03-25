@@ -28,12 +28,12 @@ class PPOAgent():
         self.temp = agent_properties["exploration_temp"]
 
     def act(self, obs_dict):
-        obs = obs[self.id]
+        obs_dict = obs_dict[self.id]
         state = normStateDict(obs_dict, self.config_dict)
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
             action_prob = self.actor_net(state, self.temp)
-        # print(action_prob)
+        print(action_prob)
         c = Categorical(action_prob)
         action = c.sample()
-        return action.item(), action_prob[:, action.item()].item()
+        return action.item()
