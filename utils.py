@@ -2,6 +2,7 @@ import numpy as np
 import random
 import torch
 import matplotlib.pyplot as plt
+import matplotlib.colors as clr
 from copy import deepcopy
 from datetime import datetime, timedelta, time
 
@@ -168,7 +169,7 @@ def normStateDict(sDict, config_dict, returnDict=False):
     return result if returnDict else np.array(list(result.values()))
 
 
-def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict):
+def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
     '''
     Receives an agent and a given state. Tests the agent probability output for 100 points a given range of indoors temperature, returning a vector for the probability of True (on).
     '''
@@ -177,7 +178,9 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict):
     for i in range(100):
         temp = temp_range[i]
         state['house_temp'] = temp
+        state['reg_signal'] = reg_signal
         norm_state = normStateDict(state, config_dict)
+
         action, action_prob = agent.select_action(norm_state)
         if not action:  # we want probability of True
             prob_on[i] = 1 - action_prob
@@ -186,27 +189,32 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict):
     return prob_on
 
 
-def colorPlotTestAgentHouseTemp(prob_on_per_training, low_temp, high_temp, time_steps_test_log, log_wandb):
+def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_off, low_temp, high_temp, time_steps_test_log, log_wandb):
     '''
     Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
     '''
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(8,8.5), dpi=80)
+    print(axes)
 
-    img = plt.imshow(np.transpose(prob_on_per_training), extent=[0, np.size(
-        prob_on_per_training, 0)*time_steps_test_log, high_temp, low_temp])
-    ax = plt.gca()
-    ax.invert_yaxis()
+    normalizer = clr.Normalize(vmin=0, vmax=1)
+    map0 = axes[0].imshow(np.transpose(prob_on_per_training_on), extent=[0, np.size(prob_on_per_training_on, 0)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    map1 = axes[1].imshow(np.transpose(prob_on_per_training_off), extent=[0, np.size(prob_on_per_training_off, 0)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    #axes[0] = plt.gca()
+    axes[0].invert_yaxis()
+    axes[1].invert_yaxis()
 
-    forceAspect(ax, aspect=2.0)
+    forceAspect(axes[0], aspect=2.0)
+    forceAspect(axes[1], aspect=2.0)
 
-    plt.xlabel("Training time steps")
-    plt.ylabel("Indoors temperature")
+    axes[0].set_xlabel("Training time steps")
+    axes[1].set_xlabel("Training time steps")
+    axes[0].set_ylabel("Indoors temperature")
+    axes[1].set_ylabel("Indoors temperature")
+    axes[0].set_title("Power: ON")
+    axes[1].set_title("Power: OFF")
 
-    v1 = np.linspace(0, 1, 8, endpoint=True)
-    cb = plt.colorbar(ticks=v1)
-    cb.ax.set_yticklabels(["{:4.2f}".format(i) for i in v1], fontsize='7')
+    cb = fig.colorbar(map0, ax=axes[:], shrink=0.6)
 
     if log_wandb:
         name = uuid.uuid1().hex + "probTestAgent.png"

@@ -348,16 +348,15 @@ if __name__ == "__main__":
 
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
-            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(
-                agent, obs_dict["0_1"], 10, 30, config_dict)))
+            prob_on_test_on = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
+            prob_on_test_off = np.vstack((prob_on_test, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
 
             # random.seed(t)
             test_env = deepcopy(env)
 
             #test_env = MADemandResponseEnv(config_dict, test=True)
 
-            mean_test_return = testAgent(
-                agent, test_env, opt.nb_time_steps_test)
+            mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
             if log_wandb:
                 wandb_run.log(
                     {"Mean test return": mean_test_return, "Training steps": t})
@@ -366,12 +365,12 @@ if __name__ == "__main__":
                     "Training step - {} - Mean test return: {}".format(t, mean_test_return))
 
     if render:
-
         renderer.__del__(obs_dict)
-    prob_on_test = prob_on_test[1:]
 
-    colorPlotTestAgentHouseTemp(
-        prob_on_test, 10, 30, time_steps_test_log, log_wandb)
+    prob_on_test_on = prob_on_test_on[1:]
+    prob_on_test_off = prob_on_test_off[1:]
+
+    colorPlotTestAgentHouseTemp(prob_on_test_on, prob_on_test_off, 10, 30, time_steps_test_log, log_wandb)
 
     if opt.save_actor_name:
         path = os.path.join(".", "actors", opt.save_actor_name)
