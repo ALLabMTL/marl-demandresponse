@@ -5,15 +5,39 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as clr
 from copy import deepcopy
 from datetime import datetime, timedelta, time
+from wandb_setup import wandb_setup
 
 
 import wandb
 import uuid
 import os
 
+def adjust_config(opt, config_dict):
+    """Changes configuration of config_dict based on args."""
+    if opt.nb_agents != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
+    if opt.time_step != -1:
+        config_dict["default_env_prop"]['time_step'] = opt.time_step
+    if opt.cooling_capacity != -1:
+        config_dict["default_hvac_prop"]['cooling_capacity'] = opt.cooling_capacity
+    if opt.lockout_duration != -1:
+        config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
+    if opt.signal_mode != "config":
+        config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
+    if opt.alpha != -1:
+        config_dict["default_env_prop"]["alpha"] = opt.alpha
+
+def render_and_wandb_init(opt, config_dict):
+    render = opt.render
+
+    log_wandb = not opt.no_wandb
+    wandb_run = None
+    if log_wandb:
+        wandb_run = wandb_setup(opt, config_dict)
+    return render, log_wandb, wandb_run
+
+
 # Applying noise on environment properties
-
-
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
 
     env_properties = deepcopy(default_env_prop)
