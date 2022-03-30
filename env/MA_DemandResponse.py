@@ -27,7 +27,8 @@ def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
     power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
     """
 
-    penalty = (cluster_hvac_power - power_grid_reg_signal) ** 2 / nb_agents
+    penalty = ((cluster_hvac_power - power_grid_reg_signal)/nb_agents) ** 2
+
     return penalty
 
 
@@ -223,11 +224,11 @@ class MADemandResponseEnv(MultiAgentEnv):
         signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, self.nb_agents)
 
         norm_temp_penalty = compute_temp_penalty(self.default_house_prop["target_temp"], 2, self.default_house_prop["target_temp"] + 3)
-        norm_sig_penalty = reg_signal_penalty(0, self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"]/2, 1)
-        reward_norm = norm_temp_penalty + self.env_properties["alpha"] * norm_sig_penalty
+
+        norm_sig_penalty = reg_signal_penalty(self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"], 0.75*self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"], 1)
 
         for agent_id in self.agent_ids:
-            rewards_dict[agent_id] = -1 * (temp_penalty_dict[agent_id] + self.env_properties["alpha"] * signal_penalty) / reward_norm
+            rewards_dict[agent_id] = -1 * (self.env_properties["alpha_temp"] * temp_penalty_dict[agent_id]/norm_temp_penalty + self.env_properties["alpha_sig"] * signal_penalty/norm_sig_penalty)
         return rewards_dict
 
     def make_dones_dict(self):

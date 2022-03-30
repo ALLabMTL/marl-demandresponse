@@ -171,10 +171,17 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--alpha",
+    "--alpha_temp",
     type=float,
     default=-1,
-    help="Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty."
+    help="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
+)
+
+parser.add_argument(
+    "--alpha_sig",
+    type=float,
+    default=-1,
+    help="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
 )
 
 parser.add_argument(
@@ -184,10 +191,22 @@ parser.add_argument(
     help="Mode of noise over house parameters.")
 
 parser.add_argument(
+    "--house_noise_mode_test",
+    type=str,
+    default="train",
+    help="Mode of noise over house parameters for test environment.")
+
+parser.add_argument(
     "--hvac_noise_mode",
     type=str,
     default="config",
-    help="Mode of noise over hvac parameters.")
+    help="Mode of noise over HVAC parameters.")
+
+parser.add_argument(
+    "--hvac_noise_mode_test",
+    type=str,
+    default="train",
+    help="Mode of noise over HVAC parameters for test environment.")
 
 parser.add_argument(
     "--OD_temp_mode",
@@ -226,16 +245,25 @@ if opt.signal_mode != "config":
     config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
 if opt.house_noise_mode != "config":
     config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
-    config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode
+if opt.house_noise_mode_test == "train":
+    config_dict["noise_house_prop_test"]['noise_mode'] = config_dict["noise_house_prop"]['noise_mode']
+else:
+    config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode_test
+
 if opt.hvac_noise_mode != "config":
     config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
-    config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode
+if opt.hvac_noise_mode_test == "train":
+    config_dict["noise_hvac_prop_test"]['noise_mode'] = config_dict["noise_hvac_prop_test"]['noise_mode']
+else:
+    config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode_test
 if opt.OD_temp_mode != "config":
     config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
 if opt.no_solar_gain:
     config_dict["default_house_prop"]["shading_coeff"] = 0
-if opt.alpha != -1:
-    config_dict["default_env_prop"]["alpha"] = opt.alpha
+if opt.alpha_temp != -1:
+    config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
+if opt.alpha_sig != -1:
+    config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
 if log_wandb:
     wandb_run = wandb_setup(opt, config_dict)
 
@@ -257,7 +285,8 @@ def testAgent(agent, env, nb_time_steps_test):
     obs_dict = env.reset()
     with torch.no_grad():
         for t in range(nb_time_steps_test):
-            action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+            action_and_prob = {k: agent.select_action(normStateDict(
+                obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             cumul_avg_reward += rewards_dict[k] / env.nb_agents
@@ -273,7 +302,8 @@ if __name__ == "__main__":
         "Transition", ["state", "action", "a_log_prob", "reward", "next_state"])
     if render:
         renderer = Renderer(env.nb_agents)
-    prob_on_test = np.empty(100)
+    prob_on_test_on = np.empty(100)
+    prob_on_test_off = np.empty(100)
 
     obs_dict = env.reset()
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
@@ -291,13 +321,13 @@ if __name__ == "__main__":
         if render:
             renderer.render(obs_dict)
         # Taking action in environment
-        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+        action_and_prob = {k: agent.select_action(normStateDict(
+            obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
         if render and t >= opt.render_after:
             renderer.render(next_obs_dict)
-
 
         # Storing in replay buffer
         for k in obs_dict.keys():
@@ -312,10 +342,8 @@ if __name__ == "__main__":
         obs_dict = next_obs_dict
 
         # Mean values
-        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - \
-            next_obs_dict['0_1']["cluster_hvac_power"]
-        cumul_signal_error += np.abs(
-            next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
+        cumul_signal_offset += next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"]
+        cumul_signal_error += np.abs(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
         #print(next_obs_dict['0_1']["reg_signal"] - next_obs_dict['0_1']["cluster_hvac_power"])
 
         if t % time_steps_per_episode == time_steps_per_episode - 1:     # Episode: reset environment
@@ -349,10 +377,12 @@ if __name__ == "__main__":
 
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print("Testing at time {}".format(t))
-            prob_on_test = np.vstack((prob_on_test, testAgentHouseTemperature(
-                agent, obs_dict["0_1"], 10, 30, config_dict)))
-            #random.seed(t)
+            prob_on_test_on = np.vstack((prob_on_test_on, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
+            prob_on_test_off = np.vstack((prob_on_test_off, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
+
+            # random.seed(t)
             test_env = deepcopy(env)
+
             #test_env = MADemandResponseEnv(config_dict, test=True)
 
             mean_test_return = testAgent(agent, test_env, opt.nb_time_steps_test)
@@ -364,76 +394,13 @@ if __name__ == "__main__":
                     "Training step - {} - Mean test return: {}".format(t, mean_test_return))
 
     if render:
-
         renderer.__del__(obs_dict)
-    prob_on_test = prob_on_test[1:]
 
-    colorPlotTestAgentHouseTemp(
-        prob_on_test, 10, 30, time_steps_test_log, log_wandb)
+    prob_on_test_on = prob_on_test_on[1:]
+    prob_on_test_off = prob_on_test_off[1:]
+
+    colorPlotTestAgentHouseTemp(prob_on_test_on, prob_on_test_off, 10, 30, time_steps_test_log, log_wandb)
 
     if opt.save_actor_name:
         path = os.path.join(".", "actors", opt.save_actor_name)
         saveActorNetDict(agent, path)
-
-
-'''
-
-
-if __name__ == "__main__":
-    Transition = namedtuple(
-        "Transition", ["state", "action", "a_log_prob", "reward", "next_state"]
-    )
-    agent = PPO(seed=opt.net_seed, bs=opt.ppo_bs, log_wandb=log_wandb)
-    if render:
-        renderer = Renderer(nb_agents)
-    prob_on_episode = np.empty(100)
-    for episode in range(opt.nb_tr_episodes):
-
-        obs_dict = env.reset()
-
-        mean_return = 0
-        mean_temp_offset = 0
-        for t in range(time_steps_per_episode):
-            action_and_prob = {
-                k: agent.select_action(normStateDict(obs_dict[k]), temp=opt.exploration_temp)
-                for k in obs_dict.keys()
-            }
-            action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
-            action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
-            next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            mean_reward = 0
-            cumul_temp_offset = 0
-            for k in obs_dict.keys():
-                agent.store_transition(
-                    Transition(
-                        normStateDict(obs_dict[k]),
-                        action[k],
-                        action_prob[k],
-                        rewards_dict[k],
-                        normStateDict(next_obs_dict[k]),
-                    )
-                )
-                mean_reward += rewards_dict[k] / nb_agents
-                cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / nb_agents
-
-            obs_dict = next_obs_dict
-            mean_return += float(mean_reward) / time_steps_per_episode
-            mean_temp_offset += cumul_temp_offset / time_steps_per_episode
-            if render:
-                renderer.render(obs_dict)
-
-        if log_wandb:
-            wandb_run.log({"Mean train return": mean_return, "Mean temperature offset": mean_temp_offset, "Training steps": time_steps_per_episode*episode + t})
-        
-        if len(agent.buffer) >= agent.batch_size:
-            agent.update(episode)
-        prob_on = testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)
-        prob_on_episode = np.vstack((prob_on_episode, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30)))
-    prob_on_episode = prob_on_episode[1:]
-
-    colorPlotTestAgentHouseTemp(prob_on_episode, 10, 30, log_wandb)
-
-    if opt.save_actor_name:
-        path = os.path.join(".","actors", opt.save_actor_name) 
-        saveActorNetDict(agent, path)
-'''
