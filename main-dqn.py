@@ -28,7 +28,6 @@ os.environ["WANDB_SILENT"] = "true"
 
 opt = cli_train() # get arguments from cli
 adjust_config(opt, config_dict)
-opt.no_wandb = True
 render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
 
 # Creating environment

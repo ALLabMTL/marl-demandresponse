@@ -205,4 +205,14 @@ config_dict = {
 	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
 },
 
+# NN properties
+
+"nn_prop": {
+    "layers": [20,20],
+    "gamma": 0.99,
+    "tau": 0.01,
+    "buffer_capacity": 10000,
+    "lr": 1e-3,
+    },
+
 }
