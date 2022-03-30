@@ -62,13 +62,13 @@ def plot_agent_test(env, agent, config_dict, n_steps=1000):
         hvac[t] = next_obs_dict["0_1"]["hvac_turned_on"]
         temp[t] = next_obs_dict["0_1"]["house_temp"]
         
-        cumul_avg_reward += rewards_dict[k] / env.nb_agents
+        cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
         
         obs_dict = next_obs_dict
 
     print(cumul_avg_reward/n_steps)
     
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,15))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,5))
     ax1.plot(actions)
     ax1.plot(hvac)
     ax1.title.set_text('HVAC state vs. Agent action')
