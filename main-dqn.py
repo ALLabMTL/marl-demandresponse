@@ -4,29 +4,27 @@ from env import *
 from agents import *
 from config import config_dict
 from cli import cli_train
-
-import os
-
-import random
-import numpy as np
-import matplotlib.pyplot as plt
 from agents.dqn import DQN
-from copy import deepcopy
-
 from env.MA_DemandResponse import MADemandResponseEnv as env
 from utils import (
     normStateDict,
-    testAgentHouseTemperature,
-    saveActorNetDict,
     adjust_config,
+    colorPlotTestAgentHouseTemp,
     render_and_wandb_init,
 )
+
+import os
+import random
+import numpy as np
+import matplotlib.pyplot as plt
+from copy import deepcopy
 
 os.environ["WANDB_SILENT"] = "true"
 
 #%% Initializing
 
 opt = cli_train() # get arguments from cli
+# opt.no_wandb = True
 adjust_config(opt, config_dict)
 render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
 
@@ -44,7 +42,6 @@ time_steps_per_episode = int(opt.nb_time_steps/opt.nb_tr_episodes)
 time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
 time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
 time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
-
 
 def testAgent(agent, env, nb_time_steps_test):
     """
@@ -69,15 +66,31 @@ def testAgent(agent, env, nb_time_steps_test):
 
     return mean_avg_return
 
-#%%
-# Training loop
+def get_agent_test(agent, state, low_temp, high_temp, config_dict, reg_signal):
+    '''
+    Receives an agent and a given state. Tests the agent output for 100 points a given range of indoors temperature, returning a vector of actions.
+    '''
+    temp_range = np.linspace(low_temp, high_temp, num=100)
+    actions = np.zeros(100)
+    for i in range(100):
+        temp = temp_range[i]
+        state['house_temp'] = temp
+        state['reg_signal'] = reg_signal
+        norm_state = normStateDict(state, config_dict)
+        action = agent.select_action(norm_state)
+        actions[i] = action
+    return actions
+
+#%% Training loop
+
 if __name__ == "__main__":
-    
+    action_on_test_on = np.empty(100)
+    action_on_test_off = np.empty(100)
     obs_dict = env.reset()
     
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
-    # num_state = env.observation_space.n
-    # num_action = env.action_space.n
+    # TODO num_state = env.observation_space.n
+    # TODO num_action = env.action_space.n
     agent = DQN(config_dict, opt, num_state=num_state) # num_action
 
     cumul_avg_reward = 0
@@ -159,6 +172,8 @@ if __name__ == "__main__":
         # Test policy
         if t % time_steps_test_log == time_steps_test_log - 1:
             print("Testing at time {}".format(t))
+            action_on_test_on = np.vstack((action_on_test_on, get_agent_test(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
+            action_on_test_off = np.vstack((action_on_test_off, get_agent_test(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
             # random.seed(t)
             # test_env = MADemandResponseEnv(config_dict, test=True)
             test_env = deepcopy(env)
@@ -172,13 +187,27 @@ if __name__ == "__main__":
 
     if render:
         renderer.__del__(obs_dict)
-    
-    agent.save_agent()
-    
+        
     # Plot
+    action_on_test_on = action_on_test_on[1:]
+    action_on_test_off = action_on_test_off[1:]
+    colorPlotTestAgentHouseTemp(action_on_test_on, action_on_test_off, 10, 30, time_steps_test_log, log_wandb)
     # plot_env_test(env)
 
     # Save agent
-    # if opt.save_actor_name:
-    #     path = os.path.join(".", "actors", opt.save_actor_name)
-    #     saveActorNetDict(agent, path)
+    if opt.save_actor_name:
+        agent.save_agent()
+
+#%% Test
+# from plotting import plot_agent_test
+# import torch
+
+# obs_dict = env.reset()
+# num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
+# agent = DQN(config_dict, opt, num_state=num_state) # num_action
+# agent.policy_net.load_state_dict(torch.load('actors/dqn/actor.pth'))
+
+# #%%
+# plot_agent_test(env, agent, config_dict, 3000)
+# %%
+

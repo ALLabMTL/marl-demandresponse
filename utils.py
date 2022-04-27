@@ -7,10 +7,17 @@ from copy import deepcopy
 from datetime import datetime, timedelta, time
 from wandb_setup import wandb_setup
 
-
 import wandb
 import uuid
 import os
+
+def render_and_wandb_init(opt, config_dict):
+    render = opt.render
+    log_wandb = not opt.no_wandb
+    wandb_run = None
+    if log_wandb:
+        wandb_run = wandb_setup(opt, config_dict)
+    return render, log_wandb, wandb_run
 
 def adjust_config(opt, config_dict):
     """Changes configuration of config_dict based on args."""
@@ -24,18 +31,26 @@ def adjust_config(opt, config_dict):
         config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
     if opt.signal_mode != "config":
         config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
-    if opt.alpha != -1:
-        config_dict["default_env_prop"]["alpha"] = opt.alpha
-
-def render_and_wandb_init(opt, config_dict):
-    render = opt.render
-
-    log_wandb = not opt.no_wandb
-    wandb_run = None
-    if log_wandb:
-        wandb_run = wandb_setup(opt, config_dict)
-    return render, log_wandb, wandb_run
-
+    if opt.house_noise_mode != "config":
+        config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
+    if opt.house_noise_mode_test == "train":
+        config_dict["noise_house_prop_test"]['noise_mode'] = config_dict["noise_house_prop"]['noise_mode']
+    else:
+        config_dict["noise_house_prop_test"]['noise_mode'] = opt.house_noise_mode_test
+    if opt.hvac_noise_mode != "config":
+        config_dict["noise_hvac_prop"]['noise_mode'] = opt.hvac_noise_mode
+    if opt.hvac_noise_mode_test == "train":
+        config_dict["noise_hvac_prop_test"]['noise_mode'] = config_dict["noise_hvac_prop_test"]['noise_mode']
+    else:
+        config_dict["noise_hvac_prop_test"]['noise_mode'] = opt.hvac_noise_mode_test
+    if opt.OD_temp_mode != "config":
+        config_dict["default_env_prop"]['cluster_prop']["temp_mode"] = opt.OD_temp_mode
+    if opt.no_solar_gain:
+        config_dict["default_house_prop"]["shading_coeff"] = 0
+    if opt.alpha_temp != -1:
+        config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
+    if opt.alpha_sig != -1:
+        config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
 
 # Applying noise on environment properties
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
@@ -68,7 +83,6 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
 
     return env_properties
 
-
 # Applying noise on properties
 def apply_house_noise(house_prop, noise_house_prop):
     noise_house_mode = noise_house_prop["noise_mode"]
@@ -94,7 +108,6 @@ def apply_house_noise(house_prop, noise_house_prop):
     factor_Hm = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Hm"] *= factor_Hm
 
-
 def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     noise_hvac_mode = noise_hvac_prop["noise_mode"]
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
@@ -113,7 +126,6 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
                                                 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
 
-
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
     days_in_year = 364
@@ -124,19 +136,15 @@ def get_random_date_time(start_date_time):
         timedelta(days=random_days, seconds=random_seconds)
     return random_date
 
-
 # Multi agent management
-
 def get_actions(actors, obs_dict):
     actions = {}
     for agent_id in actors.keys():
         actions[agent_id] = actors[agent_id].act(obs_dict)
     return actions
 
-
 def datetime2List(dt):
     return [dt.year, dt.month, dt.day, dt.hour, dt.minute]
-
 
 def superDict2List(SDict, id):
     tmp = SDict[id].copy()
@@ -145,7 +153,6 @@ def superDict2List(SDict, id):
         if not isinstance(tmp[k], list):
             tmp[k] = [v]
     return sum(list(tmp.values()), [])
-
 
 def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
@@ -192,7 +199,6 @@ def normStateDict(sDict, config_dict, returnDict=False):
          * default_env_prop["cluster_prop"]["nb_agents"])
     return result if returnDict else np.array(list(result.values()))
 
-
 def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
     '''
     Receives an agent and a given state. Tests the agent probability output for 100 points a given range of indoors temperature, returning a vector for the probability of True (on).
@@ -211,7 +217,6 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, re
         else:
             prob_on[i] = action_prob
     return prob_on
-
 
 def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_off, low_temp, high_temp, time_steps_test_log, log_wandb):
     '''
@@ -251,12 +256,10 @@ def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_of
         plt.show()
     return 0
 
-
 def forceAspect(ax, aspect):
     im = ax.get_images()
     extent = im[0].get_extent()
     ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
-
 
 def saveActorNetDict(agent, path):
     if not os.path.exists(path):
