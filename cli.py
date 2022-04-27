@@ -123,7 +123,7 @@ def cli_train():
     parser.add_argument(
         "--save_actor_name",
         type=str,
-        default=None
+        default="dqn",
         help="Name to store the actor agent after training",
     )
 
