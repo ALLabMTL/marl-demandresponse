@@ -1,15 +1,16 @@
+#%% Imports
+
 import numpy as np
+import os
 import random
 import torch
-import matplotlib.pyplot as plt
-import matplotlib.colors as clr
+
 from copy import deepcopy
 from datetime import datetime, timedelta, time
+
 from wandb_setup import wandb_setup
 
-import wandb
-import uuid
-import os
+#%% Functions
 
 def render_and_wandb_init(opt, config_dict):
     render = opt.render
@@ -199,9 +200,51 @@ def normStateDict(sDict, config_dict, returnDict=False):
          * default_env_prop["cluster_prop"]["nb_agents"])
     return result if returnDict else np.array(list(result.values()))
 
+#%% Testing
+
+def test_dqn_agent(agent, env, nb_time_steps_test, config_dict, time_steps_per_episode):
+    """
+    Test dqn agent on an episode of nb_test_timesteps
+    """
+    env = deepcopy(env)
+    cumul_avg_reward = 0
+    obs_dict = env.reset()
+    for t in range(nb_time_steps_test):
+        action = {k: agent.select_action(normStateDict(obs_dict[k], config_dict)) for k in obs_dict.keys()}
+        obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+        # TODO remove fixed 0_1
+        cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
+        
+        if t % time_steps_per_episode == time_steps_per_episode - 1:
+            obs_dict = env.reset()
+
+    mean_avg_return = cumul_avg_reward/nb_time_steps_test
+
+    return mean_avg_return
+
+def test_ppo_agent(agent, env, config_dict, opt):
+    """
+    Test ppo agent on an episode of nb_test_timesteps, with 
+    """
+    env = deepcopy(env)
+    cumul_avg_reward = 0
+    obs_dict = env.reset()
+    with torch.no_grad():
+        for t in range(opt.nb_time_steps_test):
+            action_and_prob = {k: agent.select_action(normStateDict(
+                obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+            action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
+            obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+            cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
+
+    mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
+
+    return mean_avg_return
+
 def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
     '''
-    Receives an agent and a given state. Tests the agent probability output for 100 points a given range of indoors temperature, returning a vector for the probability of True (on).
+    Receives an agent and a given state. Tests the agent probability output for 100 points
+    given range of indoors temperature, returning a vector for the probability of True (on).
     '''
     temp_range = np.linspace(low_temp, high_temp, num=100)
     prob_on = np.zeros(100)
@@ -210,7 +253,6 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, re
         state['house_temp'] = temp
         state['reg_signal'] = reg_signal
         norm_state = normStateDict(state, config_dict)
-
         action, action_prob = agent.select_action(norm_state)
         if not action:  # we want probability of True
             prob_on[i] = 1 - action_prob
@@ -218,48 +260,21 @@ def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, re
             prob_on[i] = action_prob
     return prob_on
 
-def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_off, low_temp, high_temp, time_steps_test_log, log_wandb):
+def get_agent_test(agent, state, config_dict, reg_signal, low_temp=10, high_temp=30):
     '''
-    Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
+    Receives an agent and a given state. Tests the agent output for 100 points 
+    given a range of indoors temperature, returning a vector of actions.
     '''
-
-    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(8,8.5), dpi=80)
-    print(axes)
-
-    normalizer = clr.Normalize(vmin=0, vmax=1)
-    map0 = axes[0].imshow(np.transpose(prob_on_per_training_on), extent=[0, np.size(prob_on_per_training_on, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
-    map1 = axes[1].imshow(np.transpose(prob_on_per_training_off), extent=[0, np.size(prob_on_per_training_off, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
-    #axes[0] = plt.gca()
-    axes[0].invert_yaxis()
-    axes[1].invert_yaxis()
-
-    forceAspect(axes[0], aspect=2.0)
-    forceAspect(axes[1], aspect=2.0)
-
-    axes[0].set_xlabel("Training time steps")
-    axes[1].set_xlabel("Training time steps")
-    axes[0].set_ylabel("Indoors temperature")
-    axes[1].set_ylabel("Indoors temperature")
-    axes[0].set_title("Power: ON")
-    axes[1].set_title("Power: OFF")
-
-    cb = fig.colorbar(map0, ax=axes[:], shrink=0.6)
-
-    if log_wandb:
-        name = uuid.uuid1().hex + "probTestAgent.png"
-        plt.savefig(name)
-        wandb.log(
-            {"Probability of agent vs Indoor temperature vs Episode ": wandb.Image(name)})
-        os.remove(name)
-
-    else:
-        plt.show()
-    return 0
-
-def forceAspect(ax, aspect):
-    im = ax.get_images()
-    extent = im[0].get_extent()
-    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
+    temp_range = np.linspace(low_temp, high_temp, num=100)
+    actions = np.zeros(100)
+    for i in range(100):
+        temp = temp_range[i]
+        state['house_temp'] = temp
+        state['reg_signal'] = reg_signal
+        norm_state = normStateDict(state, config_dict)
+        action = agent.select_action(norm_state)
+        actions[i] = action
+    return actions
 
 def saveActorNetDict(agent, path):
     if not os.path.exists(path):

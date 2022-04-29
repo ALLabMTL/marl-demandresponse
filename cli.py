@@ -5,6 +5,13 @@ def cli_train():
     parser = argparse.ArgumentParser(description="Training options")
 
     parser.add_argument(
+        "--agent_type",
+        type=str,
+        required=True,
+        help="Type of agent (dqn, ppo)",
+    )
+
+    parser.add_argument(
         "--nb_agents",
         type=int,
         default=-1,
@@ -123,7 +130,7 @@ def cli_train():
     parser.add_argument(
         "--save_actor_name",
         type=str,
-        default="dqn",
+        default=None,
         help="Name to store the actor agent after training",
     )
 

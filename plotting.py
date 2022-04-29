@@ -1,8 +1,13 @@
 #%% Imports
 
-import numpy as np
-import random
 import matplotlib.pyplot as plt
+import matplotlib.colors as clr
+import numpy as np
+import os
+import random
+import uuid
+import wandb
+
 from utils import normStateDict
 
 #%% Functions
@@ -77,3 +82,50 @@ def plot_agent_test(env, agent, config_dict, n_steps=1000):
     ax3.plot(temp)
     ax3.title.set_text('Temperature')
     plt.show()
+
+#%%
+
+def colorPlotTestAgentHouseTemp(prob_on_per_training_on, prob_on_per_training_off, low_temp, high_temp, time_steps_test_log, log_wandb):
+    '''
+    Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
+    '''
+    prob_on_per_training_on = prob_on_per_training_on[1:]
+    prob_on_per_training_off = prob_on_per_training_off[1:]
+    
+    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(8,8.5), dpi=80)
+    print(axes)
+
+    normalizer = clr.Normalize(vmin=0, vmax=1)
+    map0 = axes[0].imshow(np.transpose(prob_on_per_training_on), extent=[0, np.size(prob_on_per_training_on, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    map1 = axes[1].imshow(np.transpose(prob_on_per_training_off), extent=[0, np.size(prob_on_per_training_off, 1)*time_steps_test_log, high_temp, low_temp], norm=normalizer)
+    #axes[0] = plt.gca()
+    axes[0].invert_yaxis()
+    axes[1].invert_yaxis()
+
+    forceAspect(axes[0], aspect=2.0)
+    forceAspect(axes[1], aspect=2.0)
+
+    axes[0].set_xlabel("Training time steps")
+    axes[1].set_xlabel("Training time steps")
+    axes[0].set_ylabel("Indoors temperature")
+    axes[1].set_ylabel("Indoors temperature")
+    axes[0].set_title("Power: ON")
+    axes[1].set_title("Power: OFF")
+
+    cb = fig.colorbar(map0, ax=axes[:], shrink=0.6)
+
+    if log_wandb:
+        name = uuid.uuid1().hex + "probTestAgent.png"
+        plt.savefig(name)
+        wandb.log(
+            {"Probability of agent vs Indoor temperature vs Episode ": wandb.Image(name)})
+        os.remove(name)
+
+    else:
+        plt.show()
+    return 0
+
+def forceAspect(ax, aspect):
+    im = ax.get_images()
+    extent = im[0].get_extent()
+    ax.set_aspect(abs((extent[1]-extent[0])/(extent[3]-extent[2]))/aspect)
