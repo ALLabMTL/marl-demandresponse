@@ -5,6 +5,13 @@ def cli_train():
     parser = argparse.ArgumentParser(description="Training options")
 
     parser.add_argument(
+        "--agent_type",
+        type=str,
+        required=True,
+        help="Type of agent (dqn, ppo)",
+    )
+
+    parser.add_argument(
         "--nb_agents",
         type=int,
         default=-1,
@@ -21,7 +28,7 @@ def cli_train():
     parser.add_argument(
         "--nb_tr_epochs",
         type=int,
-        default=200,
+        default=20,
         help="Number of epochs (policy updates) for training",
     )
 
@@ -35,7 +42,7 @@ def cli_train():
     parser.add_argument(
         "--nb_test_logs",
         type=int,
-        default=10,
+        default=100,
         help="Number of logging points for testing stats (and thus, testing sessions)",
     )
 
@@ -49,14 +56,14 @@ def cli_train():
     parser.add_argument(
         "--nb_time_steps_test",
         type=int,
-        default=1000,
+        default=50000,
         help="Total number of time steps in an episode at test time",
     )
 
     parser.add_argument(
         "--batch_size",
         type=int,
-        default=256,
+        default=32,
         help="Batch size",
     )
 
@@ -77,7 +84,7 @@ def cli_train():
     parser.add_argument(
         "--exp",
         type=str,
-        #required=True,
+        required=True,
         help="Experiment name",
     )
 
@@ -123,7 +130,7 @@ def cli_train():
     parser.add_argument(
         "--save_actor_name",
         type=str,
-        default="dqn", # "none"
+        default=None,
         help="Name to store the actor agent after training",
     )
 
@@ -142,11 +149,53 @@ def cli_train():
     )
 
     parser.add_argument(
-        "--alpha",
+        "--alpha_temp",
         type=float,
         default=-1,
-        help="Tradeoff parameter for loss function: temperature penalty + alpha * regulation signal penalty."
+         help="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
     )
+
+    parser.add_argument(
+        "--alpha_sig",
+        type=float,
+        default=-1,
+        help="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
+    )
+
+    parser.add_argument(
+        "--house_noise_mode",
+        type=str,
+        default="config",
+        help="Mode of noise over house parameters.")
+
+    parser.add_argument(
+        "--house_noise_mode_test",
+        type=str,
+        default="train",
+        help="Mode of noise over house parameters for test environment.")
+
+    parser.add_argument(
+        "--hvac_noise_mode",
+        type=str,
+        default="config",
+        help="Mode of noise over HVAC parameters.")
+
+    parser.add_argument(
+        "--hvac_noise_mode_test",
+        type=str,
+        default="train",
+        help="Mode of noise over HVAC parameters for test environment.")
+
+    parser.add_argument(
+        "--OD_temp_mode",
+        type=str,
+        default="config",
+        help="Mode of outdoors temperature.")
+
+    parser.add_argument(
+        "--no_solar_gain",
+        action="store_true",
+        help="Removes the solar gain from the simulation.")
 
     opt, _ = parser.parse_known_args()
     

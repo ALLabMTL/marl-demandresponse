@@ -13,11 +13,12 @@ from agents.buffer import ReplayBuffer, Transition
 #%% Classes
 
 class DQN:
-    def __init__(self, config_dict, opt, num_state=20, num_action=2):
+    def __init__(self, config_dict, opt, num_state=22, num_action=2):
         super().__init__()
         self.seed = opt.net_seed
         torch.manual_seed(self.seed)
-        self.path = os.path.join(".", "actors", opt.save_actor_name)
+        if opt.save_actor_name:
+            self.path = os.path.join(".", "actors", opt.save_actor_name)
         self.batch_size = opt.batch_size
         
         self.agent_prop = config_dict['nn_prop']
@@ -42,7 +43,7 @@ class DQN:
         # TODO weight decay?
         self.policy_optimizer = optim.Adam(self.policy_net.parameters(), self.lr)
 
-    def save_agent(self):
+    def save(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
         torch.save(self.policy_net.state_dict(), os.path.join(self.path, 'actor.pth'))
