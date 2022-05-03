@@ -5,7 +5,7 @@ from utils import get_actions
 import datetime
 import itertools as it
 import pandas as pd
-
+import copy
 
 parameters_dict = {
     "Ua": [0.9, 1, 1.1],
@@ -29,27 +29,27 @@ def eval_parameters_bangbang_average_consumption(
     Ua, Cm, Ca, Hm, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
 ):
 
+    config = copy.deepcopy(config_dict)
+    config["noise_house_prop"]["noise_mode"] = "no_noise"
+    config["noise_hvac_prop"]["noise_mode"] = "no_noise"
+    config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
+    config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
 
-    config_dict["noise_house_prop"]["noise_mode"] = "no_noise"
-    config_dict["noise_hvac_prop"]["noise_mode"] = "no_noise"
-    config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
-    config_dict["default_hvac_prop"]["cooling_capacity"] = HVAC_power
-
-    config_dict["default_house_prop"]["Ua"] *= Ua
-    config_dict["default_house_prop"]["Cm"] *= Cm
-    config_dict["default_house_prop"]["Ca"] *= Ca
-    config_dict["default_house_prop"]["Hm"] *= Hm
+    config["default_house_prop"]["Ua"] *= Ua
+    config["default_house_prop"]["Cm"] *= Cm
+    config["default_house_prop"]["Ca"] *= Ca
+    config["default_house_prop"]["Hm"] *= Hm
 
     nb_time_steps = 450
 
-    env = MADemandResponseEnv(config_dict)
+    env = MADemandResponseEnv(config)
 
     hvacs_id_registry = env.cluster.hvacs_id_registry
 
     actors = {}
     for hvac_id in hvacs_id_registry.keys():
         agent_prop = {"id": hvac_id}
-        actors[hvac_id] = DeadbandBangBangController(agent_prop, config_dict)
+        actors[hvac_id] = DeadbandBangBangController(agent_prop, config)
 
     # env.cluster.current_OD_temp = OD_temp +
 
