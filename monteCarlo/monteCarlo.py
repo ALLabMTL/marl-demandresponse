@@ -1,14 +1,17 @@
 import sys
+
 sys.path.insert(1, "../marl-demandresponse")
 
-from env import *
-from agents import *
-from config import config_dict
-from utils import get_actions
+import copy
 import datetime
 import itertools as it
+import time
+
 import pandas as pd
-import copy
+from agents import *
+from config import config_dict
+from env import *
+from utils import get_actions
 
 parameters_dict = {
     "Ua": [0.9, 1, 1.1],
@@ -28,6 +31,13 @@ keys = parameters_dict.keys()
 combinations = it.product(*(parameters_dict[Name] for Name in keys))
 
 
+def number_of_combination(dict):
+    nb_comb = 1
+    for key in dict:
+        nb_comb *= len(dict[key])
+    return nb_comb
+
+
 def eval_parameters_bangbang_average_consumption(
     Ua, Cm, Ca, Hm, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
 ):
@@ -37,9 +47,9 @@ def eval_parameters_bangbang_average_consumption(
     config["noise_hvac_prop"]["noise_mode"] = "no_noise"
     config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
     config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
-    config["default_env_prop"]["base_datetime"] = str(datetime.datetime(
-            date[0], date[1], date[2], hour, 0, 0
-        ))
+    config["default_env_prop"]["base_datetime"] = str(
+        datetime.datetime(date[0], date[1], date[2], hour, 0, 0)
+    )
 
     config["default_house_prop"]["Ua"] *= Ua
     config["default_house_prop"]["Cm"] *= Cm
@@ -56,7 +66,7 @@ def eval_parameters_bangbang_average_consumption(
     for hvac_id in hvacs_id_registry.keys():
         agent_prop = {"id": hvac_id}
         actors[hvac_id] = DeadbandBangBangController(agent_prop, config)
-        
+
     obs_dict = env.reset()
     for elem in obs_dict:
         obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
@@ -64,9 +74,7 @@ def eval_parameters_bangbang_average_consumption(
         obs_dict[elem]["house_mass_temp"] = (
             obs_dict[elem]["house_target_temp"] + mass_temp
         )
-        env.start_datetime = datetime.datetime(
-            date[0], date[1], date[2], hour, 0, 0
-        )
+        env.start_datetime = datetime.datetime(date[0], date[1], date[2], hour, 0, 0)
         env.datetime = env.start_datetime
         obs_dict[elem]["reg_signal"] = 0
 
@@ -74,7 +82,7 @@ def eval_parameters_bangbang_average_consumption(
 
     actions = get_actions(actors, obs_dict)
     for i in range(nb_time_steps):
-        
+
         obs_dict, _, _, info = env.step(actions)
 
         total_cluster_hvac_power += info["cluster_hvac_power"]
@@ -90,9 +98,10 @@ def eval_parameters_bangbang_average_consumption(
 
 
 df = pd.DataFrame(columns=list(keys) + ["hvac_average_power"])
+nb_combination_total = number_of_combination(parameters_dict)
+start_time = time.time()
 
-
-for parameters in combinations:
+for i, parameters in enumerate(combinations):
     hvac_average_power = eval_parameters_bangbang_average_consumption(
         parameters[0],
         parameters[1],
@@ -118,6 +127,18 @@ for parameters in combinations:
         parameters[9],
         hvac_average_power,
     ]
+    if i % 500 == 0:
+        print(
+            "\nCombination: ",
+            i,
+            "/",
+            nb_combination_total,
+            "\nCompletion: ",
+            round(i / nb_combination_total * 100, 2),
+            "%",
+            "\nElapsed time since the beggining:",
+            str(datetime.timedelta(seconds=round(time.time() - start_time))),
+        )
 
 
 df.to_csv("monteCarlo/gridSearchResult.csv")
