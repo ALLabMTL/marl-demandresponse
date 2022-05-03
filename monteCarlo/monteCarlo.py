@@ -138,7 +138,14 @@ for i, parameters in enumerate(combinations):
             "%",
             "\nElapsed time since the beggining:",
             str(datetime.timedelta(seconds=round(time.time() - start_time))),
+            "\nRemaining time estimation:",
+            str(
+                datetime.timedelta(
+                    seconds=(1 - i / nb_combination_total)
+                    * (time.time() - start_time)
+                    / ((i + 1) / nb_combination_total)
+                )
+            ),
         )
-
-
-df.to_csv("monteCarlo/gridSearchResult.csv")
+    if i % 50000 == 0:
+        df.to_csv(f"monteCarlo/gridSearchResult{i}.csv")
