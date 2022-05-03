@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, "../marl-demandresponse")
+
 from env import *
 from agents import *
 from config import config_dict
@@ -116,4 +119,5 @@ for parameters in combinations:
         hvac_average_power,
     ]
 
-df.to_csv("./gridSearchResult.csv")
+
+df.to_csv("monteCarlo/gridSearchResult.csv")
