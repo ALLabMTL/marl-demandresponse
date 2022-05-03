@@ -34,6 +34,9 @@ def eval_parameters_bangbang_average_consumption(
     config["noise_hvac_prop"]["noise_mode"] = "no_noise"
     config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
     config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
+    config["default_env_prop"]["base_datetime"] = str(datetime.datetime(
+            date[0], date[1], date[2], hour, 0, 0
+        ))
 
     config["default_house_prop"]["Ua"] *= Ua
     config["default_house_prop"]["Cm"] *= Cm
@@ -50,26 +53,25 @@ def eval_parameters_bangbang_average_consumption(
     for hvac_id in hvacs_id_registry.keys():
         agent_prop = {"id": hvac_id}
         actors[hvac_id] = DeadbandBangBangController(agent_prop, config)
-
-    # env.cluster.current_OD_temp = OD_temp +
-
+        
     obs_dict = env.reset()
-
     for elem in obs_dict:
         obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
         obs_dict[elem]["house_temp"] = obs_dict[elem]["house_target_temp"] + air_temp
         obs_dict[elem]["house_mass_temp"] = (
             obs_dict[elem]["house_target_temp"] + mass_temp
         )
-        obs_dict[elem]["datetime"] = datetime.datetime(
+        env.start_datetime = datetime.datetime(
             date[0], date[1], date[2], hour, 0, 0
         )
+        env.datetime = env.start_datetime
         obs_dict[elem]["reg_signal"] = 0
 
     total_cluster_hvac_power = 0
 
     actions = get_actions(actors, obs_dict)
     for i in range(nb_time_steps):
+        
         obs_dict, _, _, info = env.step(actions)
 
         total_cluster_hvac_power += info["cluster_hvac_power"]
@@ -80,14 +82,12 @@ def eval_parameters_bangbang_average_consumption(
                 date[0], date[1], date[2], hour, 0, 0
             )
         actions = get_actions(actors, obs_dict)
-        
     average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
-    print(average_cluster_hvac_power)
     return average_cluster_hvac_power
 
 
 df = pd.DataFrame(columns=list(keys) + ["hvac_average_power"])
-print(df)
+
 
 for parameters in combinations:
     hvac_average_power = eval_parameters_bangbang_average_consumption(
