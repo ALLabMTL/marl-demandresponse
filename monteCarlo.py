@@ -13,7 +13,7 @@ parameters_dict = {
     "Ca": [0.9, 1, 1.1],
     "Hm": [0.9, 1, 1.1],
     "air_temp": [-4, -2, -1, 0, 1, 2, 4],
-    "mass_temp": [-4, -2, 0, 2, -4],
+    "mass_temp": [-4, -2, 0, 2, 4],
     "OD_temp": [3, 5, 7, 9, 11],
     "HVAC_power": [10000, 15000, 20000],
     "hour": [3, 6, 8, 11, 13, 16, 18, 21],
@@ -29,7 +29,7 @@ def eval_parameters_bangbang_average_consumption(
     Ua, Cm, Ca, Hm, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
 ):
 
-    print(Ua, Cm, Ca, Hm, air_temp, mass_temp, OD_temp, HVAC_power, hour, date)
+
     config_dict["noise_house_prop"]["noise_mode"] = "no_noise"
     config_dict["noise_hvac_prop"]["noise_mode"] = "no_noise"
     config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
@@ -39,7 +39,7 @@ def eval_parameters_bangbang_average_consumption(
     config_dict["default_house_prop"]["Cm"] *= Cm
     config_dict["default_house_prop"]["Ca"] *= Ca
     config_dict["default_house_prop"]["Hm"] *= Hm
-    print(HVAC_power)
+
     nb_time_steps = 450
 
     env = MADemandResponseEnv(config_dict)
@@ -71,15 +71,18 @@ def eval_parameters_bangbang_average_consumption(
     actions = get_actions(actors, obs_dict)
     for i in range(nb_time_steps):
         obs_dict, _, _, info = env.step(actions)
-        for elem in obs_dict:
-            obs_dict[elem]["OD_temp"] = 25
-            obs_dict[elem]["datetime"] = datetime.datetime(2021, 2, 26, 9, 16, 13)
-            obs_dict[elem]["reg_signal"] = 0
-        actions = get_actions(actors, obs_dict)
+
         total_cluster_hvac_power += info["cluster_hvac_power"]
 
+        for elem in obs_dict:
+            obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
+            obs_dict[elem]["datetime"] = datetime.datetime(
+                date[0], date[1], date[2], hour, 0, 0
+            )
+        actions = get_actions(actors, obs_dict)
+        
     average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
-
+    print(average_cluster_hvac_power)
     return average_cluster_hvac_power
 
 
