@@ -149,3 +149,5 @@ for i, parameters in enumerate(combinations):
         )
     if i % 50000 == 0:
         df.to_csv(f"monteCarlo/gridSearchResult{i}.csv")
+
+df.to_csv("./gridSearchResultFinal.csv")
