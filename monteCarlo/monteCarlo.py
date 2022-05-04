@@ -102,52 +102,53 @@ nb_combination_total = number_of_combination(parameters_dict)
 start_time = time.time()
 
 for i, parameters in enumerate(combinations):
-    hvac_average_power = eval_parameters_bangbang_average_consumption(
-        parameters[0],
-        parameters[1],
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
-        parameters[7],
-        parameters[8],
-        parameters[9],
-    )
-    df.loc[len(df.index)] = [
-        parameters[0],
-        parameters[1],
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
-        parameters[7],
-        parameters[8],
-        parameters[9],
-        hvac_average_power,
-    ]
-    if i % 500 == 0:
-        print(
-            "\nCombination: ",
-            i,
-            "/",
-            nb_combination_total,
-            "\nCompletion: ",
-            round(i / nb_combination_total * 100, 2),
-            "%",
-            "\nElapsed time since the beggining:",
-            str(datetime.timedelta(seconds=round(time.time() - start_time))),
-            "\nRemaining time estimation:",
-            str(
-                datetime.timedelta(
-                    seconds=(1 - i / nb_combination_total)
-                    * (time.time() - start_time)
-                    / ((i + 1) / nb_combination_total)
-                )
-            ),
+    if i > 1050000:
+        hvac_average_power = eval_parameters_bangbang_average_consumption(
+            parameters[0],
+            parameters[1],
+            parameters[2],
+            parameters[3],
+            parameters[4],
+            parameters[5],
+            parameters[6],
+            parameters[7],
+            parameters[8],
+            parameters[9],
         )
-    if i % 50000 == 0:
-        df.to_csv(f"monteCarlo/gridSearchResult{i}.csv")
+        df.loc[len(df.index)] = [
+            parameters[0],
+            parameters[1],
+            parameters[2],
+            parameters[3],
+            parameters[4],
+            parameters[5],
+            parameters[6],
+            parameters[7],
+            parameters[8],
+            parameters[9],
+            hvac_average_power,
+        ]
+        if i % 500 == 0:
+            print(
+                "\nCombination: ",
+                i,
+                "/",
+                nb_combination_total,
+                "\nCompletion: ",
+                round(i / nb_combination_total * 100, 2),
+                "%",
+                "\nElapsed time since the beggining:",
+                str(datetime.timedelta(seconds=round(time.time() - start_time))),
+                "\nRemaining time estimation:",
+                str(
+                    datetime.timedelta(
+                        seconds=(1 - i / nb_combination_total)
+                        * (time.time() - start_time)
+                        / ((i + 1) / nb_combination_total)
+                    )
+                ),
+            )
+        if i % 50000 == 0:
+            df.to_csv(f"monteCarlo/gridSearchResult{i}.csv")
 
 df.to_csv("./gridSearchResultFinal.csv")
