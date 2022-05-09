@@ -451,9 +451,10 @@ class SingleHouse(object):
 
         self.house_properties = house_properties
         self.id = house_properties["id"]
-        self.init_temp = house_properties["init_temp"]
-        self.current_temp = self.init_temp
-        self.current_mass_temp = self.init_temp
+        self.init_air_temp = house_properties["init_air_temp"]
+        self.current_temp = self.init_air_temp
+        self.init_mass_temp = house_properties["init_mass_temp"]
+        self.current_mass_temp = self.init_mass_temp
         self.window_area = house_properties["window_area"]
         self.shading_coeff = house_properties["shading_coeff"]
 

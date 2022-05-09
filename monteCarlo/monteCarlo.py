@@ -56,6 +56,14 @@ def eval_parameters_bangbang_average_consumption(
     config["default_house_prop"]["Ca"] *= Ca
     config["default_house_prop"]["Hm"] *= Hm
 
+    config["default_house_prop"]["init_air_temp"] = config["default_house_prop"]["target_temp"] + air_temp
+    config["default_house_prop"]["init_mass_temp"] = config["default_house_prop"]["target_temp"] + mass_temp
+
+    config["default_env_prop"]["cluster_prop"]["temp_mode"] = "constant"
+    config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"]["day_temp"] = config["default_house_prop"]["target_temp"] + OD_temp
+    config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"]["night_temp"] = config["default_house_prop"]["target_temp"] + OD_temp
+
+
     nb_time_steps = 450
 
     env = MADemandResponseEnv(config)
@@ -69,29 +77,14 @@ def eval_parameters_bangbang_average_consumption(
 
     obs_dict = env.reset()
     for elem in obs_dict:
-        obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
-        obs_dict[elem]["house_temp"] = obs_dict[elem]["house_target_temp"] + air_temp
-        obs_dict[elem]["house_mass_temp"] = (
-            obs_dict[elem]["house_target_temp"] + mass_temp
-        )
-        env.start_datetime = datetime.datetime(date[0], date[1], date[2], hour, 0, 0)
-        env.datetime = env.start_datetime
         obs_dict[elem]["reg_signal"] = 0
 
     total_cluster_hvac_power = 0
 
     actions = get_actions(actors, obs_dict)
     for i in range(nb_time_steps):
-
         obs_dict, _, _, info = env.step(actions)
-
         total_cluster_hvac_power += info["cluster_hvac_power"]
-
-        for elem in obs_dict:
-            obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
-            obs_dict[elem]["datetime"] = datetime.datetime(
-                date[0], date[1], date[2], hour, 0, 0
-            )
         actions = get_actions(actors, obs_dict)
     average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
     return average_cluster_hvac_power
