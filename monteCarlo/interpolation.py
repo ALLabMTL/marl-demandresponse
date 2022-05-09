@@ -15,17 +15,17 @@ import numpy as np
 
 class PowerInterpolator(object):
 
-	def __init__(self, path, parameters_dict):
+	def __init__(self, path, parameters_dict, dict_keys):
 
 		print("Loading file...")
 		self.power_data = pd.read_csv(path)
 		print("File loaded.")
-		print("Transforming 1/4...")
+		print("Transforming...")
 
 
 		## Changing dates to numbers
 		self.power_data['date'] = self.power_data.date.apply(lambda x: datetime.datetime.strptime(x, '(%Y, %m, %d)').timetuple().tm_yday)
-
+		print("Transformation done")
 
 		## Converting dates and hours in sin and cos (TBD later)
 		"""
@@ -40,6 +40,7 @@ class PowerInterpolator(object):
 		"""
 
 		self.parameters_dict = parameters_dict  # All parameters used in the dataframe
+		self.dict_keys = dict_keys
 		dates_nb = []
 		for date in self.parameters_dict["date"]:
 			date = str(date)
@@ -48,7 +49,7 @@ class PowerInterpolator(object):
 
 
 		self.nb_params = []
-		for key in self.parameters_dict.keys():
+		for key in self.dict_keys:
 			self.nb_params.append(len(self.parameters_dict[key]))
 
 
@@ -62,7 +63,7 @@ class PowerInterpolator(object):
 
 		self.points = list(self.parameters_dict.values())
 
-		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.parameters_dict.keys()]
+		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.dict_keys]
 
 		self.values = self.power_data["hvac_average_power"].to_numpy().reshape(*self.dimensions_array,1)
 
@@ -70,7 +71,7 @@ class PowerInterpolator(object):
 
 	def param2index(self, point_dict):
 		"Return the index for a given set of parameters. ! If date in point_dict, must be the day # in the year (timetuple().tm_yday property of datetime)"
-		assert point_dict.keys() == self.parameters_dict.keys()
+		assert point_dict.keys() == self.dict_keys
 
 
 		values = list(point_dict.values())	
@@ -91,13 +92,13 @@ class PowerInterpolator(object):
 
 	def interpolateLinearND(self, point_dict):
 		"Return a linear interpolation for a point"
-		assert point_dict.keys() == self.parameters_dict.keys()
+		assert set(point_dict.keys()) == set(self.dict_keys)
 
 		point_coordinates = list(point_dict.values())
 		
 		closest_coordinates_grid = {}
 		# Getting highest and lowest points for each coordinates
-		for key in point_dict.keys():
+		for key in self.dict_keys:
 			closest_coordinates_grid[key] = self.get_two_closest(np.array(parameters_dict[key]), point_dict[key])
 
 
@@ -111,7 +112,7 @@ class PowerInterpolator(object):
 		for coordinates in all_combinations_list:
 			point = {}
 			i = 0
-			for key in point_dict.keys():
+			for key in self.dict_keys:
 				point[key] = coordinates[i]
 				i += 1
 			index_df = self.param2index(point)
@@ -154,6 +155,7 @@ class PowerInterpolator(object):
 			index = np.argmin(distances)
 			closest_id.append(index)
 
+		print(point_coordinates)
 		result = interpn(points, self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]], point_coordinates)
 		#print(result)
 		return result
@@ -178,7 +180,9 @@ if __name__ == "__main__":
     "hour": [3, 6, 8, 11, 13, 16, 18, 21],
     "date": [(2021, 3, 21), (2021, 6, 21), (2021, 9, 21), (2021, 12, 21)],
 	}
-	power_inter = PowerInterpolator('./grid_search_result.csv', parameters_dict)
+
+	dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
+	power_inter = PowerInterpolator('./grid_search_result.csv', parameters_dict, dict_keys)
 
 	try_0 = {
     "Ua": 1,
