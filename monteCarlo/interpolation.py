@@ -155,7 +155,6 @@ class PowerInterpolator(object):
 			index = np.argmin(distances)
 			closest_id.append(index)
 
-		print(point_coordinates)
 		result = interpn(points, self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]], point_coordinates)
 		#print(result)
 		return result
