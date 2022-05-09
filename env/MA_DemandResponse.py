@@ -419,7 +419,8 @@ class SingleHouse(object):
     Attributes:
     house_properties: dictionary, containing the configuration properties of the SingleHouse object
     id: string, unique identifier of he house.
-    init_temp: float, initial indoors air temperature of the house, in Celsius
+    init_air_temp: float, initial indoors air temperature of the house, in Celsius
+    init_mass_temp: float, initial indoors mass temperature of the house, in Celsius
     current_temp: float, current indoors air temperature of the house, in Celsius
     current_mass_temp: float, current house mass temperature, in Celsius
     window_area: float, gross window area, in m^2

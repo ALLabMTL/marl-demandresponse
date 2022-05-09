@@ -90,7 +90,9 @@ def apply_house_noise(house_prop, noise_house_prop):
     noise_house_params = noise_house_prop["noise_parameters"][noise_house_mode]
 
     # Gaussian noise: target temp
-    house_prop["init_temp"] += np.abs(random.gauss(0,
+    house_prop["init_air_temp"] += np.abs(random.gauss(0,
+                                      noise_house_params["std_start_temp"]))
+    house_prop["init_mass_temp"] += np.abs(random.gauss(0,
                                       noise_house_params["std_start_temp"]))
     house_prop["target_temp"] += np.abs(random.gauss(0,
                                         noise_house_params["std_target_temp"]))
