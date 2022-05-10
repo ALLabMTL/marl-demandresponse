@@ -2,9 +2,11 @@ import sys
 
 sys.path.insert(1, "../marl-demandresponse")
 
+import argparse
 import copy
 import datetime
 import itertools as it
+import math
 import time
 from datetime import date, timedelta
 
@@ -15,6 +17,25 @@ from env import *
 from utils import get_actions
 
 SECOND_IN_A_HOUR = 3600
+NB_TIME_STEPS_BY_SIM = 450
+
+parser = argparse.ArgumentParser(description="Deployment options")
+
+parser.add_argument(
+    "--lower_fraction",
+    type=float,
+    default=0,
+    help="Lower fraction of the montecarlo simulation while run concurently",
+)
+
+parser.add_argument(
+    "--upper_fraction",
+    type=float,
+    default=1,
+    help="Upper fraction of the montecarlo simulation while run concurently",
+)
+
+opt = parser.parse_args()
 
 parameters_dict = {
     "Ua": [0.9, 1, 1.1],
@@ -90,7 +111,20 @@ def eval_parameters_bangbang_average_consumption(
     config["default_house_prop"]["Ca"] *= Ca
     config["default_house_prop"]["Hm"] *= Hm
 
-    nb_time_steps = 450
+    config["default_house_prop"]["init_air_temp"] = (
+        config["default_house_prop"]["target_temp"] + air_temp
+    )
+    config["default_house_prop"]["init_mass_temp"] = (
+        config["default_house_prop"]["target_temp"] + mass_temp
+    )
+
+    config["default_env_prop"]["cluster_prop"]["temp_mode"] = "constant"
+    config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"][
+        "day_temp"
+    ] = (config["default_house_prop"]["target_temp"] + OD_temp)
+    config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"][
+        "night_temp"
+    ] = (config["default_house_prop"]["target_temp"] + OD_temp)
 
     env = MADemandResponseEnv(config)
 
@@ -103,87 +137,89 @@ def eval_parameters_bangbang_average_consumption(
 
     obs_dict = env.reset()
     for elem in obs_dict:
-        obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
-        obs_dict[elem]["house_temp"] = obs_dict[elem]["house_target_temp"] + air_temp
-        obs_dict[elem]["house_mass_temp"] = (
-            obs_dict[elem]["house_target_temp"] + mass_temp
-        )
-
-        env.start_datetime = datetime.datetime(
-            date.year, date.month, date.day, hour_int, min_int, sec_int
-        )
-        env.datetime = env.start_datetime
         obs_dict[elem]["reg_signal"] = 0
 
     total_cluster_hvac_power = 0
 
     actions = get_actions(actors, obs_dict)
-    for i in range(nb_time_steps):
-
+    for i in range(NB_TIME_STEPS_BY_SIM):
         obs_dict, _, _, info = env.step(actions)
-
         total_cluster_hvac_power += info["cluster_hvac_power"]
-
-        for elem in obs_dict:
-            obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
-
         actions = get_actions(actors, obs_dict)
-    average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
+    average_cluster_hvac_power = total_cluster_hvac_power / NB_TIME_STEPS_BY_SIM
     return average_cluster_hvac_power
 
 
 df = pd.DataFrame(columns=list(keys) + ["hvac_average_power"])
 nb_combination_total = number_of_combination(parameters_dict)
 start_time = time.time()
+lowest_i = math.floor(opt.lower_fraction * nb_combination_total)
+highest_i = math.ceil(opt.upper_fraction * nb_combination_total)
+
+nb_combination_current_run = highest_i - lowest_i
+
+print("Run from combination ", lowest_i, " to ", highest_i)
 
 for i, parameters in enumerate(combinations):
-
-    hvac_average_power = eval_parameters_bangbang_average_consumption(
-        parameters[0],
-        parameters[1],
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
-        parameters[7],
-        parameters[8],
-        parameters[9],
-    )
-    df.loc[len(df.index)] = [
-        parameters[0],
-        parameters[1],
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
-        parameters[7],
-        parameters[8],
-        parameters[9],
-        hvac_average_power,
-    ]
-    if i % 500 == 100:
-        print(
-            "\nCombination: ",
-            i,
-            "/",
-            nb_combination_total,
-            "\nCompletion: ",
-            round(i / nb_combination_total * 100, 2),
-            "%",
-            "\nElapsed time since the beggining:",
-            str(datetime.timedelta(seconds=round(time.time() - start_time))),
-            "\nRemaining time estimation:",
-            str(
-                datetime.timedelta(
-                    seconds=(1 - i / nb_combination_total)
-                    * (time.time() - start_time)
-                    / ((i + 1) / nb_combination_total)
-                )
-            ),
+    if i > lowest_i and i < highest_i:
+        hvac_average_power = eval_parameters_bangbang_average_consumption(
+            parameters[0],
+            parameters[1],
+            parameters[2],
+            parameters[3],
+            parameters[4],
+            parameters[5],
+            parameters[6],
+            parameters[7],
+            parameters[8],
+            parameters[9],
+        )
+        df = pd.concat(
+            [
+                df,
+                pd.DataFrame(
+                    [
+                        [
+                            parameters[0],
+                            parameters[1],
+                            parameters[2],
+                            parameters[3],
+                            parameters[4],
+                            parameters[5],
+                            parameters[6],
+                            parameters[7],
+                            parameters[8],
+                            parameters[9],
+                            hvac_average_power,
+                        ]
+                    ],
+                    index=[i],
+                    columns=list(keys) + ["hvac_average_power"],
+                ),
+            ],
         )
 
-        df.to_csv(f"monteCarlo/gridSearchResult{i}_2.csv")
+        if (i - lowest_i) % 500 == 0:
+            print(
+                "\nCombination: ",
+                i - lowest_i,
+                "/",
+                nb_combination_current_run,
+                "\nCompletion: ",
+                round((i - lowest_i) / nb_combination_current_run * 100, 2),
+                "%",
+                "\nElapsed time since the beggining:",
+                str(datetime.timedelta(seconds=round(time.time() - start_time))),
+                "\nRemaining time estimation:",
+                str(
+                    datetime.timedelta(
+                        seconds=(1 - (i - lowest_i) / nb_combination_current_run)
+                        * (time.time() - start_time)
+                        / (((i - lowest_i) + 1) / nb_combination_current_run)
+                    )
+                ),
+            )
+            if i % 10000 == 0:
+                df.to_csv(f"monteCarlo/gridSearchResult_backup.csv")
 
-df.to_csv("./gridSearchResultFinal.csv")
+df.to_csv("monteCarlo/gridSearchResultFinal.csv")

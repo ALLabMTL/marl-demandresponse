@@ -7,7 +7,8 @@ config_dict = {
 
 "default_house_prop" : {
 	"id": 1,
-	"init_temp": 20,
+	"init_air_temp": 20,
+	"init_mass_temp": 20,
 	"target_temp": 20,
 	"deadband": 2,
 	"Ua" : 2.18e02,								# House walls conductance (W/K) (75 for walls and ceiling, 4.5 for two doors, 58 for windows). Multiplied by 3 to account for drafts (according to https://dothemath.ucsd.edu/2012/11/this-thermal-house/)
