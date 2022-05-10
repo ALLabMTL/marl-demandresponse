@@ -6,6 +6,7 @@ import copy
 import datetime
 import itertools as it
 import time
+from datetime import date, timedelta
 
 import pandas as pd
 from agents import *
@@ -13,18 +14,46 @@ from config import config_dict
 from env import *
 from utils import get_actions
 
+SECOND_IN_A_HOUR = 3600
+
 parameters_dict = {
     "Ua": [0.9, 1, 1.1],
     "Cm": [0.9, 1, 1.1],
     "Ca": [0.9, 1, 1.1],
     "Hm": [0.9, 1, 1.1],
-    "air_temp": [-4, -2, -1, 0, 1, 2, 4],
-    "mass_temp": [-4, -2, 0, 2, 4],
-    "OD_temp": [3, 5, 7, 9, 11],
+    "air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
+    "mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
+    "OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
     "HVAC_power": [10000, 15000, 20000],
-    "hour": [3, 6, 8, 11, 13, 16, 18, 21],
-    "date": [(2021, 3, 21), (2021, 6, 21), (2021, 9, 21), (2021, 12, 21)],
+    "hour": [
+        0.0,
+        3.0,
+        6.0,
+        7.0,
+        7.50,
+        11.0,
+        13.0,
+        16.0,
+        17.0,
+        17.5,
+        21.0,
+        24 - 1.0 / 3600,
+    ],
+    "date": [
+        (2021, 1, 1),
+        (2021, 3, 21),
+        (2021, 6, 21),
+        (2021, 9, 21),
+        (2021, 12, 21),
+        (2021, 12, 31),
+    ],
 }
+
+d0 = date(2021, 1, 1)
+parameters_dict["date"] = [
+    (date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]
+]
+parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
 
 keys = parameters_dict.keys()
@@ -43,12 +72,17 @@ def eval_parameters_bangbang_average_consumption(
 ):
 
     config = copy.deepcopy(config_dict)
+    date = d0 + timedelta(days=date)
+    hour_int = int(hour // 3600)
+    min_int = int(hour % 3600 // 60)
+    sec_int = int(hour % 60)
+
     config["noise_house_prop"]["noise_mode"] = "no_noise"
     config["noise_hvac_prop"]["noise_mode"] = "no_noise"
     config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
     config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
     config["default_env_prop"]["base_datetime"] = str(
-        datetime.datetime(date[0], date[1], date[2], hour, 0, 0)
+        datetime.datetime(date.year, date.month, date.day, hour_int, min_int, sec_int)
     )
 
     config["default_house_prop"]["Ua"] *= Ua
@@ -74,7 +108,10 @@ def eval_parameters_bangbang_average_consumption(
         obs_dict[elem]["house_mass_temp"] = (
             obs_dict[elem]["house_target_temp"] + mass_temp
         )
-        env.start_datetime = datetime.datetime(date[0], date[1], date[2], hour, 0, 0)
+
+        env.start_datetime = datetime.datetime(
+            date.year, date.month, date.day, hour_int, min_int, sec_int
+        )
         env.datetime = env.start_datetime
         obs_dict[elem]["reg_signal"] = 0
 
@@ -89,9 +126,7 @@ def eval_parameters_bangbang_average_consumption(
 
         for elem in obs_dict:
             obs_dict[elem]["OD_temp"] = obs_dict[elem]["house_target_temp"] + OD_temp
-            obs_dict[elem]["datetime"] = datetime.datetime(
-                date[0], date[1], date[2], hour, 0, 0
-            )
+
         actions = get_actions(actors, obs_dict)
     average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
     return average_cluster_hvac_power
@@ -128,7 +163,7 @@ for i, parameters in enumerate(combinations):
         parameters[9],
         hvac_average_power,
     ]
-    if i % 500 == 0:
+    if i % 500 == 100:
         print(
             "\nCombination: ",
             i,
@@ -149,6 +184,6 @@ for i, parameters in enumerate(combinations):
             ),
         )
 
-        df.to_csv(f"monteCarlo/gridSearchResult{i}.csv")
+        df.to_csv(f"monteCarlo/gridSearchResult{i}_2.csv")
 
 df.to_csv("./gridSearchResultFinal.csv")
