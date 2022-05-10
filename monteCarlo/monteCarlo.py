@@ -1,5 +1,3 @@
-import sys
-
 sys.path.insert(1, "../marl-demandresponse")
 
 import argparse
@@ -219,7 +217,9 @@ for i, parameters in enumerate(combinations):
                     )
                 ),
             )
-            if i % 10000 == 0:
-                df.to_csv(f"monteCarlo/gridSearchResult_backup.csv")
+            if i % 500000 == 0:
+                df.to_csv(
+                    f"monteCarlo/gridSearchResult_backup_from_{lowest_i}_to_{i}.csv"
+                )
 
-df.to_csv("monteCarlo/gridSearchResultFinal.csv")
+df.to_csv(f"monteCarlo/gridSearchResultFinal_from_{lowest_i}_to_{highest_i}.csv")
