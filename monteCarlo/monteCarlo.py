@@ -222,4 +222,4 @@ for i, parameters in enumerate(combinations):
             if i % 10000 == 0:
                 df.to_csv(f"monteCarlo/gridSearchResult_backup.csv")
 
-df.to_csv("monteCarlo/gridSearchResultFinal.csv")
+df.to_csv("monteCarlo/gridSearchResultFinal{}_{}.csv".format(lowest_i, highest_i))
