@@ -1,4 +1,5 @@
 import sys
+
 sys.path.insert(1, "../marl-demandresponse")
 
 import argparse
@@ -160,7 +161,7 @@ nb_combination_current_run = highest_i - lowest_i
 print("Run from combination ", lowest_i, " to ", highest_i)
 
 for i, parameters in enumerate(combinations):
-    if i > lowest_i and i < highest_i:
+    if i >= lowest_i and i <= highest_i:
         hvac_average_power = eval_parameters_bangbang_average_consumption(
             parameters[0],
             parameters[1],
