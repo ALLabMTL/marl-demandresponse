@@ -162,7 +162,8 @@ config_dict = {
 # Env properties
 
 "default_env_prop" : {
-	"base_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
+	"start_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
+	"start_datetime_mode" : "random",		# Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)
 	"time_step": 4,							# Time step in seconds
 	"cluster_prop": {
 		"temp_mode": "noisy_sinusoidal",			# Can be: constant, sinusoidal, noisy_sinusoidal

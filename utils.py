@@ -78,9 +78,17 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     env_properties["agent_ids"] = agent_ids
     env_properties["nb_hvac"] = len(agent_ids)
 
-    # Setting the
-    env_properties["start_datetime"] = get_random_date_time(datetime.strptime(
-        default_env_prop["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    # Setting the date
+    if env_properties["start_datetime_mode"] == "random":
+        env_properties["start_datetime"] = get_random_date_time(datetime.strptime(
+            default_env_prop["start_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    elif env_properties["start_datetime_mode"] == "fixed":
+        env_properties["start_datetime"] = datetime.strptime(default_env_prop["start_datetime"], "%Y-%m-%d %H:%M:%S")
+    else:
+        raise ValueError(
+                "start_datetime_mode in default_env_prop in config.py must be random or fixed. Current value: {}.".format(
+                    env_properties["start_datetime_mode"] == "fixed"
+                ))
 
     return env_properties
 

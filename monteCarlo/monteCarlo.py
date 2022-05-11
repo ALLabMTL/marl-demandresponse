@@ -103,7 +103,8 @@ def eval_parameters_bangbang_average_consumption(
     config["noise_hvac_prop"]["noise_mode"] = "no_noise"
     config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
     config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
-    config["default_env_prop"]["base_datetime"] = str(
+    config["default_env_prop"]["start_datetime_mode"] = "fixed"
+    config["default_env_prop"]["start_datetime"] = str(
         datetime.datetime(date.year, date.month, date.day, hour_int, min_int, sec_int)
     )
 
