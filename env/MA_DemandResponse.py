@@ -626,7 +626,7 @@ class SingleHouse(object):
         if x < 0 or x > 10:
             solar_cooling_load = 0
         else:
-            y = date_time.month + date_time.day / 30
+            y = date_time.month + date_time.day / 30 - 1
             coeff = [
                 4.36579418e01,
                 1.58055357e02,
