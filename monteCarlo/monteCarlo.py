@@ -144,6 +144,7 @@ def eval_parameters_bangbang_average_consumption(
     total_cluster_hvac_power = 0
 
     actions = get_actions(actors, obs_dict)
+
     for i in range(NB_TIME_STEPS_BY_SIM):
         obs_dict, _, _, info = env.step(actions)
         total_cluster_hvac_power += info["cluster_hvac_power"]

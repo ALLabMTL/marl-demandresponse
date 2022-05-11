@@ -5,40 +5,58 @@ import datetime
 from copy import deepcopy
 import numpy as np
 
+SECOND_IN_A_HOUR = 3600
+
 class TestPowerInterpolator(unittest.TestCase):
 
 	def __init__(self, *args, **kwargs):
 		super(TestPowerInterpolator, self).__init__(*args, **kwargs)
 
-		path = './grid_search_result.csv'
+		path = './mergedGridSearchResultFinal_from_0_to_3061800.csv'
 		parameters_dict = {
 			"Ua": [0.9, 1, 1.1],
 			"Cm": [0.9, 1, 1.1],
 			"Ca": [0.9, 1, 1.1],
 			"Hm": [0.9, 1, 1.1],
-			"air_temp": [-4, -2, -1, 0, 1, 2, 4],
-			"mass_temp": [-4, -2, 0, 2, 4],
-			"OD_temp": [3, 5, 7, 9, 11],
+			"air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
+			"mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
+			"OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
 			"HVAC_power": [10000, 15000, 20000],
-			"hour": [3, 6, 8, 11, 13, 16, 18, 21],
-			"date": [(2021, 3, 21), (2021, 6, 21), (2021, 9, 21), (2021, 12, 21)],
+			"hour": [
+				0.0,
+				3.0,
+				6.0,
+				7.0,
+				7.50,
+				11.0,
+				13.0,
+				16.0,
+				17.0,
+				17.5,
+				21.0,
+				24 - 1.0 / 3600,
+			],
+			"date": [
+				(2021, 1, 1),
+				(2021, 3, 21),
+				(2021, 6, 21),
+				(2021, 9, 21),
+				(2021, 12, 21),
+				(2021, 12, 31),
+			],
 		}
 
+		d0 = datetime.date(2021, 1, 1)
+		parameters_dict["date"] = [(datetime.date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
+		parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
-		self.power_data = pd.read_csv('./grid_search_result.csv')
+		self.power_data = pd.read_csv(path)
 		self.parameters_dict = deepcopy(parameters_dict)
 
 		self.dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
 		self.power_interp = PowerInterpolator(path, parameters_dict, self.dict_keys)
 
 		dates_nb = []
-
-
-		for date in self.parameters_dict["date"]:
-			date = str(date)
-			dates_nb.append(datetime.datetime.strptime(date, '(%Y, %m, %d)').timetuple().tm_yday)
-			self.parameters_dict["date"] = dates_nb
-
 
 		self.num_comb = 1 
 		for key in self.dict_keys:
@@ -55,7 +73,6 @@ class TestPowerInterpolator(unittest.TestCase):
 			point = {}
 			for key in self.dict_keys:
 				point[key] = self.power_data[key].loc[[index_df]].values.item()
-			point["date"] = datetime.datetime.strptime(str(point["date"]), '(%Y, %m, %d)').timetuple().tm_yday
 			interp_value = self.power_interp.interpolateGridFast(point)
 			self.assertEqual(gt_power, interp_value)
 

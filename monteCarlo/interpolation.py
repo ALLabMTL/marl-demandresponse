@@ -11,7 +11,8 @@ import pandas as pd
 from scipy.interpolate import LinearNDInterpolator, interpn
 import numpy as np
 
-
+SECOND_IN_A_HOUR = 3600
+NB_TIME_STEPS_BY_SIM = 450
 
 class PowerInterpolator(object):
 
@@ -20,33 +21,9 @@ class PowerInterpolator(object):
 		print("Loading file...")
 		self.power_data = pd.read_csv(path)
 		print("File loaded.")
-		print("Transforming...")
-
-
-		## Changing dates to numbers
-		self.power_data['date'] = self.power_data.date.apply(lambda x: datetime.datetime.strptime(x, '(%Y, %m, %d)').timetuple().tm_yday)
-		print("Transformation done")
-
-		## Converting dates and hours in sin and cos (TBD later)
-		"""
-		self.power_data['hour_sin'] = self.power_data.apply(lambda row: np.sin(row.hour/24*2*np.pi), axis = 1)
-		print("Transforming 2/4...")
-		self.power_data['hour_cos'] = self.power_data.apply(lambda row: np.cos(row.hour/24*2*np.pi), axis = 1)
-		print("Transforming 3/4...")
-		self.power_data['date_sin'] = self.power_data.apply(lambda row: np.sin(row.date/365*2*np.pi), axis = 1)
-		print("Transforming 4/4...")
-		self.power_data['date_cos'] = self.power_data.apply(lambda row: np.cos(row.date/365*2*np.pi), axis = 1)
-		print("Transformed")
-		"""
 
 		self.parameters_dict = parameters_dict  # All parameters used in the dataframe
 		self.dict_keys = dict_keys
-		dates_nb = []
-		for date in self.parameters_dict["date"]:
-			date = str(date)
-			dates_nb.append(datetime.datetime.strptime(date, '(%Y, %m, %d)').timetuple().tm_yday)
-		self.parameters_dict["date"] = dates_nb
-
 
 		self.nb_params = []
 		for key in self.dict_keys:
@@ -59,14 +36,11 @@ class PowerInterpolator(object):
 			self.nb_params_multi = [combined_nb] + self.nb_params_multi
 			combined_nb *= nb_param
 
-
-
 		self.points = list(self.parameters_dict.values())
 
 		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.dict_keys]
 
 		self.values = self.power_data["hvac_average_power"].to_numpy().reshape(*self.dimensions_array,1)
-
 
 
 	def param2index(self, point_dict):
@@ -179,6 +153,9 @@ if __name__ == "__main__":
     "hour": [3, 6, 8, 11, 13, 16, 18, 21],
     "date": [(2021, 3, 21), (2021, 6, 21), (2021, 9, 21), (2021, 12, 21)],
 	}
+	d0 = date(2021, 1, 1)
+	parameters_dict["date"] = [(date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
+	parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
 	dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
 	power_inter = PowerInterpolator('./grid_search_result.csv', parameters_dict, dict_keys)
