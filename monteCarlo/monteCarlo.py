@@ -1,6 +1,7 @@
 import sys
 
 sys.path.insert(1, "../marl-demandresponse")
+sys.path.append("..")
 
 import argparse
 import copy
