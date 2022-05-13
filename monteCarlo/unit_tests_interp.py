@@ -7,12 +7,42 @@ import numpy as np
 
 SECOND_IN_A_HOUR = 3600
 
+
+def point_to_index(point, parameters_dict, dict_keys):
+	num_comb = 1 
+	num_comb_lower = {}
+	for key in reversed(dict_keys):
+		num_comb_lower[key] = num_comb
+		num_comb *= len(parameters_dict[key])	
+	
+	index = 0
+	for key in dict_keys:
+		ind_list = parameters_dict[key].index(point[key])
+		index += ind_list*num_comb_lower[key]
+	return index
+
+def index_to_point(index, parameters_dict, dict_keys):
+	num_comb = 1 
+	num_comb_lower = {}
+	for key in reversed(dict_keys):
+		num_comb_lower[key] = num_comb
+		num_comb *= len(parameters_dict[key])	
+
+	point = {}
+	div = 0
+	for key in dict_keys:
+		key_id = int((index - div)/num_comb_lower[key])
+		point[key] = parameters_dict[key][key_id]
+		div += key_id*num_comb_lower[key]	
+	return point
+
+
 class TestPowerInterpolator(unittest.TestCase):
 
 	def __init__(self, *args, **kwargs):
 		super(TestPowerInterpolator, self).__init__(*args, **kwargs)
 
-		path = './mergedGridSearchResultFinal_from_0_to_3061800.csv'
+		path = './mergedGridSearchResultFinal_from_0_to_3061800.npy'
 		parameters_dict = {
 			"Ua": [0.9, 1, 1.1],
 			"Cm": [0.9, 1, 1.1],
@@ -50,7 +80,7 @@ class TestPowerInterpolator(unittest.TestCase):
 		parameters_dict["date"] = [(datetime.date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
 		parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
-		self.power_data = pd.read_csv(path)
+		self.power_data = np.load(path)
 		self.parameters_dict = deepcopy(parameters_dict)
 
 		self.dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
@@ -59,7 +89,9 @@ class TestPowerInterpolator(unittest.TestCase):
 		dates_nb = []
 
 		self.num_comb = 1 
-		for key in self.dict_keys:
+		self.num_comb_lower = {}
+		for key in reversed(self.dict_keys):
+			self.num_comb_lower[key] = self.num_comb
 			self.num_comb *= len(self.parameters_dict[key])
 
 	def setUp(self):
@@ -68,13 +100,46 @@ class TestPowerInterpolator(unittest.TestCase):
 	
 	def testExactDataPoints(self):
 		"""Tests that interpolation on exact data points gives the exact value"""
-		for index_df in range(1, self.num_comb, int(self.num_comb/50)):
-			gt_power = self.power_data["hvac_average_power"].loc[[index_df]].values
-			point = {}
-			for key in self.dict_keys:
-				point[key] = self.power_data[key].loc[[index_df]].values.item()
+		for index_df in range(0, self.num_comb, int(self.num_comb/50)):
+			gt_power = self.power_data[index_df]
+			point = index_to_point(index_df, self.parameters_dict, self.dict_keys)
 			interp_value = self.power_interp.interpolateGridFast(point)
+
 			self.assertEqual(gt_power, interp_value)
+
+		air_8 = {
+			"Ua": 1,
+			"Cm": 1,
+			"Ca": 1,
+			"Hm": 1,
+			"air_temp": 4,
+			"mass_temp": 0,
+			"OD_temp": 11,
+			"HVAC_power": 15000,
+			"hour": 11.0*SECOND_IN_A_HOUR,
+			"date": 79,
+			}
+		index = point_to_index(air_8, self.parameters_dict, self.dict_keys)
+		gt_power = self.power_data[index_df]
+		interp_value = self.power_interp.interpolateGridFast(point)
+		self.assertEqual(gt_power, interp_value)
+
+	def testIndexPoint(self):
+		air_0 = {
+			"Ua": 1,
+			"Cm": 1,
+			"Ca": 1,
+			"Hm": 1,
+			"air_temp": -1,
+			"mass_temp": 0,
+			"OD_temp": 11,
+			"HVAC_power": 15000,
+			"hour": 11.0 * SECOND_IN_A_HOUR,
+			"date": 79,
+			}		
+		index = point_to_index(air_0, self.parameters_dict, self.dict_keys)
+		point = index_to_point(index, self.parameters_dict, self.dict_keys)
+		self.assertEqual(air_0, point)
 
 	def testDataPointsInter(self):
 		"""Tests that interpolated points in between datapoints go in the right direction (with margin)"""
@@ -85,12 +150,12 @@ class TestPowerInterpolator(unittest.TestCase):
 			"Cm": 1,
 			"Ca": 1,
 			"Hm": 1,
-			"air_temp": -3.9,
+			"air_temp": -1,
 			"mass_temp": 0,
-			"OD_temp": 11,
+			"OD_temp": 9,
 			"HVAC_power": 15000,
-			"hour": 9,
-			"date": 83,
+			"hour": 11.0*SECOND_IN_A_HOUR,
+			"date": 79,
 			}
 		air_1 = deepcopy(air_0)
 		air_2 = deepcopy(air_0)
@@ -101,13 +166,13 @@ class TestPowerInterpolator(unittest.TestCase):
 		air_7 = deepcopy(air_0)
 		air_8 = deepcopy(air_0)
 
-		air_1["air_temp"] = -3.3
-		air_2["air_temp"] = -2.2
-		air_3["air_temp"] = -1.1
+		air_1["air_temp"] = -4
+		air_2["air_temp"] = -3
+		air_3["air_temp"] = -1
 		air_4["air_temp"] = 0
-		air_5["air_temp"] = 1.1
-		air_6["air_temp"] = 2.2
-		air_7["air_temp"] = 3.3
+		air_5["air_temp"] = 1
+		air_6["air_temp"] = 2
+		air_7["air_temp"] = 3
 		air_8["air_temp"] = 4
 
 		print("air_1: {}".format(self.power_interp.interpolateGridFast(air_1)))
@@ -121,21 +186,20 @@ class TestPowerInterpolator(unittest.TestCase):
 
 
 		print("Testing with air temperature")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_1), self.power_interp.interpolateGridFast(air_2) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_1), self.power_interp.interpolateGridFast(air_2))
 		print("air_1 < air_2")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_2), self.power_interp.interpolateGridFast(air_3) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_2), self.power_interp.interpolateGridFast(air_3))
 		print("air_2 < air_3")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_3), self.power_interp.interpolateGridFast(air_4) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_3), self.power_interp.interpolateGridFast(air_4))
 		print("air_3 < air_4")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_4), self.power_interp.interpolateGridFast(air_5) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_4), self.power_interp.interpolateGridFast(air_5))
 		print("air_4 < air_5")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_5), self.power_interp.interpolateGridFast(air_6) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_5), self.power_interp.interpolateGridFast(air_6))
 		print("air_5 < air_6")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_6), self.power_interp.interpolateGridFast(air_7) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_6), self.power_interp.interpolateGridFast(air_7))
 		print("air_6 < air_7")
-		#self.assertLessEqual(self.power_interp.interpolateGridFast(air_7), self.power_interp.interpolateGridFast(air_8) + 10)
+		self.assertLessEqual(self.power_interp.interpolateGridFast(air_7), self.power_interp.interpolateGridFast(air_8))
 		print("air_7 < air_8")
-
 
 		# Mass temperature
 		mass_0 = {
@@ -143,8 +207,8 @@ class TestPowerInterpolator(unittest.TestCase):
 			"Cm": 1,
 			"Ca": 1,
 			"Hm": 1,
-			"air_temp": 0,
-			"mass_temp": -4,
+			"air_temp": 4,
+			"mass_temp": 4,
 			"OD_temp": 11,
 			"HVAC_power": 15000,
 			"hour": 9,
@@ -180,19 +244,12 @@ class TestPowerInterpolator(unittest.TestCase):
 
 		print("Testing with mass temperature")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_1), self.power_interp.interpolateGridFast(mass_2) + 10)
-		print("mass_1 < mass_2")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_2), self.power_interp.interpolateGridFast(mass_3) + 10)
-		print("mass_2 < mass_3")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_3), self.power_interp.interpolateGridFast(mass_4) + 10)
-		print("mass_3 < mass_4")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_4), self.power_interp.interpolateGridFast(mass_5) + 10)
-		print("mass_4 < mass_5")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_5), self.power_interp.interpolateGridFast(mass_6) + 10)
-		print("mass_5 < mass_6")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_6), self.power_interp.interpolateGridFast(mass_7) + 10)
-		print("mass_6 < mass_7")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(mass_7), self.power_interp.interpolateGridFast(mass_8) + 10)
-		print("mass_7 < mass_8")
 
 		# OD temperature
 		OD_0 = {
@@ -200,7 +257,7 @@ class TestPowerInterpolator(unittest.TestCase):
 			"Cm": 1,
 			"Ca": 1,
 			"Hm": 1,
-			"air_temp": 0,
+			"air_temp": 4,
 			"mass_temp": 0,
 			"OD_temp": 11,
 			"HVAC_power": 15000,
@@ -241,7 +298,6 @@ class TestPowerInterpolator(unittest.TestCase):
 		print("OD_4 < OD_5")
 		self.assertLessEqual(self.power_interp.interpolateGridFast(OD_5), self.power_interp.interpolateGridFast(OD_6) + 10)
 		print("OD_5 < OD_6")
-
 
 
 if __name__ == '__main__':

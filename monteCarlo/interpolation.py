@@ -18,10 +18,6 @@ class PowerInterpolator(object):
 
 	def __init__(self, path, parameters_dict, dict_keys):
 
-		print("Loading file...")
-		self.power_data = pd.read_csv(path)
-		print("File loaded.")
-
 		self.parameters_dict = parameters_dict  # All parameters used in the dataframe
 		self.dict_keys = dict_keys
 
@@ -40,7 +36,7 @@ class PowerInterpolator(object):
 
 		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.dict_keys]
 
-		self.values = self.power_data["hvac_average_power"].to_numpy().reshape(*self.dimensions_array,1)
+		self.values = np.load(path).reshape(*self.dimensions_array,1)
 
 
 	def param2index(self, point_dict):
@@ -142,71 +138,91 @@ class PowerInterpolator(object):
 
 if __name__ == "__main__":
 	parameters_dict = {
-    "Ua": [0.9, 1, 1.1],
-    "Cm": [0.9, 1, 1.1],
-    "Ca": [0.9, 1, 1.1],
-    "Hm": [0.9, 1, 1.1],
-    "air_temp": [-4, -2, -1, 0, 1, 2, 4],
-    "mass_temp": [-4, -2, 0, 2, 4],
-    "OD_temp": [3, 5, 7, 9, 11],
-    "HVAC_power": [10000, 15000, 20000],
-    "hour": [3, 6, 8, 11, 13, 16, 18, 21],
-    "date": [(2021, 3, 21), (2021, 6, 21), (2021, 9, 21), (2021, 12, 21)],
+		"Ua": [0.9, 1, 1.1],
+		"Cm": [0.9, 1, 1.1],
+		"Ca": [0.9, 1, 1.1],
+		"Hm": [0.9, 1, 1.1],
+		"air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
+		"mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
+		"OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
+		"HVAC_power": [10000, 15000, 20000],
+		"hour": [
+			0.0,
+			3.0,
+			6.0,
+			7.0,
+			7.50,
+			11.0,
+			13.0,
+			16.0,
+			17.0,
+			17.5,
+			21.0,
+			24 - 1.0 / 3600,
+		],
+		"date": [
+			(2021, 1, 1),
+			(2021, 3, 21),
+			(2021, 6, 21),
+			(2021, 9, 21),
+			(2021, 12, 21),
+			(2021, 12, 31),
+		],
 	}
-	d0 = date(2021, 1, 1)
-	parameters_dict["date"] = [(date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
+	d0 = datetime.date(2021, 1, 1)
+	parameters_dict["date"] = [(datetime.date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
 	parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
 	dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
-	power_inter = PowerInterpolator('./grid_search_result.csv', parameters_dict, dict_keys)
+	power_inter = PowerInterpolator('./mergedGridSearchResultFinal_from_0_to_3061800.npy', parameters_dict, dict_keys)
 
 	try_0 = {
-    "Ua": 1,
-    "Cm": 1,
-    "Ca": 0.9,
-    "Hm": 0.9,
-    "air_temp": -4,
-    "mass_temp": -4,
-    "OD_temp": 3,
-    "HVAC_power": 10000,
-    "hour": 3,
-    "date": 83,
+	"Ua": 1,
+	"Cm": 1,
+	"Ca": 0.9,
+	"Hm": 0.9,
+	"air_temp": -4,
+	"mass_temp": -4,
+	"OD_temp": 3,
+	"HVAC_power": 10000,
+	"hour": 3,
+	"date": 83,
 	}
 	try_1 = {
-    "Ua": 1,
-    "Cm": 1,
-    "Ca": 0.9,
-    "Hm": 0.9,
-    "air_temp": 3,
-    "mass_temp": -4,
-    "OD_temp": 3,
-    "HVAC_power": 10000,
-    "hour": 3,
-    "date": 83,
+	"Ua": 1,
+	"Cm": 1,
+	"Ca": 0.9,
+	"Hm": 0.9,
+	"air_temp": 3,
+	"mass_temp": -4,
+	"OD_temp": 3,
+	"HVAC_power": 10000,
+	"hour": 3,
+	"date": 83,
 	}
 	try_2 = {
-    "Ua": 1,
-    "Cm": 1,
-    "Ca": 0.9,
-    "Hm": 0.9,
-    "air_temp": 3,
-    "mass_temp": 3,
-    "OD_temp": 8,
-    "HVAC_power": 15000,
-    "hour": 13,
-    "date": 186,
+	"Ua": 1,
+	"Cm": 1,
+	"Ca": 0.9,
+	"Hm": 0.9,
+	"air_temp": 3,
+	"mass_temp": 3,
+	"OD_temp": 8,
+	"HVAC_power": 15000,
+	"hour": 13,
+	"date": 186,
 	}
 	try_3 = {
-    "Ua": 1,
-    "Cm": 1,
-    "Ca": 0.9,
-    "Hm": 0.9,
-    "air_temp": 3,
-    "mass_temp": 3,
-    "OD_temp": 8,
-    "HVAC_power": 15000,
-    "hour": 23,
-    "date": 186,
+	"Ua": 1,
+	"Cm": 1,
+	"Ca": 0.9,
+	"Hm": 0.9,
+	"air_temp": 3,
+	"mass_temp": 3,
+	"OD_temp": 8,
+	"HVAC_power": 15000,
+	"hour": 23,
+	"date": 186,
 	}
 	t1_start = time.process_time() 
 	for i in range(500):
