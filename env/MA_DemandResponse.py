@@ -962,7 +962,7 @@ class PowerGrid(object):
             # Adding the interpolated power for each house
             for house_id in self.cluster_houses.houses.keys():
                 house = self.cluster_houses.houses[house_id]
-                point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"]
+                point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
                 point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
                 point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
                 point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
@@ -970,7 +970,7 @@ class PowerGrid(object):
                 point["mass_temp"] = house.current_mass_temp - house.target_temp                
                 point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
                 point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
-                point = clipInterpolationPoint(point, self.interp_parameters_dict)
+                point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
                 point = sortDictKeys(point, self.interp_dict_keys)
                 base_power += self.power_interpolator.interpolateGridFast(point)            
 
