@@ -22,7 +22,6 @@ class PowerInterpolator(object):
 		self.dict_keys = dict_keys
 
 		self.nb_params = []
-		print(dict_keys)
 		for key in self.dict_keys:
 			self.nb_params.append(len(self.parameters_dict[key]))
 
@@ -38,7 +37,6 @@ class PowerInterpolator(object):
 		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.dict_keys]
 
 		self.values = np.load(path).reshape(*self.dimensions_array,1)
-		print("Interpolator initialized!")
 
 
 	def param2index(self, point_dict):
@@ -92,8 +90,6 @@ class PowerInterpolator(object):
 			power_list.append(power)
 		power_array = np.array(power_list)
 
-		print(all_combinations.shape)
-
 		start_time = time.time()
 
 		print("Ready to start interpolator")
@@ -127,7 +123,6 @@ class PowerInterpolator(object):
 			index = np.argmin(distances)
 			closest_id.append(index)
 
-		print("point_coordinates: {}".format(point_coordinates))
 		result = interpn(points, self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]], point_coordinates)
 		#print(result)
 		return result

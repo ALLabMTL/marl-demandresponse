@@ -972,10 +972,7 @@ class PowerGrid(object):
                 point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
                 point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
                 point = sortDictKeys(point, self.interp_dict_keys)
-                base_power += self.power_interpolator.interpolateGridFast(point)            
-
-
-
+                base_power += self.power_interpolator.interpolateGridFast(point)[0][0]            
 
         if self.signal_mode == "flat":
             self.current_signal = base_power

@@ -145,7 +145,14 @@ def cli_train():
         "--signal_mode",
         type=str,
         default="config",
-        help="Mode of power grid regulation signal simulation."
+        help="Mode of the noise on the power grid regulation signal simulation. Choices: [none, regular_steps, sinusoidals, config]"
+    )
+
+    parser.add_argument(
+        "--base_power_mode",
+        type=str,
+        default="config",
+        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
     )
 
     parser.add_argument(

@@ -32,6 +32,8 @@ def adjust_config(opt, config_dict):
         config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
     if opt.signal_mode != "config":
         config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
+    if opt.base_power_mode != "config":
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode        
     if opt.house_noise_mode != "config":
         config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
     if opt.house_noise_mode_test == "train":
@@ -207,11 +209,12 @@ def normStateDict(sDict, config_dict, returnDict=False):
         sDict["hvac_lockout_duration"]
 
     result["reg_signal"] = sDict["reg_signal"] / \
-        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+        (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
     result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / \
-        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+        (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
+
     return result if returnDict else np.array(list(result.values()))
 
 #%% Testing
