@@ -8,13 +8,10 @@ import re
 files = os.path.join("gridSearchResultFinal_from*.csv")
 files = glob.glob(files)
 
+# Sorting files by the first index number
 file_ids = [int(re.search('from_(.*)_to*', file).group(1)) for file in files]
-
-
 files = [x for _, x in sorted(zip(file_ids, files))]
 
-
-print(files)
 # joining files with concat and read_csv
 df = pd.concat(map(pd.read_csv, files), ignore_index=True)
 df.drop_duplicates(subset=["Unnamed: 0"], inplace=True)

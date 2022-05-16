@@ -44,10 +44,10 @@ class TestPowerInterpolator(unittest.TestCase):
 
 		path = './mergedGridSearchResultFinal_from_0_to_3061800.npy'
 		parameters_dict = {
-			"Ua": [0.9, 1, 1.1],
-			"Cm": [0.9, 1, 1.1],
-			"Ca": [0.9, 1, 1.1],
-			"Hm": [0.9, 1, 1.1],
+			"Ua_ratio": [0.9, 1, 1.1],
+			"Cm_ratio": [0.9, 1, 1.1],
+			"Ca_ratio": [0.9, 1, 1.1],
+			"Hm_ratio": [0.9, 1, 1.1],
 			"air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
 			"mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
 			"OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
@@ -108,10 +108,10 @@ class TestPowerInterpolator(unittest.TestCase):
 			self.assertEqual(gt_power, interp_value)
 
 		air_8 = {
-			"Ua": 1,
-			"Cm": 1,
-			"Ca": 1,
-			"Hm": 1,
+			"Ua_ratio": 1,
+			"Cm_ratio": 1,
+			"Ca_ratio": 1,
+			"Hm_ratio": 1,
 			"air_temp": 4,
 			"mass_temp": 0,
 			"OD_temp": 11,
@@ -126,10 +126,10 @@ class TestPowerInterpolator(unittest.TestCase):
 
 	def testIndexPoint(self):
 		air_0 = {
-			"Ua": 1,
-			"Cm": 1,
-			"Ca": 1,
-			"Hm": 1,
+			"Ua_ratio": 1,
+			"Cm_ratio": 1,
+			"Ca_ratio": 1,
+			"Hm_ratio": 1,
 			"air_temp": -1,
 			"mass_temp": 0,
 			"OD_temp": 11,
@@ -146,10 +146,10 @@ class TestPowerInterpolator(unittest.TestCase):
 	
 		# Air temperature
 		air_0 = {
-			"Ua": 1,
-			"Cm": 1,
-			"Ca": 1,
-			"Hm": 1,
+			"Ua_ratio": 1,
+			"Cm_ratio": 1,
+			"Ca_ratio": 1,
+			"Hm_ratio": 1,
 			"air_temp": -1,
 			"mass_temp": 0,
 			"OD_temp": 9,
@@ -203,10 +203,10 @@ class TestPowerInterpolator(unittest.TestCase):
 
 		# Mass temperature
 		mass_0 = {
-			"Ua": 1,
-			"Cm": 1,
-			"Ca": 1,
-			"Hm": 1,
+			"Ua_ratio": 1,
+			"Cm_ratio": 1,
+			"Ca_ratio": 1,
+			"Hm_ratio": 1,
 			"air_temp": 4,
 			"mass_temp": 4,
 			"OD_temp": 11,
@@ -253,10 +253,10 @@ class TestPowerInterpolator(unittest.TestCase):
 
 		# OD temperature
 		OD_0 = {
-			"Ua": 1,
-			"Cm": 1,
-			"Ca": 1,
-			"Hm": 1,
+			"Ua_ratio": 1,
+			"Cm_ratio": 1,
+			"Ca_ratio": 1,
+			"Hm_ratio": 1,
 			"air_temp": 4,
 			"mass_temp": 0,
 			"OD_temp": 11,

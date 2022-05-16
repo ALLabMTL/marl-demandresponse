@@ -12,6 +12,8 @@ import time
 from datetime import date, timedelta
 
 import pandas as pd
+import json
+import csv
 from agents import *
 from config import config_dict
 from env import *
@@ -39,10 +41,10 @@ parser.add_argument(
 opt = parser.parse_args()
 
 parameters_dict = {
-    "Ua": [0.9, 1, 1.1],
-    "Cm": [0.9, 1, 1.1],
-    "Ca": [0.9, 1, 1.1],
-    "Hm": [0.9, 1, 1.1],
+    "Ua_ratio": [0.9, 1, 1.1],
+    "Cm_ratio": [0.9, 1, 1.1],
+    "Ca_ratio": [0.9, 1, 1.1],
+    "Hm_ratio": [0.9, 1, 1.1],
     "air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
     "mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
     "OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
@@ -77,6 +79,11 @@ parameters_dict["date"] = [
 ]
 parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
+with open('interp_parameters_dict.json', 'w') as fp:
+    json.dump(parameters_dict, fp)
+with open('interp_dict_keys.csv', 'w') as f:
+    write = csv.writer(f)
+    write.writerow(["Ua_ratio", "Cm_ratio", "Ca_ratio", "Hm_ratio", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"])
 
 keys = parameters_dict.keys()
 combinations = it.product(*(parameters_dict[Name] for Name in keys))
@@ -90,7 +97,7 @@ def number_of_combination(dict):
 
 
 def eval_parameters_bangbang_average_consumption(
-    Ua, Cm, Ca, Hm, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
+    Ua_ratio, Cm_ratio, Ca_ratio, Hm_ratio, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
 ):
 
     config = copy.deepcopy(config_dict)
@@ -108,10 +115,10 @@ def eval_parameters_bangbang_average_consumption(
         datetime.datetime(date.year, date.month, date.day, hour_int, min_int, sec_int)
     )
 
-    config["default_house_prop"]["Ua"] *= Ua
-    config["default_house_prop"]["Cm"] *= Cm
-    config["default_house_prop"]["Ca"] *= Ca
-    config["default_house_prop"]["Hm"] *= Hm
+    config["default_house_prop"]["Ua"] *= Ua_ratio
+    config["default_house_prop"]["Cm"] *= Cm_ratio
+    config["default_house_prop"]["Ca"] *= Ca_ratio
+    config["default_house_prop"]["Hm"] *= Hm_ratio
 
     config["default_house_prop"]["init_air_temp"] = (
         config["default_house_prop"]["target_temp"] + air_temp

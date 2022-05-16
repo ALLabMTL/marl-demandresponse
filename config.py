@@ -188,11 +188,23 @@ config_dict = {
 		"nb_agents": 1,							# Number of agents (or houses)
 	},
 	"power_grid_prop": {
-		"avg_power_per_hvac": 4200,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
-		"init_signal_per_hvac": 910, 				# Per hvac.
+		"base_power_mode" : "interpolation", # Interpolation (based on deadband bang-bang controller) or constant
+		"base_power_parameters": {
+			"constant" : {
+				"avg_power_per_hvac": 4200,				# Per hvac. In Watts. 
+				"init_signal_per_hvac": 910, 			# Per hvac.
+			},
+			"interpolation": {
+				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal_from_0_to_3061800.npy",
+				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
+				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
+			},		
+		},
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
 		"signal_parameters": {
-			"none": {},
+			"none": {
+
+			},
 			"sinusoidals": {
 				"periods": [400, 1200],					# In seconds
 				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
@@ -205,6 +217,7 @@ config_dict = {
 	},
 	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
 	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+	"norm_reg_sig": 7500							# Average power use, for signal normalization 
 },
 
 # NN properties

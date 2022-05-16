@@ -22,6 +22,7 @@ class PowerInterpolator(object):
 		self.dict_keys = dict_keys
 
 		self.nb_params = []
+		print(dict_keys)
 		for key in self.dict_keys:
 			self.nb_params.append(len(self.parameters_dict[key]))
 
@@ -37,6 +38,7 @@ class PowerInterpolator(object):
 		self.dimensions_array = [len(self.parameters_dict[key]) for key in self.dict_keys]
 
 		self.values = np.load(path).reshape(*self.dimensions_array,1)
+		print("Interpolator initialized!")
 
 
 	def param2index(self, point_dict):
@@ -125,6 +127,7 @@ class PowerInterpolator(object):
 			index = np.argmin(distances)
 			closest_id.append(index)
 
+		print("point_coordinates: {}".format(point_coordinates))
 		result = interpn(points, self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]], point_coordinates)
 		#print(result)
 		return result
@@ -138,10 +141,10 @@ class PowerInterpolator(object):
 
 if __name__ == "__main__":
 	parameters_dict = {
-		"Ua": [0.9, 1, 1.1],
-		"Cm": [0.9, 1, 1.1],
-		"Ca": [0.9, 1, 1.1],
-		"Hm": [0.9, 1, 1.1],
+		"Ua_ratio": [0.9, 1, 1.1],
+		"Cm_ratio": [0.9, 1, 1.1],
+		"Ca_ratio": [0.9, 1, 1.1],
+		"Hm_ratio": [0.9, 1, 1.1],
 		"air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
 		"mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
 		"OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
@@ -173,14 +176,14 @@ if __name__ == "__main__":
 	parameters_dict["date"] = [(datetime.date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
 	parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
-	dict_keys = ["Ua", "Cm", "Ca", "Hm", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
+	dict_keys = ["Ua_ratio", "Cm_ratio", "Ca_ratio", "Hm_ratio", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
 	power_inter = PowerInterpolator('./mergedGridSearchResultFinal_from_0_to_3061800.npy', parameters_dict, dict_keys)
 
 	try_0 = {
-	"Ua": 1,
-	"Cm": 1,
-	"Ca": 0.9,
-	"Hm": 0.9,
+	"Ua_ratio": 1,
+	"Cm_ratio": 1,
+	"Ca_ratio": 0.9,
+	"Hm_ratio": 0.9,
 	"air_temp": -4,
 	"mass_temp": -4,
 	"OD_temp": 3,
@@ -189,10 +192,10 @@ if __name__ == "__main__":
 	"date": 83,
 	}
 	try_1 = {
-	"Ua": 1,
-	"Cm": 1,
-	"Ca": 0.9,
-	"Hm": 0.9,
+	"Ua_ratio": 1,
+	"Cm_ratio": 1,
+	"Ca_ratio": 0.9,
+	"Hm_ratio": 0.9,
 	"air_temp": 3,
 	"mass_temp": -4,
 	"OD_temp": 3,
@@ -201,10 +204,10 @@ if __name__ == "__main__":
 	"date": 83,
 	}
 	try_2 = {
-	"Ua": 1,
-	"Cm": 1,
-	"Ca": 0.9,
-	"Hm": 0.9,
+	"Ua_ratio": 1,
+	"Cm_ratio": 1,
+	"Ca_ratio": 0.9,
+	"Hm_ratio": 0.9,
 	"air_temp": 3,
 	"mass_temp": 3,
 	"OD_temp": 8,
@@ -213,10 +216,10 @@ if __name__ == "__main__":
 	"date": 186,
 	}
 	try_3 = {
-	"Ua": 1,
-	"Cm": 1,
-	"Ca": 0.9,
-	"Hm": 0.9,
+	"Ua_ratio": 1,
+	"Cm_ratio": 1,
+	"Ca_ratio": 0.9,
+	"Hm_ratio": 0.9,
 	"air_temp": 3,
 	"mass_temp": 3,
 	"OD_temp": 8,

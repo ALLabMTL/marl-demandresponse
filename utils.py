@@ -295,3 +295,18 @@ def saveActorNetDict(agent, path):
         os.makedirs(path)
     actor_net = agent.actor_net
     torch.save(actor_net.state_dict(), os.path.join(path, 'actor.pth'))
+
+def clipInterpolationPoint(point, parameter_dict):
+    for key in point.keys():
+        values = np.array(parameter_dict[key])
+        if point[key] > np.max(values):
+            point[key] = np.max(values)
+        elif point[key] < np.min(values):
+            point[key] = np.min(values)
+    return point
+
+def sortDictKeys(point, dict_keys):
+    point2 = {}
+    for key in dict_keys:
+        point2[key] = point[key]
+    return point2

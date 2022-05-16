@@ -4,7 +4,8 @@ import numpy as np
 import warnings
 import random
 from copy import deepcopy
-
+import json
+import csv
 
 from datetime import datetime, timedelta, time
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
@@ -14,7 +15,9 @@ from typing import Tuple, Dict, List, Any
 import sys
 
 sys.path.append("..")
-from utils import applyPropertyNoise
+sys.path.append("./monteCarlo")
+from utils import applyPropertyNoise, clipInterpolationPoint, sortDictKeys
+from interpolation import PowerInterpolator
 
 
 def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
@@ -135,8 +138,9 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.env_properties["cluster_prop"], self.datetime, self.time_step
         )
         self.power_grid = PowerGrid(
-            self.env_properties["power_grid_prop"], self.env_properties["nb_hvac"]
+            self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
         )
+        self.power_grid.step(self.start_datetime)
 
     def reset(self):
         """
@@ -248,8 +252,8 @@ class MADemandResponseEnv(MultiAgentEnv):
         )
 
         norm_sig_penalty = reg_signal_penalty(
-            self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"],
-            0.75 * self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"],
+            self.default_env_prop["norm_reg_sig"],
+            0.75 * self.default_env_prop["norm_reg_sig"],
             1,
         )
 
@@ -889,7 +893,7 @@ class PowerGrid(object):
     step(self, date_time): Computes the regulation signal at given date and time
     """
 
-    def __init__(self, power_grid_prop, nb_hvacs):
+    def __init__(self, power_grid_prop, default_house_prop, nb_hvacs, cluster_houses = None):
         """
         Initialize PowerGrid.
 
@@ -899,12 +903,41 @@ class PowerGrid(object):
         power_grid_prop: dictionary, containing the configuration properties of the power grid
         nb_hvacs: int, number of HVACs in the cluster
         """
-        self.avg_power_per_hvac = power_grid_prop["avg_power_per_hvac"]
+
+        # Base power
+        self.base_power_mode = power_grid_prop["base_power_mode"]
+
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+
+        ## Constant base power
+        if self.base_power_mode == "constant":
+            self.avg_power_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["avg_power_per_hvac"]
+            self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+
+        ## Interpolated base power
+        elif self.base_power_mode == "interpolation":
+            interp_data_path = power_grid_prop["base_power_parameters"]["interpolation"]["path_datafile"]
+            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_parameter_dict"]) as json_file:
+                self.interp_parameters_dict = json.load(json_file)
+            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_dict_keys"]) as f:
+                reader = csv.reader(f)
+                self.interp_dict_keys = list(reader)[0]
+
+            self.power_interpolator = PowerInterpolator(interp_data_path, self.interp_parameters_dict, self.interp_dict_keys)
+
+            if cluster_houses:
+                self.cluster_houses = cluster_houses
+            else:
+                raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
+        ## Error
+        else:
+            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
         self.nb_hvac = nb_hvacs
-        self.init_signal_per_hvac = power_grid_prop["init_signal_per_hvac"]
-        self.current_signal = self.init_signal_per_hvac * self.nb_hvac
+        self.default_house_prop = default_house_prop
+
 
     def step(self, date_time) -> float:
         """
@@ -917,13 +950,40 @@ class PowerGrid(object):
         self
         date_time: datetime, current date and time
         """
+
+        if self.base_power_mode == "constant":
+            base_power = self.init_signal_per_hvac * self.nb_hvac
+        elif self.base_power_mode == "interpolation":
+            base_power = 0
+            point = {
+                "date": date_time.timetuple().tm_yday,
+                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+            }
+            # Adding the interpolated power for each house
+            for house_id in self.cluster_houses.houses.keys():
+                house = self.cluster_houses.houses[house_id]
+                point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"]
+                point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
+                point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
+                point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
+                point["air_temp"] = house.current_temp - house.target_temp
+                point["mass_temp"] = house.current_mass_temp - house.target_temp                
+                point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
+                point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
+                point = clipInterpolationPoint(point, self.interp_parameters_dict)
+                point = sortDictKeys(point, self.interp_dict_keys)
+                base_power += self.power_interpolator.interpolateGridFast(point)            
+
+
+
+
         if self.signal_mode == "flat":
-            self.current_signal = self.init_signal_per_hvac * self.nb_hvac
+            self.current_signal = base_power
 
         elif self.signal_mode == "sinusoidals":
             """Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals"""
             amplitudes = [
-                self.nb_hvac * self.avg_power_per_hvac * ratio
+                base_power * ratio
                 for ratio in self.signal_params["amplitude_ratios"]
             ]
             periods = self.signal_params["periods"]
@@ -934,11 +994,9 @@ class PowerGrid(object):
                     )
                 )
 
-            bias = self.avg_power_per_hvac * self.nb_hvac
-
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            signal = bias
+            signal = base_power
             for i in range(len(periods)):
                 signal += amplitudes[i] * np.sin(2 * np.pi * time_sec / periods[i])
             self.current_signal = signal
@@ -947,7 +1005,7 @@ class PowerGrid(object):
             """Compute the outdoors temperature based on the time, being the sum of several rectangular signals"""
             ratios = self.signal_params["ratios"]
             amplitudes = [
-                self.avg_power_per_hvac / len(ratios) * self.nb_hvac / ratio
+                base_power / len(ratios) / ratio
                 for ratio in ratios
             ]
             periods = self.signal_params["periods"]
