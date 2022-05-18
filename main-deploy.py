@@ -31,6 +31,13 @@ agents_dict = {
 parser = argparse.ArgumentParser(description="Deployment options")
 
 parser.add_argument(
+    "--base_power_mode",
+    type=str,
+    default="config",
+    help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
+)
+
+parser.add_argument(
     "--agent",
     type=str,
     choices=agents_dict.keys(),
@@ -187,7 +194,8 @@ if opt.no_solar_gain:
     config_dict["default_house_prop"]["shading_coeff"] = 0
 if log_wandb:
     wandb_run = wandb_setup(opt, config_dict)
-
+if opt.base_power_mode != "config":
+    config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode  
 nb_time_steps = opt.nb_time_steps
 
 

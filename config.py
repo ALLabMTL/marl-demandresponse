@@ -198,6 +198,7 @@ config_dict = {
 				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal_from_0_to_3061800.npy",
 				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
 				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
+				"interp_update_period": 60, 			# Seconds
 			},		
 		},
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
@@ -210,8 +211,8 @@ config_dict = {
 				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
 			},
 			"regular_steps": {
-				"periods": [300],					# In seconds
-				"ratios": [0.7],					# Ratio of time "on"
+				"amplitude": 15000,					# In watts
+				"period": 300,						# In seconds
 			}
 		}
 	},

@@ -140,7 +140,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.power_grid = PowerGrid(
             self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
         )
-        self.power_grid.step(self.start_datetime)
+        self.power_grid.step(self.start_datetime, self.time_step)
 
     def reset(self):
         """
@@ -186,7 +186,7 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.datetime, action_dict, self.time_step
         )
         # Power grid step
-        power_grid_reg_signal = self.power_grid.step(self.datetime)
+        power_grid_reg_signal = self.power_grid.step(self.datetime, self.time_step)
 
         # Merge observations
         obs_dict = self.merge_cluster_powergrid_obs(
@@ -925,6 +925,9 @@ class PowerGrid(object):
 
             self.power_interpolator = PowerInterpolator(interp_data_path, self.interp_parameters_dict, self.interp_dict_keys)
 
+            self.interp_update_period = power_grid_prop["base_power_parameters"]["interpolation"]["interp_update_period"]
+            self.time_since_last_interp = self.interp_update_period + 1 
+
             if cluster_houses:
                 self.cluster_houses = cluster_houses
             else:
@@ -937,9 +940,31 @@ class PowerGrid(object):
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
         self.nb_hvac = nb_hvacs
         self.default_house_prop = default_house_prop
+        self.base_power = 0
 
+    def interpolatePower(self, date_time):
+        base_power = 0
+        point = {
+            "date": date_time.timetuple().tm_yday,
+            "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+        }
+        # Adding the interpolated power for each house
+        for house_id in self.cluster_houses.houses.keys():
+            house = self.cluster_houses.houses[house_id]
+            point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
+            point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
+            point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
+            point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
+            point["air_temp"] = house.current_temp - house.target_temp
+            point["mass_temp"] = house.current_mass_temp - house.target_temp                
+            point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
+            point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
+            point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
+            point = sortDictKeys(point, self.interp_dict_keys)
+            base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
+        return base_power        
 
-    def step(self, date_time) -> float:
+    def step(self, date_time, time_step) -> float:
         """
         Compute the regulation signal at given date and time
 
@@ -952,35 +977,22 @@ class PowerGrid(object):
         """
 
         if self.base_power_mode == "constant":
-            base_power = self.init_signal_per_hvac * self.nb_hvac
+            self.base_power = self.avg_power_per_hvac * self.nb_hvac
         elif self.base_power_mode == "interpolation":
-            base_power = 0
-            point = {
-                "date": date_time.timetuple().tm_yday,
-                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-            }
-            # Adding the interpolated power for each house
-            for house_id in self.cluster_houses.houses.keys():
-                house = self.cluster_houses.houses[house_id]
-                point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
-                point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
-                point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
-                point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
-                point["air_temp"] = house.current_temp - house.target_temp
-                point["mass_temp"] = house.current_mass_temp - house.target_temp                
-                point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
-                point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
-                point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
-                point = sortDictKeys(point, self.interp_dict_keys)
-                base_power += self.power_interpolator.interpolateGridFast(point)[0][0]            
+            self.time_since_last_interp += time_step.seconds   
+
+            if self.time_since_last_interp >= self.interp_update_period:
+                self.base_power = self.interpolatePower(date_time)
+                self.time_since_last_interp = 0
+
 
         if self.signal_mode == "flat":
-            self.current_signal = base_power
+            self.current_signal = self.base_power
 
         elif self.signal_mode == "sinusoidals":
             """Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals"""
             amplitudes = [
-                base_power * ratio
+                self.base_power * ratio
                 for ratio in self.signal_params["amplitude_ratios"]
             ]
             periods = self.signal_params["periods"]
@@ -993,40 +1005,26 @@ class PowerGrid(object):
 
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            signal = base_power
+            signal = self.base_power
             for i in range(len(periods)):
                 signal += amplitudes[i] * np.sin(2 * np.pi * time_sec / periods[i])
             self.current_signal = signal
 
-        elif self.signal_mode == "regular_steps":
-            """Compute the outdoors temperature based on the time, being the sum of several rectangular signals"""
-            ratios = self.signal_params["ratios"]
-            amplitudes = [
-                base_power / len(ratios) / ratio
-                for ratio in ratios
-            ]
-            periods = self.signal_params["periods"]
+        elif self.signal_mode == "regular_steps": 
+            """Compute the outdoors temperature based on the time using pulse width modulation"""
+            amplitude = self.signal_params["amplitude"]
+            ratio = self.base_power/amplitude
 
-            if len(periods) != len(ratios):
-                raise ValueError(
-                    "Power grid signal parameters: periods and ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(ratios): {}.".format(
-                        len(periods), len(ratios)
-                    )
-                )
+            period = self.signal_params["period"]
 
             signal = 0
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            for i in range(len(periods)):
-                signal += amplitudes[i] * np.heaviside(
-                    (time_sec % periods[i]) - (1 - ratios[i]) * periods[i], 1
-                )
+            signal = amplitude * np.heaviside((time_sec % period) - (1 - ratio) * period, 1)
             self.current_signal = signal
 
         else:
             raise ValueError(
-                "Invalid power grid signal mode: {}. Change value in the config file.".format(
-                    self.signal_mode
-                )
+                "Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode)
             )
         return self.current_signal
