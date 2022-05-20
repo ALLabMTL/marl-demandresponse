@@ -185,6 +185,12 @@ class MADemandResponseEnv(MultiAgentEnv):
         cluster_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(
             self.datetime, action_dict, self.time_step
         )
+
+        # Compute reward with the old grid signal
+        rewards_dict = self.compute_rewards(
+            temp_penalty_dict, cluster_hvac_power, self.power_grid.current_signal
+        )
+
         # Power grid step
         power_grid_reg_signal = self.power_grid.step(self.datetime, self.time_step)
 
@@ -193,10 +199,7 @@ class MADemandResponseEnv(MultiAgentEnv):
             cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power
         )
 
-        # Compute reward
-        rewards_dict = self.compute_rewards(
-            temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal
-        )
+
         dones_dict = self.make_dones_dict()
         info_dict = {"cluster_hvac_power": cluster_hvac_power}
         # print("cluster_hvac_power: {}, power_grid_reg_signal: {}".format(cluster_hvac_power, power_grid_reg_signal))
