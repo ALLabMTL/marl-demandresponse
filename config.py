@@ -211,7 +211,7 @@ config_dict = {
 				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
 			},
 			"regular_steps": {
-				"amplitude": 15000,					# In watts
+				"amplitude": 6000,					# In watts
 				"period": 300,						# In seconds
 			}
 		}
