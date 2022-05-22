@@ -10,7 +10,7 @@ from utils import (
     normStateDict,
     testAgentHouseTemperature,
     saveActorNetDict,
-    adjust_config,
+    adjust_config_train,
     render_and_wandb_init,
     test_ppo_agent
 )
