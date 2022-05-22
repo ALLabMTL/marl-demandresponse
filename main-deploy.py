@@ -2,7 +2,7 @@
 from env import *
 from agents import *
 from config import config_dict
-from utils import get_actions
+from utils import get_actions, adjust_config_deploy
 from wandb_setup import wandb_setup
 from copy import deepcopy
 import warnings
@@ -12,6 +12,7 @@ import numpy as np
 
 import argparse
 import wandb
+from cli import cli_deploy
 
 
 os.environ["WANDB_SILENT"] = "true"
@@ -28,144 +29,10 @@ agents_dict = {
 
 # CLI arguments
 
-parser = argparse.ArgumentParser(description="Deployment options")
+opt = cli_deploy(agents_dict)
+adjust_config_deploy(opt, config_dict)
 
-parser.add_argument(
-    "--base_power_mode",
-    type=str,
-    default="config",
-    help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
-)
-
-parser.add_argument(
-    "--agent",
-    type=str,
-    choices=agents_dict.keys(),
-    required=True,
-    help="Agent for control",
-)
-
-parser.add_argument(
-    "--nb_agents",
-    type=int,
-    default=1,
-    help="Number of agents (TCLs)",
-)
-
-parser.add_argument(
-    "--nb_time_steps",
-    type=int,
-    default=1000,
-    help="Number of time steps in an episode",
-)
-
-parser.add_argument(
-    "--nb_logs",
-    type=int,
-    default=100,
-    help="Number of logging points for training stats",
-)
-
-parser.add_argument(
-    "--env_seed",
-    type=int,
-    default=1,
-    help="Environment seed",
-)
-
-parser.add_argument(
-    "--net_seed",
-    type=int,
-    default=1,
-    help="Network and torch seed",
-)
-
-parser.add_argument(
-    "--exp",
-    type=str,
-    default="Deploy",
-    help="Experiment name",
-)
-
-parser.add_argument(
-    "--no_wandb",
-    action="store_true",
-    help="Add to prevent logging to wandb",
-)
-
-parser.add_argument(
-    "--render",
-    action="store_true",
-    help="Add to generate a visual render of the simulation",
-)
-
-parser.add_argument(
-    "--cooling_capacity",
-    type=int,
-    default=-1,
-    help="Default cooling capacity of the HVACs",
-)
-
-parser.add_argument(
-    "--time_step",
-    type=int,
-    default=-1,
-    help="Time step in seconds",
-)
-
-parser.add_argument(
-    "--lockout_duration",
-    type=int,
-    default=-1,
-    help="Default AC lockout duration, in seconds",
-)
-
-parser.add_argument(
-    "--actor_name", type=str, default=None, help="Name of the trained agent to load"
-)
-
-parser.add_argument(
-    "--exploration_temp",
-    type=float,
-    default=1.0,
-    help="Temperature of the policy softmax. Higher temp -> more exploration.",
-)
-
-parser.add_argument(
-    "--signal_mode",
-    type=str,
-    default="config",
-    help="Mode of power grid regulation signal simulation.",
-)
-
-parser.add_argument(
-    "--house_noise_mode",
-    type=str,
-    default="config",
-    help="Mode of noise over house parameters.",
-)
-
-parser.add_argument(
-    "--hvac_noise_mode",
-    type=str,
-    default="config",
-    help="Mode of noise over hvac parameters.",
-)
-
-parser.add_argument(
-    "--OD_temp_mode", type=str, default="config", help="Mode of outdoors temperature."
-)
-
-parser.add_argument(
-    "--no_solar_gain",
-    action="store_true",
-    help="Removes the solar gain from the simulation.",
-)
-
-opt = parser.parse_args()
 log_wandb = not opt.no_wandb
-
-
 if opt.render:
     from env.renderer import Renderer
 
@@ -173,31 +40,10 @@ if opt.render:
 
 # Creating environment
 random.seed(opt.env_seed)
-
-if opt.nb_agents != -1:
-    config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
-if opt.time_step != -1:
-    config_dict["default_env_prop"]["time_step"] = opt.time_step
-if opt.cooling_capacity != -1:
-    config_dict["default_hvac_prop"]["cooling_capacity"] = opt.cooling_capacity
-if opt.lockout_duration != -1:
-    config_dict["default_hvac_prop"]["lockout_duration"] = opt.lockout_duration
-if opt.signal_mode != "config":
-    config_dict["default_env_prop"]["power_grid_prop"]["signal_mode"] = opt.signal_mode
-if opt.house_noise_mode != "config":
-    config_dict["noise_house_prop"]["noise_mode"] = opt.house_noise_mode
-if opt.hvac_noise_mode != "config":
-    config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
-if opt.OD_temp_mode != "config":
-    config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
-if opt.no_solar_gain:
-    config_dict["default_house_prop"]["shading_coeff"] = 0
-if log_wandb:
-    wandb_run = wandb_setup(opt, config_dict)
-if opt.base_power_mode != "config":
-    config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode  
 nb_time_steps = opt.nb_time_steps
 
+if log_wandb:
+    wandb_run = wandb_setup(opt, config_dict)
 
 env = MADemandResponseEnv(config_dict)
 time_steps_log = int(opt.nb_time_steps / opt.nb_logs)

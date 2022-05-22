@@ -20,7 +20,7 @@ def render_and_wandb_init(opt, config_dict):
         wandb_run = wandb_setup(opt, config_dict)
     return render, log_wandb, wandb_run
 
-def adjust_config(opt, config_dict):
+def adjust_config_train(opt, config_dict):
     """Changes configuration of config_dict based on args."""
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
@@ -54,6 +54,28 @@ def adjust_config(opt, config_dict):
         config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
         config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+
+def adjust_config_deploy(opt, config_dict):
+    if opt.nb_agents != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
+    if opt.time_step != -1:
+        config_dict["default_env_prop"]["time_step"] = opt.time_step
+    if opt.cooling_capacity != -1:
+        config_dict["default_hvac_prop"]["cooling_capacity"] = opt.cooling_capacity
+    if opt.lockout_duration != -1:
+        config_dict["default_hvac_prop"]["lockout_duration"] = opt.lockout_duration
+    if opt.signal_mode != "config":
+        config_dict["default_env_prop"]["power_grid_prop"]["signal_mode"] = opt.signal_mode
+    if opt.house_noise_mode != "config":
+        config_dict["noise_house_prop"]["noise_mode"] = opt.house_noise_mode
+    if opt.hvac_noise_mode != "config":
+        config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
+    if opt.OD_temp_mode != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
+    if opt.no_solar_gain:
+        config_dict["default_house_prop"]["shading_coeff"] = 0
+    if opt.base_power_mode != "config":
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode  
 
 # Applying noise on environment properties
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
