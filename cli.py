@@ -145,7 +145,14 @@ def cli_train():
         "--signal_mode",
         type=str,
         default="config",
-        help="Mode of power grid regulation signal simulation."
+        help="Mode of the noise on the power grid regulation signal simulation. Choices: [none, regular_steps, sinusoidals, config]"
+    )
+
+    parser.add_argument(
+        "--base_power_mode",
+        type=str,
+        default="config",
+        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
     )
 
     parser.add_argument(
@@ -197,6 +204,146 @@ def cli_train():
         action="store_true",
         help="Removes the solar gain from the simulation.")
 
-    opt, _ = parser.parse_known_args()
+    opt = parser.parse_args()
+    
+    return opt
+
+
+def cli_deploy(agents_dict):
+    parser = argparse.ArgumentParser(description="Deployment options")
+    
+    parser.add_argument(
+        "--base_power_mode",
+        type=str,
+        default="config",
+        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
+    )
+
+    parser.add_argument(
+        "--agent",
+        type=str,
+        choices=agents_dict.keys(),
+        required=True,
+        help="Agent for control",
+    )
+
+    parser.add_argument(
+        "--nb_agents",
+        type=int,
+        default=1,
+        help="Number of agents (TCLs)",
+    )
+
+    parser.add_argument(
+        "--nb_time_steps",
+        type=int,
+        default=1000,
+        help="Number of time steps in an episode",
+    )
+
+    parser.add_argument(
+        "--nb_logs",
+        type=int,
+        default=100,
+        help="Number of logging points for training stats",
+    )
+
+    parser.add_argument(
+        "--env_seed",
+        type=int,
+        default=1,
+        help="Environment seed",
+    )
+
+    parser.add_argument(
+        "--net_seed",
+        type=int,
+        default=1,
+        help="Network and torch seed",
+    )
+
+    parser.add_argument(
+        "--exp",
+        type=str,
+        default="Deploy",
+        help="Experiment name",
+    )
+
+    parser.add_argument(
+        "--no_wandb",
+        action="store_true",
+        help="Add to prevent logging to wandb",
+    )
+
+    parser.add_argument(
+        "--render",
+        action="store_true",
+        help="Add to generate a visual render of the simulation",
+    )
+
+    parser.add_argument(
+        "--cooling_capacity",
+        type=int,
+        default=-1,
+        help="Default cooling capacity of the HVACs",
+    )
+
+    parser.add_argument(
+        "--time_step",
+        type=int,
+        default=-1,
+        help="Time step in seconds",
+    )
+
+    parser.add_argument(
+        "--lockout_duration",
+        type=int,
+        default=-1,
+        help="Default AC lockout duration, in seconds",
+    )
+
+    parser.add_argument(
+        "--actor_name", type=str, default=None, help="Name of the trained agent to load"
+    )
+
+    parser.add_argument(
+        "--exploration_temp",
+        type=float,
+        default=1.0,
+        help="Temperature of the policy softmax. Higher temp -> more exploration.",
+    )
+
+    parser.add_argument(
+        "--signal_mode",
+        type=str,
+        default="config",
+        help="Mode of power grid regulation signal simulation.",
+    )
+
+    parser.add_argument(
+        "--house_noise_mode",
+        type=str,
+        default="config",
+        help="Mode of noise over house parameters.",
+    )
+
+    parser.add_argument(
+        "--hvac_noise_mode",
+        type=str,
+        default="config",
+        help="Mode of noise over hvac parameters.",
+    )
+
+    parser.add_argument(
+        "--OD_temp_mode", type=str, default="config", help="Mode of outdoors temperature."
+    )
+
+    parser.add_argument(
+        "--no_solar_gain",
+        action="store_true",
+        help="Removes the solar gain from the simulation.",
+    )
+
+    opt = parser.parse_args()
     
     return opt

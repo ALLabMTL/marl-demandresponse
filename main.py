@@ -7,7 +7,7 @@ from train_ppo import train_ppo
 from config import config_dict
 from cli import cli_train
 from env.MA_DemandResponse import MADemandResponseEnv
-from utils import adjust_config, render_and_wandb_init
+from utils import adjust_config_train, render_and_wandb_init
 
 import os
 import random
@@ -16,7 +16,7 @@ os.environ["WANDB_SILENT"] = "true"
 
 def main():
     opt = cli_train()
-    adjust_config(opt, config_dict)
+    adjust_config_train(opt, config_dict)
     render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
 
     # Create environment

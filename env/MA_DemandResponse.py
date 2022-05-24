@@ -4,7 +4,8 @@ import numpy as np
 import warnings
 import random
 from copy import deepcopy
-
+import json
+import csv
 
 from datetime import datetime, timedelta, time
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
@@ -12,10 +13,11 @@ from ray.rllib.utils.annotations import override, PublicAPI
 from ray.rllib.utils.typing import MultiAgentDict, AgentID
 from typing import Tuple, Dict, List, Any
 import sys
+
 sys.path.append("..")
-from utils import applyPropertyNoise
-
-
+sys.path.append("./monteCarlo")
+from utils import applyPropertyNoise, clipInterpolationPoint, sortDictKeys
+from interpolation import PowerInterpolator
 
 
 def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
@@ -27,7 +29,7 @@ def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
     power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
     """
 
-    penalty = ((cluster_hvac_power - power_grid_reg_signal)/nb_agents) ** 2
+    penalty = ((cluster_hvac_power - power_grid_reg_signal) / nb_agents) ** 2
 
     return penalty
 
@@ -55,7 +57,7 @@ def compute_temp_penalty(target_temp, deadband, house_temp):
 class MADemandResponseEnv(MultiAgentEnv):
     """
     Multi agent demand response environment
-    
+
     Attributes:
 
     default_env_prop: dictionary, containing the default configuration properties of the environment
@@ -73,7 +75,7 @@ class MADemandResponseEnv(MultiAgentEnv):
     power_grid: a PowerGrid object, modeling the power grid.
 
     Main functions:
-    
+
     build_environment(self): Builds a new environment with noise on properties
     reset(self): Reset the environment
     step(self, action_dict): take a step in time for each TCL, given actions of TCL agents
@@ -88,7 +90,7 @@ class MADemandResponseEnv(MultiAgentEnv):
     datetime: datetime
     time_step: timedelta
 
-    def __init__(self, config, test = False):
+    def __init__(self, config, test=False):
         """
         Initialize the environment
 
@@ -104,21 +106,27 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.default_env_prop = config["default_env_prop"]
         self.default_house_prop = config["default_house_prop"]
         self.default_hvac_prop = config["default_hvac_prop"]
-        if test: 
+        if test:
             self.noise_house_prop = config["noise_house_prop_test"]
             self.noise_hvac_prop = config["noise_hvac_prop_test"]
         else:
             self.noise_house_prop = config["noise_house_prop"]
             self.noise_hvac_prop = config["noise_hvac_prop"]
 
-
         self.build_environment()
 
-
     def build_environment(self):
-        self.env_properties = applyPropertyNoise(self.default_env_prop, self.default_house_prop, self.noise_house_prop, self.default_hvac_prop, self.noise_hvac_prop)
+        self.env_properties = applyPropertyNoise(
+            self.default_env_prop,
+            self.default_house_prop,
+            self.noise_house_prop,
+            self.default_hvac_prop,
+            self.noise_hvac_prop,
+        )
 
-        self.start_datetime = self.env_properties["start_datetime"]  # Start date and time
+        self.start_datetime = self.env_properties[
+            "start_datetime"
+        ]  # Start date and time
         self.datetime = self.start_datetime  # Current time
 
         self.time_step = timedelta(seconds=self.env_properties["time_step"])
@@ -126,15 +134,19 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.agent_ids = self.env_properties["agent_ids"]
         self.nb_agents = len(self.agent_ids)
 
-        self.cluster = ClusterHouses(self.env_properties["cluster_prop"], self.datetime, self.time_step)
-        self.power_grid = PowerGrid(self.env_properties["power_grid_prop"], self.env_properties["nb_hvac"])
-
+        self.cluster = ClusterHouses(
+            self.env_properties["cluster_prop"], self.datetime, self.time_step
+        )
+        self.power_grid = PowerGrid(
+            self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
+        )
+        self.power_grid.step(self.start_datetime, self.time_step)
 
     def reset(self):
         """
         Reset the environment.
 
-        Returns: 
+        Returns:
         obs_dict: a dictionary, contaning the observations for each TCL agent.
 
         Parameters:
@@ -142,12 +154,14 @@ class MADemandResponseEnv(MultiAgentEnv):
         """
 
         self.build_environment()
-        
+
         cluster_obs_dict = self.cluster.make_cluster_obs_dict(self.datetime)
         power_grid_reg_signal = self.power_grid.current_signal
         cluster_hvac_power = self.cluster.cluster_hvac_power
 
-        obs_dict = self.merge_cluster_powergrid_obs(cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power)
+        obs_dict = self.merge_cluster_powergrid_obs(
+            cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power
+        )
 
         return obs_dict
 
@@ -155,7 +169,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         """
         Take a step in time for each TCL, given actions of TCL agents
 
-        Returns: 
+        Returns:
         obs_dict: a dictionary, containing the observations for each TCL agent.
         rewards_dict: a dictionary, containing the rewards of each TCL agent.
         dones_dict: a dictionary, containing the "done" signal for each TCL agent.
@@ -171,27 +185,34 @@ class MADemandResponseEnv(MultiAgentEnv):
         cluster_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(
             self.datetime, action_dict, self.time_step
         )
+
+        # Compute reward with the old grid signal
+        rewards_dict = self.compute_rewards(
+            temp_penalty_dict, cluster_hvac_power, self.power_grid.current_signal
+        )
+
         # Power grid step
-        power_grid_reg_signal = self.power_grid.step(self.datetime)
+        power_grid_reg_signal = self.power_grid.step(self.datetime, self.time_step)
 
         # Merge observations
-        obs_dict = self.merge_cluster_powergrid_obs(cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power)
-
-        # Compute reward
-        rewards_dict = self.compute_rewards(
-            temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal
+        obs_dict = self.merge_cluster_powergrid_obs(
+            cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power
         )
+
+
         dones_dict = self.make_dones_dict()
         info_dict = {"cluster_hvac_power": cluster_hvac_power}
         # print("cluster_hvac_power: {}, power_grid_reg_signal: {}".format(cluster_hvac_power, power_grid_reg_signal))
 
         return obs_dict, rewards_dict, dones_dict, info_dict
 
-    def merge_cluster_powergrid_obs(self, cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power) -> None:
+    def merge_cluster_powergrid_obs(
+        self, cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power
+    ) -> None:
         """
         Merge the cluster and powergrid observations for the TCL agents
 
-        Returns: 
+        Returns:
         obs_dict: a dictionary, containing the observations for each TCL agent.
 
         Parameters:
@@ -207,13 +228,15 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         return obs_dict
 
-    def compute_rewards(self, temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal):
+    def compute_rewards(
+        self, temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal
+    ):
         """
         Compute the reward of each TCL agent
 
         Returns:
         rewards_dict: a dictionary, containing the rewards of each TCL agent.
-        
+
         Parameters:
         temp_penalty_dict: a dictionary, containing the temperature penalty for each TCL agent
         cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
@@ -221,14 +244,29 @@ class MADemandResponseEnv(MultiAgentEnv):
         """
 
         rewards_dict: dict[str, float] = {}
-        signal_penalty = reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, self.nb_agents)
+        signal_penalty = reg_signal_penalty(
+            cluster_hvac_power, power_grid_reg_signal, self.nb_agents
+        )
 
-        norm_temp_penalty = compute_temp_penalty(self.default_house_prop["target_temp"], 2, self.default_house_prop["target_temp"] + 3)
+        norm_temp_penalty = compute_temp_penalty(
+            self.default_house_prop["target_temp"],
+            2,
+            self.default_house_prop["target_temp"] + 3,
+        )
 
-        norm_sig_penalty = reg_signal_penalty(self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"], 0.75*self.default_env_prop["power_grid_prop"]["avg_power_per_hvac"], 1)
+        norm_sig_penalty = reg_signal_penalty(
+            self.default_env_prop["norm_reg_sig"],
+            0.75 * self.default_env_prop["norm_reg_sig"],
+            1,
+        )
 
         for agent_id in self.agent_ids:
-            rewards_dict[agent_id] = -1 * (self.env_properties["alpha_temp"] * temp_penalty_dict[agent_id]/norm_temp_penalty + self.env_properties["alpha_sig"] * signal_penalty/norm_sig_penalty)
+            rewards_dict[agent_id] = -1 * (
+                self.env_properties["alpha_temp"]
+                * temp_penalty_dict[agent_id]
+                / norm_temp_penalty
+                + self.env_properties["alpha_sig"] * signal_penalty / norm_sig_penalty
+            )
         return rewards_dict
 
     def make_dones_dict(self):
@@ -237,20 +275,22 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         Returns:
         done_dict: a dictionary, containing the done signal of each TCL agent.
-        
+
         Parameters:
         self
         """
         dones_dict: dict[str, bool] = {}
         for agent_id in self.agent_ids:
-            dones_dict[agent_id] = False    # There is no state which terminates the environment.
+            dones_dict[
+                agent_id
+            ] = False  # There is no state which terminates the environment.
         return dones_dict
 
 
 class HVAC(object):
     """
     Simulator of HVAC object (air conditioner)
-    
+
     Attributes:
 
     id: string, unique identifier of the HVAC object.
@@ -262,7 +302,7 @@ class HVAC(object):
     turned_on: bool, if the HVAC is currently ON (True) or OFF (False)
     seconds_since_off: int, number of seconds since the HVAC was last turned off
     time_step: a timedelta object, representing the time step for the simulation.
- 
+
 
     Main functions:
 
@@ -285,19 +325,35 @@ class HVAC(object):
         self.cooling_capacity = hvac_properties["cooling_capacity"]
         self.latent_cooling_fraction = hvac_properties["latent_cooling_fraction"]
         self.lockout_duration = hvac_properties["lockout_duration"]
-        self.turned_on = False  
+        self.turned_on = False
         self.lockout = False
         self.seconds_since_off = self.lockout_duration
         self.time_step = time_step
 
         if self.latent_cooling_fraction > 1 or self.latent_cooling_fraction < 0:
-            raise ValueError("HVAC id: {} - Latent cooling fraction must be between 0 and 1. Current value: {}.".format(self.id, self.latent_cooling_fraction))
+            raise ValueError(
+                "HVAC id: {} - Latent cooling fraction must be between 0 and 1. Current value: {}.".format(
+                    self.id, self.latent_cooling_fraction
+                )
+            )
         if self.lockout_duration < 0:
-            raise ValueError("HVAC id: {} - Lockout duration must be positive. Current value: {}.".format(self.id, self.lockout_duration))
+            raise ValueError(
+                "HVAC id: {} - Lockout duration must be positive. Current value: {}.".format(
+                    self.id, self.lockout_duration
+                )
+            )
         if self.cooling_capacity < 0:
-            raise ValueError("HVAC id: {} - Cooling capacity must be positive. Current value: {}.".format(self.id, self.cooling_capacity))
+            raise ValueError(
+                "HVAC id: {} - Cooling capacity must be positive. Current value: {}.".format(
+                    self.id, self.cooling_capacity
+                )
+            )
         if self.COP < 0:
-            raise ValueError("HVAC id: {} - Coefficient of performance (COP) must be positive. Current value: {}.".format(self.id, self.COP))
+            raise ValueError(
+                "HVAC id: {} - Coefficient of performance (COP) must be positive. Current value: {}.".format(
+                    self.id, self.COP
+                )
+            )
 
     def step(self, command):
         """
@@ -305,7 +361,7 @@ class HVAC(object):
 
         Return:
         -
-        
+
         Parameters:
         self
         command: bool, action of the TCL agent (True: ON, False: OFF)
@@ -317,8 +373,7 @@ class HVAC(object):
         if self.turned_on or self.seconds_since_off >= self.lockout_duration:
             self.lockout = False
         else:
-            self.lockout = True 
-
+            self.lockout = True
 
         if self.lockout:
             self.turned_on = False
@@ -326,11 +381,12 @@ class HVAC(object):
             self.turned_on = command
             if self.turned_on:
                 self.seconds_since_off = 0
-            elif self.seconds_since_off + self.time_step.seconds < self.lockout_duration:
+            elif (
+                self.seconds_since_off + self.time_step.seconds < self.lockout_duration
+            ):
                 self.lockout = True
 
- 
-    def get_Q(self): 
+    def get_Q(self):
         """
         Compute the rate of heat transfer produced by the HVAC
 
@@ -364,13 +420,14 @@ class HVAC(object):
 
 class SingleHouse(object):
     """
-    Single house simulator. 
+    Single house simulator.
     **Attention** Although the infrastructure could support more, each house can currently only have one HVAC (several HVAC/house not implemented yet)
 
     Attributes:
     house_properties: dictionary, containing the configuration properties of the SingleHouse object
     id: string, unique identifier of he house.
-    init_temp: float, initial indoors air temperature of the house, in Celsius
+    init_air_temp: float, initial indoors air temperature of the house, in Celsius
+    init_mass_temp: float, initial indoors mass temperature of the house, in Celsius
     current_temp: float, current indoors air temperature of the house, in Celsius
     current_mass_temp: float, current house mass temperature, in Celsius
     window_area: float, gross window area, in m^2
@@ -402,9 +459,10 @@ class SingleHouse(object):
 
         self.house_properties = house_properties
         self.id = house_properties["id"]
-        self.init_temp = house_properties["init_temp"]
-        self.current_temp = self.init_temp
-        self.current_mass_temp = self.init_temp
+        self.init_air_temp = house_properties["init_air_temp"]
+        self.current_temp = self.init_air_temp
+        self.init_mass_temp = house_properties["init_mass_temp"]
+        self.current_mass_temp = self.init_mass_temp
         self.window_area = house_properties["window_area"]
         self.shading_coeff = house_properties["shading_coeff"]
 
@@ -432,7 +490,11 @@ class SingleHouse(object):
             warnings.warn("House {} has no HVAC".format(self.id))
 
         if len(self.hvacs_ids) >= 2:
-            raise NotImplementedError("House {} has {} HVACs, which is more than one. The current simulator does not support several HVACs per house.".format(self.id, len(self.hvacs_ids)))
+            raise NotImplementedError(
+                "House {} has {} HVACs, which is more than one. The current simulator does not support several HVACs per house.".format(
+                    self.id, len(self.hvacs_ids)
+                )
+            )
 
         self.disp_count = 0
 
@@ -463,11 +525,10 @@ class SingleHouse(object):
                     self.current_temp - self.target_temp,
                     self.hvacs[self.id + "_1"].turned_on,
                     self.hvacs[self.id + "_1"].seconds_since_off,
-                    date_time
+                    date_time,
                 )
             )
             self.disp_count = 0
-
 
     def update_temperature(self, od_temp, time_step, date_time):
         """
@@ -494,7 +555,6 @@ class SingleHouse(object):
         current_temp_K = self.current_temp + 273
         current_mass_temp_K = self.current_mass_temp + 273
 
-
         # Heat from hvacs (negative if it is AC)
         total_Qhvac = 0
         for hvac_id in self.hvacs_ids:
@@ -517,7 +577,12 @@ class SingleHouse(object):
         r1 = (-b + np.sqrt(b**2 - 4 * a * c)) / (2 * a)
         r2 = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-        dTA0dt = Hm*current_mass_temp_K / Ca  - (Ua + Hm)*current_temp_K / Ca  + Ua*od_temp_K / Ca  + Qa / Ca
+        dTA0dt = (
+            Hm * current_mass_temp_K / Ca
+            - (Ua + Hm) * current_temp_K / Ca
+            + Ua * od_temp_K / Ca
+            + Qa / Ca
+        )
 
         A1 = (r2 * current_temp_K - dTA0dt - r2 * d / c) / (r2 - r1)
         A2 = current_temp_K - d / c - A1
@@ -543,11 +608,11 @@ class SingleHouse(object):
         """
         Computes the solar gain, i.e. the heat transfer received from the sun through the windows.
 
-        Return: 
+        Return:
         solar_gain: float, direct solar radiation passing through the windows at a given moment in Watts
 
         Parameters
-        date_time: datetime, current date and time 
+        date_time: datetime, current date and time
 
         ---
         Source and assumptions:
@@ -564,11 +629,11 @@ class SingleHouse(object):
         - There are no horizontal windows, for example on the roof.
         """
 
-        x = date_time.hour + date_time.minute/60 - 7.5
+        x = date_time.hour + date_time.minute / 60 - 7.5
         if x < 0 or x > 10:
             solar_cooling_load = 0
         else:
-            y = date_time.month + date_time.day/30
+            y = date_time.month + date_time.day / 30 - 1
             coeff = [
                 4.36579418e01,
                 1.58055357e02,
@@ -590,13 +655,30 @@ class SingleHouse(object):
                 -3.97855577e-02,
             ]
 
-            solar_cooling_load = coeff[0] + x * coeff[1] + y * coeff[2] + x ** 2 * coeff[3] + x ** 2 * y * coeff[4] + x ** 2 * y ** 2 * coeff[5] + y ** 2 * coeff[6] + x * y ** 2 * coeff[7] \
-                + x * y * coeff[8] + x ** 3 * coeff[9] + y ** 3 * coeff[10] + x ** 3 * y * coeff[11] + x ** 3 * y ** 2 * coeff[12] + x ** 3 * y ** 3 * coeff[13] + x ** 2 * y ** 3 * coeff[14] \
-                + x * y ** 3 * coeff[15] + x ** 4 * coeff[16] + y ** 4 * coeff[17]
+            solar_cooling_load = (
+                coeff[0]
+                + x * coeff[1]
+                + y * coeff[2]
+                + x**2 * coeff[3]
+                + x**2 * y * coeff[4]
+                + x**2 * y**2 * coeff[5]
+                + y**2 * coeff[6]
+                + x * y**2 * coeff[7]
+                + x * y * coeff[8]
+                + x**3 * coeff[9]
+                + y**3 * coeff[10]
+                + x**3 * y * coeff[11]
+                + x**3 * y**2 * coeff[12]
+                + x**3 * y**3 * coeff[13]
+                + x**2 * y**3 * coeff[14]
+                + x * y**3 * coeff[15]
+                + x**4 * coeff[16]
+                + y**4 * coeff[17]
+            )
 
         solar_gain = self.window_area * self.shading_coeff * solar_cooling_load
         return solar_gain
-    
+
 
 class ClusterHouses(object):
     """
@@ -624,14 +706,14 @@ class ClusterHouses(object):
 
         Parameters:
         cluster_prop: dictionary, containing the configuration properties of the cluster
-        date_time: datetime, initial date and time 
+        date_time: datetime, initial date and time
         time_step: timedelta, time step of the simulation
         """
         self.cluster_prop = cluster_prop
 
         # Houses
         self.houses = {}
-        self.hvacs_id_registry = {} 
+        self.hvacs_id_registry = {}
         for house_properties in cluster_prop["houses_properties"]:
             house = SingleHouse(house_properties, time_step)
             self.houses[house.id] = house
@@ -653,7 +735,6 @@ class ClusterHouses(object):
             house = self.houses[house_id]
             hvac = house.hvacs[hvac_id]
             self.cluster_hvac_power += hvac.power_consumption()
-
 
     def make_cluster_obs_dict(self, date_time):
         """
@@ -739,14 +820,13 @@ class ClusterHouses(object):
                 command = False
             hvac.step(command)
 
-        # Update outdoors temperature
-        self.current_OD_temp = self.compute_OD_temp(date_time)
-
         # Update houses' temperatures
         for house_id in self.houses.keys():
             house = self.houses[house_id]
             house.step(self.current_OD_temp, time_step, date_time)
 
+        # Update outdoors temperature
+        self.current_OD_temp = self.compute_OD_temp(date_time)
         ## Observations
         cluster_obs_dict = self.make_cluster_obs_dict(date_time)
 
@@ -776,7 +856,7 @@ class ClusterHouses(object):
     def compute_OD_temp(self, date_time) -> float:
         """
         Compute the outdoors temperature based on the time, according to a model
-        
+
         Returns:
         temperature: float, outdoors temperature, in Celsius.
 
@@ -785,8 +865,6 @@ class ClusterHouses(object):
         date_time: datetime, current date and time.
 
         """
-
-
 
         # Sinusoidal model
         amplitude = (self.day_temp - self.night_temp) / 2
@@ -818,8 +896,7 @@ class PowerGrid(object):
     step(self, date_time): Computes the regulation signal at given date and time
     """
 
-
-    def __init__(self, power_grid_prop, nb_hvacs):
+    def __init__(self, power_grid_prop, default_house_prop, nb_hvacs, cluster_houses = None):
         """
         Initialize PowerGrid.
 
@@ -829,14 +906,68 @@ class PowerGrid(object):
         power_grid_prop: dictionary, containing the configuration properties of the power grid
         nb_hvacs: int, number of HVACs in the cluster
         """
-        self.avg_power_per_hvac = power_grid_prop["avg_power_per_hvac"]
+
+        # Base power
+        self.base_power_mode = power_grid_prop["base_power_mode"]
+
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+
+        ## Constant base power
+        if self.base_power_mode == "constant":
+            self.avg_power_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["avg_power_per_hvac"]
+            self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+
+        ## Interpolated base power
+        elif self.base_power_mode == "interpolation":
+            interp_data_path = power_grid_prop["base_power_parameters"]["interpolation"]["path_datafile"]
+            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_parameter_dict"]) as json_file:
+                self.interp_parameters_dict = json.load(json_file)
+            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_dict_keys"]) as f:
+                reader = csv.reader(f)
+                self.interp_dict_keys = list(reader)[0]
+
+            self.power_interpolator = PowerInterpolator(interp_data_path, self.interp_parameters_dict, self.interp_dict_keys)
+
+            self.interp_update_period = power_grid_prop["base_power_parameters"]["interpolation"]["interp_update_period"]
+            self.time_since_last_interp = self.interp_update_period + 1 
+
+            if cluster_houses:
+                self.cluster_houses = cluster_houses
+            else:
+                raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
+        ## Error
+        else:
+            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
         self.nb_hvac = nb_hvacs
-        self.init_signal_per_hvac = power_grid_prop["init_signal_per_hvac"]
-        self.current_signal = self.init_signal_per_hvac*self.nb_hvac
+        self.default_house_prop = default_house_prop
+        self.base_power = 0
 
-    def step(self, date_time) -> float:
+    def interpolatePower(self, date_time):
+        base_power = 0
+        point = {
+            "date": date_time.timetuple().tm_yday,
+            "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+        }
+        # Adding the interpolated power for each house
+        for house_id in self.cluster_houses.houses.keys():
+            house = self.cluster_houses.houses[house_id]
+            point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
+            point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
+            point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
+            point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
+            point["air_temp"] = house.current_temp - house.target_temp
+            point["mass_temp"] = house.current_mass_temp - house.target_temp                
+            point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
+            point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
+            point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
+            point = sortDictKeys(point, self.interp_dict_keys)
+            base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
+        return base_power        
+
+    def step(self, date_time, time_step) -> float:
         """
         Compute the regulation signal at given date and time
 
@@ -845,45 +976,58 @@ class PowerGrid(object):
 
         Parameters:
         self
-        date_time: datetime, current date and time 
+        date_time: datetime, current date and time
         """
+
+        if self.base_power_mode == "constant":
+            self.base_power = self.avg_power_per_hvac * self.nb_hvac
+        elif self.base_power_mode == "interpolation":
+            self.time_since_last_interp += time_step.seconds   
+
+            if self.time_since_last_interp >= self.interp_update_period:
+                self.base_power = self.interpolatePower(date_time)
+                self.time_since_last_interp = 0
+
+
         if self.signal_mode == "flat":
-            self.current_signal = self.init_signal_per_hvac*self.nb_hvac
+            self.current_signal = self.base_power
 
         elif self.signal_mode == "sinusoidals":
             """Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals"""
-            amplitudes =  [self.nb_hvac * self.avg_power_per_hvac * ratio for ratio in self.signal_params["amplitude_ratios"]]
+            amplitudes = [
+                self.base_power * ratio
+                for ratio in self.signal_params["amplitude_ratios"]
+            ]
             periods = self.signal_params["periods"]
             if len(periods) != len(amplitudes):
-                raise ValueError("Power grid signal parameters: periods and amplitude_ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(amplitude_ratios): {}.".format(len(periods), len(amplitude_ratios)))
-
-            bias = self.avg_power_per_hvac * self.nb_hvac
+                raise ValueError(
+                    "Power grid signal parameters: periods and amplitude_ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(amplitude_ratios): {}.".format(
+                        len(periods), len(amplitude_ratios)
+                    )
+                )
 
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            signal = bias
+            signal = self.base_power
             for i in range(len(periods)):
                 signal += amplitudes[i] * np.sin(2 * np.pi * time_sec / periods[i])
             self.current_signal = signal
 
+        elif self.signal_mode == "regular_steps": 
+            """Compute the outdoors temperature based on the time using pulse width modulation"""
+            amplitude = self.signal_params["amplitude"]
+            ratio = self.base_power/amplitude
 
-        elif self.signal_mode == "regular_steps":
-            """Compute the outdoors temperature based on the time, being the sum of several rectangular signals"""
-            ratios = self.signal_params["ratios"]
-            amplitudes = [self.avg_power_per_hvac/len(ratios) * self.nb_hvac /ratio for ratio in ratios]
-            periods = self.signal_params["periods"]
-
-            if len(periods) != len(ratios):
-                raise ValueError("Power grid signal parameters: periods and ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(ratios): {}.".format(len(periods), len(ratios)))
+            period = self.signal_params["period"]
 
             signal = 0
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            for i in range(len(periods)):
-                signal += amplitudes[i] * np.heaviside((time_sec%periods[i]) - (1-ratios[i])*periods[i], 1)
+            signal = amplitude * np.heaviside((time_sec % period) - (1 - ratio) * period, 1)
             self.current_signal = signal
 
         else:
-            raise ValueError("Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode))
+            raise ValueError(
+                "Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode)
+            )
         return self.current_signal
-

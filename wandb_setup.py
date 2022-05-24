@@ -17,5 +17,7 @@ def wandb_setup(opt, config_dict):
     wandb_run.define_metric(name='Mean temperature error', step_metric='Training steps')
     wandb_run.define_metric(name='Mean signal offset', step_metric='Training steps')
     wandb_run.define_metric(name='Mean signal error', step_metric='Training steps')
+    wandb_run.define_metric(name='Mean next signal error', step_metric='Training steps')
+    wandb_run.define_metric(name='Mean next signal offset', step_metric='Training steps')
     wandb_run.define_metric(name='Mean test return', step_metric='Training steps')
     return wandb_run

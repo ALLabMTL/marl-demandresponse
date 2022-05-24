@@ -33,7 +33,6 @@ class PPOAgent():
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
             action_prob = self.actor_net(state, self.temp)
-        print(action_prob)
         c = Categorical(action_prob)
         action = c.sample()
         return action.item()

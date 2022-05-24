@@ -6,7 +6,7 @@ from cli import cli_train
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
 from plotting import colorPlotTestAgentHouseTemp
-from utils import normStateDict, adjust_config, render_and_wandb_init, get_agent_test, test_dqn_agent
+from utils import normStateDict, adjust_config_train, render_and_wandb_init, get_agent_test, test_dqn_agent
 
 import random
 import numpy as np
