@@ -185,7 +185,9 @@ config_dict = {
 			},
 
 		},
-		"nb_agents": 1,							# Number of agents (or houses)
+		"nb_agents": 1,							# Number of houses
+		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
+		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
 	},
 	"power_grid_prop": {
 		"base_power_mode" : "interpolation", # Interpolation (based on deadband bang-bang controller) or constant

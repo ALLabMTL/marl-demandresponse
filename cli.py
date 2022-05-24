@@ -19,6 +19,19 @@ def cli_train():
     )
 
     parser.add_argument(
+        "--nb_agents_comm",
+        type=int,
+        default=-1,
+        help="Maximal number of agents each agent can communicate with.")
+
+    parser.add_argument(
+        "--agents_comm_mode",
+        type=str,
+        default="config",
+        help="Mode for choosing the agents to communicate with. Can be 'neighbours' or 'random'",
+    )
+
+    parser.add_argument(
         "--nb_tr_episodes",
         type=int,
         default=1000,

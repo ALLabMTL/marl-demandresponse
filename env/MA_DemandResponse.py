@@ -135,7 +135,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.nb_agents = len(self.agent_ids)
 
         self.cluster = ClusterHouses(
-            self.env_properties["cluster_prop"], self.datetime, self.time_step
+            self.env_properties["cluster_prop"], self.agent_ids, self.datetime, self.time_step
         )
         self.power_grid = PowerGrid(
             self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
@@ -513,6 +513,19 @@ class SingleHouse(object):
             )
             self.disp_count = 0
 
+    def message(self):
+        """
+        Message sent by the house to other agents
+        """
+        message = {
+            "current_temp_diff_to_target": self.current_temp - self.target_temp,
+            "hvac_seconds_since_off": self.hvac.seconds_since_off,
+            "hvac_consumption": self.hvac.power_consumption()
+        }
+
+        return message
+
+
     def update_temperature(self, od_temp, time_step, date_time):
         """
         Update the temperature of the house
@@ -680,7 +693,7 @@ class ClusterHouses(object):
     compute_OD_temp(self, date_time): models the outdoors temperature
     """
 
-    def __init__(self, cluster_prop, date_time, time_step):
+    def __init__(self, cluster_prop, agent_ids, date_time, time_step):
         """
         Initialize the cluster of houses
 
@@ -690,6 +703,7 @@ class ClusterHouses(object):
         time_step: timedelta, time step of the simulation
         """
         self.cluster_prop = cluster_prop
+        self.agent_ids = agent_ids
 
         # Houses
         self.houses = {}
@@ -759,7 +773,26 @@ class ClusterHouses(object):
             ] = hvac.latent_cooling_fraction
             cluster_obs_dict[house_id]["hvac_lockout_duration"] = hvac.lockout_duration
 
+            # Messages from the other agents
 
+            if self.cluster_prop["agents_comm_mode"] == "random":
+                possible_ids = deepcopy(self.agent_ids)
+                nb_comm = np.min(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+                possible_ids.remove(house_id)
+                ids_houses_messages = random.sample(possible_ids, k=nb_comm)
+
+            elif self.cluster_prop["agents_comm_mode"] == "neighbours":
+                possible_ids = deepcopy(self.agent_ids)
+                nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+                half_before = possible_ids[house_id - int(nb_comm/2):house_id-1]
+                half_after = possible_ids[house_id + 1 : house_id + int(np.ceil(float(nb_comm)/2))]
+                ids_houses_messages = half_before + half_after
+
+            cluster_obs_dict[house_id]["message"] = []
+            for id_house_message in ids_houses_messages:
+                cluster_obs_dict[house_id]["message"].append(self.houses[id_house_message].message())
+            print(cluster_obs_dict)
+            print("----")
         return cluster_obs_dict
 
     def step(self, date_time, actions_dict, time_step):

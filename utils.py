@@ -54,6 +54,11 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
         config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.nb_agents_comm != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode
+
 
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
@@ -89,7 +94,7 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     for i in range(nb_agents):
         house_prop = deepcopy(default_house_prop)
         apply_house_noise(house_prop, noise_house_prop)
-        house_id = str(i)
+        house_id = i
         house_prop["id"] = house_id
         hvac_prop = deepcopy(default_hvac_prop)
         apply_hvac_noise(hvac_prop, noise_hvac_prop)
@@ -237,7 +242,28 @@ def normStateDict(sDict, config_dict, returnDict=False):
         (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
 
-    return result if returnDict else np.array(list(result.values()))
+    temp_messages = []
+    for message in sDict["message"]:
+        r_message = {}
+        r_message["current_temp_diff_to_target"] = message["current_temp_diff_to_target"]/5   # Already a difference, only need to normalize like k_temps
+        r_message["hvac_seconds_since_off"] = message["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
+        r_message["hvac_consumption"] = message["hvac_consumption"]/default_env_prop["norm_reg_sig"]
+        temp_messages.append(r_message)
+
+    if returnDict:
+        result["message"] = temp_messages
+
+    else:   # Flatten the dictionary in a single np_array
+        flat_messages = []
+        for message in temp_messages:
+            flat_message = np.array(list(message.values()))
+            flat_messages.append(flat_message)
+        result = np.array(list(result.values()) + flat_messages)
+
+    print("Result: {}".format(result))
+    print("----")
+
+    return result
 
 #%% Testing
 

@@ -91,10 +91,10 @@ for i in range(nb_time_steps):
             / env.nb_agents
         )
     cumul_signal_offset += (
-        obs_dict["0"]["reg_signal"] - obs_dict["0"]["cluster_hvac_power"]
+        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     )
     cumul_signal_error += np.abs(
-        obs_dict["0"]["reg_signal"] - obs_dict["0"]["cluster_hvac_power"]
+        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     )
 
     if i % time_steps_log == time_steps_log - 1:  # Log train statistics

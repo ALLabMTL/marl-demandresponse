@@ -63,9 +63,9 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         # Storing in replay buffer
         for k in obs_dict.keys():
             agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
-        
-        # Update metrics
-        metrics.update("0", obs_dict, next_obs_dict, rewards_dict, env)
+            # Update metrics
+            metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
+
 
         # Set next state as current state
         obs_dict = next_obs_dict
