@@ -89,13 +89,13 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     for i in range(nb_agents):
         house_prop = deepcopy(default_house_prop)
         apply_house_noise(house_prop, noise_house_prop)
-        house_prop["id"] = str(i)
+        house_id = str(i)
+        house_prop["id"] = house_id
         hvac_prop = deepcopy(default_hvac_prop)
         apply_hvac_noise(hvac_prop, noise_hvac_prop)
-        hvac_id = str(i) + "_1"
-        hvac_prop["id"] = hvac_id
-        agent_ids.append(hvac_id)
-        house_prop["hvac_properties"] = [hvac_prop]
+        hvac_prop["id"] = house_id
+        agent_ids.append(house_id)
+        house_prop["hvac_properties"] = hvac_prop
         houses_properties.append(house_prop)
 
     env_properties["cluster_prop"]["houses_properties"] = houses_properties
@@ -274,7 +274,7 @@ def test_ppo_agent(agent, env, config_dict, opt):
                 obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
+            cumul_avg_reward += rewards_dict["0"] / env.nb_agents
 
     mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
 

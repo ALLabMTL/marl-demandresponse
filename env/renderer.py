@@ -108,7 +108,7 @@ class Renderer(object):
             row = math.floor(i / line_lenght)
             column = i % line_lenght
             self.viewer.add_geom(self.house_poly[i])
-            if obs[str(i) + "_1"]["hvac_turned_on"]:
+            if obs[str(i)]["hvac_turned_on"]:
                 self.viewer.add_labels(
                     "HVAC on",
                     house_dimension * column + house_dimension,
@@ -117,7 +117,7 @@ class Renderer(object):
                     house_dimension / 7,
                 )
             elif (
-                obs[str(i) + "_1"]["hvac_lockout"]
+                obs[str(i)]["hvac_lockout"]
             ):
                 self.viewer.add_labels(
                     "Lockout",
@@ -147,8 +147,8 @@ class Renderer(object):
             self.viewer.add_labels(
                 str(
                     round(
-                        obs[str(i) + "_1"]["house_temp"]
-                        - obs[str(i) + "_1"]["house_target_temp"],
+                        obs[str(i)]["house_temp"]
+                        - obs[str(i)]["house_target_temp"],
                         2,
                     )
                 )
@@ -162,8 +162,8 @@ class Renderer(object):
     def color_house(self, obs):
         for index, house in enumerate(self.house_poly):
             temperature = (
-                obs[str(index) + "_1"]["house_temp"]
-                - obs[str(index) + "_1"]["house_target_temp"]
+                obs[str(index) ]["house_temp"]
+                - obs[str(index)]["house_target_temp"]
             )  # house_temperature[index]
             temperature = min(TEMPERATURE_SCALE, temperature)
             temperature = max(-TEMPERATURE_SCALE, temperature)

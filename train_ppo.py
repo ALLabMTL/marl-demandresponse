@@ -65,7 +65,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
         
         # Update metrics
-        metrics.update("0_1", obs_dict, next_obs_dict, rewards_dict, env)
+        metrics.update("0", obs_dict, next_obs_dict, rewards_dict, env)
 
         # Set next state as current state
         obs_dict = next_obs_dict
@@ -91,8 +91,8 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         # Test policy
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print(f"Testing at time {t}")
-            prob_on_test_on = np.vstack((prob_on_test_on, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
-            prob_on_test_off = np.vstack((prob_on_test_off, testAgentHouseTemperature(agent, obs_dict["0_1"], 10, 30, config_dict, 0.0)))
+            prob_on_test_on = np.vstack((prob_on_test_on, testAgentHouseTemperature(agent, obs_dict["0"], 10, 30, config_dict, obs_dict["0"]["hvac_cooling_capacity"]/obs_dict["0"]["hvac_COP"])))
+            prob_on_test_off = np.vstack((prob_on_test_off, testAgentHouseTemperature(agent, obs_dict["0"], 10, 30, config_dict, 0.0)))
             mean_test_return = test_ppo_agent(agent, env, config_dict, opt)
             if log_wandb:
                 wandb_run.log({"Mean test return": mean_test_return, "Training steps": t})
