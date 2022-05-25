@@ -45,9 +45,9 @@ parameters_dict = {
     "Cm_ratio": [0.9, 1, 1.1],
     "Ca_ratio": [0.9, 1, 1.1],
     "Hm_ratio": [0.9, 1, 1.1],
-    "air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
-    "mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
-    "OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
+    "air_temp": [-6, -4, -2, -1, 0, 1, 2, 4, 6],  # Setter au debut
+    "mass_temp": [-6, -4, -2, 0, 2, 4, 6],  # Setter au debut, ajouter au conf dict
+    "OD_temp": [1, 3, 5, 7, 9, 11],  # fixé
     "HVAC_power": [10000, 15000, 20000],
     "hour": [
         0.0,
@@ -142,7 +142,7 @@ def eval_parameters_bangbang_average_consumption(
     actors = {}
     for hvac_id in hvacs_id_registry.keys():
         agent_prop = {"id": hvac_id}
-        actors[hvac_id] = DeadbandBangBangController(agent_prop, config)
+        actors[hvac_id] = BangBangController(agent_prop, config)
 
     obs_dict = env.reset()
     for elem in obs_dict:
