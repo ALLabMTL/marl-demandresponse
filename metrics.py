@@ -1,8 +1,7 @@
 import numpy as np
 
 class Metrics:
-    def __init__(self, house_ids):
-        self.house_ids = house_ids
+    def __init__(self):
         self.cumul_avg_reward = 0
         self.cumul_temp_offset = 0
         self.cumul_temp_error = 0

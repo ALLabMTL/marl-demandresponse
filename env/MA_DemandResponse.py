@@ -115,6 +115,8 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         self.build_environment()
 
+
+
     def build_environment(self):
         self.env_properties = applyPropertyNoise(
             self.default_env_prop,
@@ -784,15 +786,15 @@ class ClusterHouses(object):
             elif self.cluster_prop["agents_comm_mode"] == "neighbours":
                 possible_ids = deepcopy(self.agent_ids)
                 nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
-                half_before = possible_ids[house_id - int(nb_comm/2):house_id-1]
-                half_after = possible_ids[house_id + 1 : house_id + int(np.ceil(float(nb_comm)/2))]
+                # Give neighbours (in a circular manner when reaching extremes of the .
+                half_before = [(house_id - int(np.floor(nb_comm/2)) + i)%len(possible_ids) for i in range(int(np.floor(nb_comm/2)))]
+                half_after = [(house_id + 1 + i)%len(possible_ids) for i in range(int(np.ceil(nb_comm/2)))]
                 ids_houses_messages = half_before + half_after
-
+            else:
+                raise ValueError("Cluster property: agents_comm_mode must be 'random' or 'neighbours'. It is currently '{}'.".format(self.cluster_prop["agents_comm_mode"]))
             cluster_obs_dict[house_id]["message"] = []
             for id_house_message in ids_houses_messages:
                 cluster_obs_dict[house_id]["message"].append(self.houses[id_house_message].message())
-            print(cluster_obs_dict)
-            print("----")
         return cluster_obs_dict
 
     def step(self, date_time, actions_dict, time_step):
@@ -1017,7 +1019,7 @@ class PowerGrid(object):
 
         elif self.signal_mode == "regular_steps": 
             """Compute the outdoors temperature based on the time using pulse width modulation"""
-            amplitude = self.signal_params["amplitude"]
+            amplitude = self.signal_params["amplitude_per_hvac"]*self.nb_hvacs
             ratio = self.base_power/amplitude
 
             period = self.signal_params["period"]

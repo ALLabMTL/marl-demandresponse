@@ -56,7 +56,7 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
     if opt.nb_agents_comm != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
-    if opt.nb_agents_comm != "config":
+    if opt.agents_comm_mode != "config":
         config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode
 
 
@@ -80,7 +80,11 @@ def adjust_config_deploy(opt, config_dict):
     if opt.no_solar_gain:
         config_dict["default_house_prop"]["shading_coeff"] = 0
     if opt.base_power_mode != "config":
-        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode  
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.nb_agents_comm != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
 
 # Applying noise on environment properties
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
@@ -256,12 +260,9 @@ def normStateDict(sDict, config_dict, returnDict=False):
     else:   # Flatten the dictionary in a single np_array
         flat_messages = []
         for message in temp_messages:
-            flat_message = np.array(list(message.values()))
-            flat_messages.append(flat_message)
+            flat_message = list(message.values())
+            flat_messages = flat_messages + flat_message
         result = np.array(list(result.values()) + flat_messages)
-
-    print("Result: {}".format(result))
-    print("----")
 
     return result
 
