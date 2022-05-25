@@ -134,6 +134,8 @@ def eval_parameters_bangbang_average_consumption(
     config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"][
         "night_temp"
     ] = (config["default_house_prop"]["target_temp"] + OD_temp)
+    
+    config["default_env_prop"]["power_grid_prop"]["base_power_mode"] = "constant"
 
     env = MADemandResponseEnv(config)
 
