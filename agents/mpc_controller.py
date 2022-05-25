@@ -8,16 +8,12 @@ class MPCController(object):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
 
-
         self.mode = config_dict["default_env_prop"]["power_grid_prop"]["signal_mode"]
 
         if self.mode == "sinusoidals":
-            self.signal_parameter = config_dict["default_env_prop"]["power_grid_prop"]["signal_parameters"]["sinusoidals"]
-
-        print(self.signal_parameter)
-        print(self.mode)
-        
-        
+            self.signal_parameter = config_dict["default_env_prop"]["power_grid_prop"][
+                "signal_parameters"
+            ]["sinusoidals"]
 
     def agent_transition():
         pass
@@ -26,8 +22,4 @@ class MPCController(object):
         pass
 
     def act(self, obs):
-        print(obs)
-
-        raise error("Hey")
-        return 1
         pass
