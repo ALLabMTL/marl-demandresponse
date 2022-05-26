@@ -10,7 +10,7 @@ config_dict = {
 	"init_air_temp": 20,
 	"init_mass_temp": 20,
 	"target_temp": 20,
-	"deadband": 2,
+	"deadband": 0,
 	"Ua" : 2.18e02,								# House walls conductance (W/K) (75 for walls and ceiling, 4.5 for two doors, 58 for windows). Multiplied by 3 to account for drafts (according to https://dothemath.ucsd.edu/2012/11/this-thermal-house/)
 	"Cm" : 3.45e06,							# House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)
 	"Ca" : 9.08e05,						# Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
@@ -195,7 +195,7 @@ config_dict = {
 				"init_signal_per_hvac": 910, 			# Per hvac.
 			},
 			"interpolation": {
-				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal_from_0_to_3061800.npy",
+				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
 				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
 				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
 				"interp_update_period": 60, 			# Seconds
