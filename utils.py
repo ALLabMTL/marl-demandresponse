@@ -288,12 +288,14 @@ def test_dqn_agent(agent, env, nb_time_steps_test, config_dict, time_steps_per_e
 
     return mean_avg_return
 
-def test_ppo_agent(agent, env, config_dict, opt):
+def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
     """
     Test ppo agent on an episode of nb_test_timesteps, with 
     """
     env = deepcopy(env)
     cumul_avg_reward = 0
+    cumul_temp_error = 0
+    cumul_signal_error = 0
     obs_dict = env.reset()
     with torch.no_grad():
         for t in range(opt.nb_time_steps_test):
@@ -301,11 +303,15 @@ def test_ppo_agent(agent, env, config_dict, opt):
                 obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            cumul_avg_reward += rewards_dict["0"] / env.nb_agents
-
+            for i in range(env.nb_agents):
+                cumul_avg_reward += rewards_dict[i] / env.nb_agents
+                cumul_temp_error += np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"]) / env.nb_agents
+                cumul_signal_error += np.abs(obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]) / env.nb_agents
     mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
+    mean_temp_error = cumul_temp_error/opt.nb_time_steps_test
+    mean_signal_error = cumul_signal_error/opt.nb_time_steps_test
 
-    return mean_avg_return
+    return {'Mean test return': mean_avg_return, 'Test mean temperature error':mean_temp_error, 'Test mean signal error': mean_signal_error, "Training steps": tr_time_steps} 
 
 def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
     '''
