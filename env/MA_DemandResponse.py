@@ -115,6 +115,8 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         self.build_environment()
 
+
+
     def build_environment(self):
         self.env_properties = applyPropertyNoise(
             self.default_env_prop,
@@ -135,7 +137,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.nb_agents = len(self.agent_ids)
 
         self.cluster = ClusterHouses(
-            self.env_properties["cluster_prop"], self.datetime, self.time_step
+            self.env_properties["cluster_prop"], self.agent_ids, self.datetime, self.time_step
         )
         self.power_grid = PowerGrid(
             self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
@@ -439,8 +441,7 @@ class SingleHouse(object):
     Hm: float, House mass surface conductance, in Watts/Kelvin
     Cm: float, House thermal mass, in Joules/Kelvin (or Watts/Kelvin.second)
     hvac_properties: dictionary, containing the properties of the houses' hvacs
-    hvacs: dictionary, containing the hvacs of the house
-    hvacs_ids: list, containing the ids of the hvacs of the house
+    hvac: hvac object for the house
     disp_count: int, iterator for printing count
 
     Functions:
@@ -478,23 +479,7 @@ class SingleHouse(object):
 
         # HVACs
         self.hvac_properties = house_properties["hvac_properties"]
-        self.hvacs = {}
-        self.hvacs_ids = []
-
-        for hvac_prop in house_properties["hvac_properties"]:
-            hvac = HVAC(hvac_prop, time_step)
-            self.hvacs[hvac.id] = hvac
-            self.hvacs_ids.append(hvac.id)
-
-        if len(self.hvacs_ids) == 0:
-            warnings.warn("House {} has no HVAC".format(self.id))
-
-        if len(self.hvacs_ids) >= 2:
-            raise NotImplementedError(
-                "House {} has {} HVACs, which is more than one. The current simulator does not support several HVACs per house.".format(
-                    self.id, len(self.hvacs_ids)
-                )
-            )
+        self.hvac = HVAC(self.hvac_properties, time_step)
 
         self.disp_count = 0
 
@@ -523,12 +508,25 @@ class SingleHouse(object):
                     self.current_temp,
                     self.target_temp,
                     self.current_temp - self.target_temp,
-                    self.hvacs[self.id + "_1"].turned_on,
-                    self.hvacs[self.id + "_1"].seconds_since_off,
+                    self.hvac.turned_on,
+                    self.hvac.seconds_since_off,
                     date_time,
                 )
             )
             self.disp_count = 0
+
+    def message(self):
+        """
+        Message sent by the house to other agents
+        """
+        message = {
+            "current_temp_diff_to_target": self.current_temp - self.target_temp,
+            "hvac_seconds_since_off": self.hvac.seconds_since_off,
+            "hvac_consumption": self.hvac.power_consumption()
+        }
+
+        return message
+
 
     def update_temperature(self, od_temp, time_step, date_time):
         """
@@ -556,10 +554,7 @@ class SingleHouse(object):
         current_mass_temp_K = self.current_mass_temp + 273
 
         # Heat from hvacs (negative if it is AC)
-        total_Qhvac = 0
-        for hvac_id in self.hvacs_ids:
-            hvac = self.hvacs[hvac_id]
-            total_Qhvac += hvac.get_Q()
+        total_Qhvac = self.hvac.get_Q()
 
         # Total heat addition to air
         other_Qa = self.house_solar_gain(date_time)  # windows, ...
@@ -700,7 +695,7 @@ class ClusterHouses(object):
     compute_OD_temp(self, date_time): models the outdoors temperature
     """
 
-    def __init__(self, cluster_prop, date_time, time_step):
+    def __init__(self, cluster_prop, agent_ids, date_time, time_step):
         """
         Initialize the cluster of houses
 
@@ -710,15 +705,13 @@ class ClusterHouses(object):
         time_step: timedelta, time step of the simulation
         """
         self.cluster_prop = cluster_prop
+        self.agent_ids = agent_ids
 
         # Houses
         self.houses = {}
-        self.hvacs_id_registry = {}
         for house_properties in cluster_prop["houses_properties"]:
             house = SingleHouse(house_properties, time_step)
             self.houses[house.id] = house
-            for hvac_id in house.hvacs_ids:
-                self.hvacs_id_registry[hvac_id] = house.id
 
         self.temp_mode = cluster_prop["temp_mode"]
         self.temp_params = cluster_prop["temp_parameters"][self.temp_mode]
@@ -729,11 +722,9 @@ class ClusterHouses(object):
 
         # Compute the Initial cluster_hvac_power
         self.cluster_hvac_power = 0
-        for hvac_id in self.hvacs_id_registry.keys():
-            # Getting the house and the HVAC
-            house_id = self.hvacs_id_registry[hvac_id]
+        for house_id in self.houses.keys():
             house = self.houses[house_id]
-            hvac = house.hvacs[hvac_id]
+            hvac = house.hvac
             self.cluster_hvac_power += hvac.power_consumption()
 
     def make_cluster_obs_dict(self, date_time):
@@ -748,43 +739,62 @@ class ClusterHouses(object):
         date_time: datetime, current date and time
         """
         cluster_obs_dict = {}
-        for hvac_id in self.hvacs_id_registry.keys():
-            cluster_obs_dict[hvac_id] = {}
+        for house_id in self.houses.keys():
+            cluster_obs_dict[house_id] = {}
 
             # Getting the house and the HVAC
-            house_id = self.hvacs_id_registry[hvac_id]
             house = self.houses[house_id]
-            hvac = house.hvacs[hvac_id]
+            hvac = house.hvac
 
             # Dynamic values from cluster
-            cluster_obs_dict[hvac_id]["OD_temp"] = self.current_OD_temp
-            cluster_obs_dict[hvac_id]["datetime"] = date_time
+            cluster_obs_dict[house_id]["OD_temp"] = self.current_OD_temp
+            cluster_obs_dict[house_id]["datetime"] = date_time
 
             # Dynamic values from house
-            cluster_obs_dict[hvac_id]["house_temp"] = house.current_temp
-            cluster_obs_dict[hvac_id]["house_mass_temp"] = house.current_mass_temp
+            cluster_obs_dict[house_id]["house_temp"] = house.current_temp
+            cluster_obs_dict[house_id]["house_mass_temp"] = house.current_mass_temp
 
             # Dynamic values from HVAC
-            cluster_obs_dict[hvac_id]["hvac_turned_on"] = hvac.turned_on
-            cluster_obs_dict[hvac_id]["hvac_seconds_since_off"] = hvac.seconds_since_off
-            cluster_obs_dict[hvac_id]["hvac_lockout"] = hvac.lockout
+            cluster_obs_dict[house_id]["hvac_turned_on"] = hvac.turned_on
+            cluster_obs_dict[house_id]["hvac_seconds_since_off"] = hvac.seconds_since_off
+            cluster_obs_dict[house_id]["hvac_lockout"] = hvac.lockout
 
             # Supposedly constant values from house (may be changed later)
-            cluster_obs_dict[hvac_id]["house_target_temp"] = house.target_temp
-            cluster_obs_dict[hvac_id]["house_deadband"] = house.deadband
-            cluster_obs_dict[hvac_id]["house_Ua"] = house.Ua
-            cluster_obs_dict[hvac_id]["house_Cm"] = house.Cm
-            cluster_obs_dict[hvac_id]["house_Ca"] = house.Ca
-            cluster_obs_dict[hvac_id]["house_Hm"] = house.Hm
+            cluster_obs_dict[house_id]["house_target_temp"] = house.target_temp
+            cluster_obs_dict[house_id]["house_deadband"] = house.deadband
+            cluster_obs_dict[house_id]["house_Ua"] = house.Ua
+            cluster_obs_dict[house_id]["house_Cm"] = house.Cm
+            cluster_obs_dict[house_id]["house_Ca"] = house.Ca
+            cluster_obs_dict[house_id]["house_Hm"] = house.Hm
 
             # Supposedly constant values from hvac
-            cluster_obs_dict[hvac_id]["hvac_COP"] = hvac.COP
-            cluster_obs_dict[hvac_id]["hvac_cooling_capacity"] = hvac.cooling_capacity
-            cluster_obs_dict[hvac_id][
+            cluster_obs_dict[house_id]["hvac_COP"] = hvac.COP
+            cluster_obs_dict[house_id]["hvac_cooling_capacity"] = hvac.cooling_capacity
+            cluster_obs_dict[house_id][
                 "hvac_latent_cooling_fraction"
             ] = hvac.latent_cooling_fraction
-            cluster_obs_dict[hvac_id]["hvac_lockout_duration"] = hvac.lockout_duration
+            cluster_obs_dict[house_id]["hvac_lockout_duration"] = hvac.lockout_duration
 
+            # Messages from the other agents
+
+            if self.cluster_prop["agents_comm_mode"] == "random":
+                possible_ids = deepcopy(self.agent_ids)
+                nb_comm = np.min(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+                possible_ids.remove(house_id)
+                ids_houses_messages = random.sample(possible_ids, k=nb_comm)
+
+            elif self.cluster_prop["agents_comm_mode"] == "neighbours":
+                possible_ids = deepcopy(self.agent_ids)
+                nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+                # Give neighbours (in a circular manner when reaching extremes of the .
+                half_before = [(house_id - int(np.floor(nb_comm/2)) + i)%len(possible_ids) for i in range(int(np.floor(nb_comm/2)))]
+                half_after = [(house_id + 1 + i)%len(possible_ids) for i in range(int(np.ceil(nb_comm/2)))]
+                ids_houses_messages = half_before + half_after
+            else:
+                raise ValueError("Cluster property: agents_comm_mode must be 'random' or 'neighbours'. It is currently '{}'.".format(self.cluster_prop["agents_comm_mode"]))
+            cluster_obs_dict[house_id]["message"] = []
+            for id_house_message in ids_houses_messages:
+                cluster_obs_dict[house_id]["message"].append(self.houses[id_house_message].message())
         return cluster_obs_dict
 
     def step(self, date_time, actions_dict, time_step):
@@ -804,25 +814,20 @@ class ClusterHouses(object):
         """
 
         # Send command to the hvacs
-        for hvac_id in self.hvacs_id_registry.keys():
+        for house_id in self.houses.keys():
             # Getting the house and the HVAC
-            house_id = self.hvacs_id_registry[hvac_id]
             house = self.houses[house_id]
-            hvac = house.hvacs[hvac_id]
-            if hvac_id in actions_dict.keys():
-                command = actions_dict[hvac_id]
+            hvac = house.hvac
+            if house_id in actions_dict.keys():
+                command = actions_dict[house_id]
             else:
                 warnings.warn(
-                    "HVAC {} in house {} did not receive any command.".format(
-                        hvac_id, house_id
+                    "HVAC in house {} did not receive any command.".format(
+                        house_id
                     )
                 )
                 command = False
             hvac.step(command)
-
-        # Update houses' temperatures
-        for house_id in self.houses.keys():
-            house = self.houses[house_id]
             house.step(self.current_OD_temp, time_step, date_time)
 
         # Update outdoors temperature
@@ -834,14 +839,13 @@ class ClusterHouses(object):
         temp_penalty_dict = {}
         self.cluster_hvac_power = 0
 
-        for hvac_id in self.hvacs_id_registry.keys():
+        for house_id in self.houses.keys():
             # Getting the house and the HVAC
-            house_id = self.hvacs_id_registry[hvac_id]
             house = self.houses[house_id]
-            hvac = house.hvacs[hvac_id]
+            hvac = house.hvac
 
             # Temperature penalties
-            temp_penalty_dict[hvac.id] = compute_temp_penalty(
+            temp_penalty_dict[house_id] = compute_temp_penalty(
                 house.target_temp, house.deadband, house.current_temp
             )
 
@@ -941,7 +945,7 @@ class PowerGrid(object):
 
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
-        self.nb_hvac = nb_hvacs
+        self.nb_hvacs = nb_hvacs
         self.default_house_prop = default_house_prop
         self.base_power = 0
 
@@ -961,7 +965,7 @@ class PowerGrid(object):
             point["air_temp"] = house.current_temp - house.target_temp
             point["mass_temp"] = house.current_mass_temp - house.target_temp                
             point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
-            point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
+            point["HVAC_power"] = house.hvac.cooling_capacity
             point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
             point = sortDictKeys(point, self.interp_dict_keys)
             base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
@@ -980,7 +984,7 @@ class PowerGrid(object):
         """
 
         if self.base_power_mode == "constant":
-            self.base_power = self.avg_power_per_hvac * self.nb_hvac
+            self.base_power = self.avg_power_per_hvac * self.nb_hvacs
         elif self.base_power_mode == "interpolation":
             self.time_since_last_interp += time_step.seconds   
 
@@ -1015,7 +1019,7 @@ class PowerGrid(object):
 
         elif self.signal_mode == "regular_steps": 
             """Compute the outdoors temperature based on the time using pulse width modulation"""
-            amplitude = self.signal_params["amplitude"]
+            amplitude = self.signal_params["amplitude_per_hvac"]*self.nb_hvacs
             ratio = self.base_power/amplitude
 
             period = self.signal_params["period"]

@@ -185,7 +185,9 @@ config_dict = {
 			},
 
 		},
-		"nb_agents": 1,							# Number of agents (or houses)
+		"nb_agents": 1,							# Number of houses
+		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
+		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
 	},
 	"power_grid_prop": {
 		"base_power_mode" : "interpolation", # Interpolation (based on deadband bang-bang controller) or constant
@@ -211,7 +213,7 @@ config_dict = {
 				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
 			},
 			"regular_steps": {
-				"amplitude": 6000,					# In watts
+				"amplitude_per_hvac": 6000,					# In watts
 				"period": 300,						# In seconds
 			}
 		}

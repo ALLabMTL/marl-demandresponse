@@ -48,18 +48,18 @@ if log_wandb:
 env = MADemandResponseEnv(config_dict)
 time_steps_log = int(opt.nb_time_steps / opt.nb_logs)
 nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
-hvacs_id_registry = env.cluster.hvacs_id_registry
+houses = env.cluster.houses
 
 actors = {}
-for hvac_id in hvacs_id_registry.keys():
-    agent_prop = {"id": hvac_id}
+for house_id in houses.keys():
+    agent_prop = {"id": house_id}
 
     if opt.actor_name:
         agent_prop["actor_name"] = opt.actor_name
         agent_prop["net_seed"] = opt.net_seed
         agent_prop["exploration_temp"] = opt.exploration_temp
 
-    actors[hvac_id] = agents_dict[opt.agent](agent_prop, config_dict)
+    actors[house_id] = agents_dict[opt.agent](agent_prop, config_dict)
 
 
 obs_dict = env.reset()
@@ -91,10 +91,10 @@ for i in range(nb_time_steps):
             / env.nb_agents
         )
     cumul_signal_offset += (
-        obs_dict["0_1"]["reg_signal"] - obs_dict["0_1"]["cluster_hvac_power"]
+        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     )
     cumul_signal_error += np.abs(
-        obs_dict["0_1"]["reg_signal"] - obs_dict["0_1"]["cluster_hvac_power"]
+        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     )
 
     if i % time_steps_log == time_steps_log - 1:  # Log train statistics

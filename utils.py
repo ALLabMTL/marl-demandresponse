@@ -54,6 +54,11 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
         config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.agents_comm_mode != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode
+
 
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
@@ -75,7 +80,11 @@ def adjust_config_deploy(opt, config_dict):
     if opt.no_solar_gain:
         config_dict["default_house_prop"]["shading_coeff"] = 0
     if opt.base_power_mode != "config":
-        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode  
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.nb_agents_comm != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
 
 # Applying noise on environment properties
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
@@ -89,13 +98,13 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     for i in range(nb_agents):
         house_prop = deepcopy(default_house_prop)
         apply_house_noise(house_prop, noise_house_prop)
-        house_prop["id"] = str(i)
+        house_id = i
+        house_prop["id"] = house_id
         hvac_prop = deepcopy(default_hvac_prop)
         apply_hvac_noise(hvac_prop, noise_hvac_prop)
-        hvac_id = str(i) + "_1"
-        hvac_prop["id"] = hvac_id
-        agent_ids.append(hvac_id)
-        house_prop["hvac_properties"] = [hvac_prop]
+        hvac_prop["id"] = house_id
+        agent_ids.append(house_id)
+        house_prop["hvac_properties"] = hvac_prop
         houses_properties.append(house_prop)
 
     env_properties["cluster_prop"]["houses_properties"] = houses_properties
@@ -237,7 +246,25 @@ def normStateDict(sDict, config_dict, returnDict=False):
         (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
 
-    return result if returnDict else np.array(list(result.values()))
+    temp_messages = []
+    for message in sDict["message"]:
+        r_message = {}
+        r_message["current_temp_diff_to_target"] = message["current_temp_diff_to_target"]/5   # Already a difference, only need to normalize like k_temps
+        r_message["hvac_seconds_since_off"] = message["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
+        r_message["hvac_consumption"] = message["hvac_consumption"]/default_env_prop["norm_reg_sig"]
+        temp_messages.append(r_message)
+
+    if returnDict:
+        result["message"] = temp_messages
+
+    else:   # Flatten the dictionary in a single np_array
+        flat_messages = []
+        for message in temp_messages:
+            flat_message = list(message.values())
+            flat_messages = flat_messages + flat_message
+        result = np.array(list(result.values()) + flat_messages)
+
+    return result
 
 #%% Testing
 
@@ -274,7 +301,7 @@ def test_ppo_agent(agent, env, config_dict, opt):
                 obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
+            cumul_avg_reward += rewards_dict["0"] / env.nb_agents
 
     mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
 
