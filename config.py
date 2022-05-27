@@ -200,7 +200,7 @@ config_dict = {
 				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
 				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
 				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
-				"interp_update_period": 60, 			# Seconds
+				"interp_update_period": 300, 			# Seconds
 			},		
 		},
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
