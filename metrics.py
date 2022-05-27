@@ -14,10 +14,10 @@ class Metrics:
         self.cumul_temp_offset += (next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
         self.cumul_temp_error += np.abs(next_obs_dict[k]["house_temp"] - next_obs_dict[k]["house_target_temp"]) / env.nb_agents
         self.cumul_avg_reward += rewards_dict[k] / env.nb_agents
-        self.cumul_next_signal_offset += next_obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"]/env.nb_agents
-        self.cumul_next_signal_error += np.abs(next_obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/env.nb_agents
-        self.cumul_signal_offset += obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"]/env.nb_agents
-        self.cumul_signal_error += np.abs(obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/env.nb_agents
+        self.cumul_next_signal_offset += (next_obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/(env.nb_agents**2)
+        self.cumul_next_signal_error += np.abs(next_obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/(env.nb_agents**2)
+        self.cumul_signal_offset += (obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/(env.nb_agents**2)
+        self.cumul_signal_error += np.abs(obs_dict[k]["reg_signal"] - next_obs_dict[k]["cluster_hvac_power"])/(env.nb_agents**2)
 
     def log(self, t, time_steps_train_log):
         mean_avg_return = self.cumul_avg_reward / time_steps_train_log
