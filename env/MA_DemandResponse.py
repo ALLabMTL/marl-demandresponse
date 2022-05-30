@@ -14,7 +14,9 @@ from typing import Tuple, Dict, List, Any
 import sys
 sys.path.append("..")
 from utils import applyPropertyNoise
-
+import time
+from datetime import datetime
+import noise
 
 
 
@@ -882,7 +884,25 @@ class PowerGrid(object):
             for i in range(len(periods)):
                 signal += amplitudes[i] * np.heaviside((time_sec%periods[i]) - (1-ratios[i])*periods[i], 1)
             self.current_signal = signal
-
+        elif self.signal_mode == "perlin":
+            octaves = self.signal_params["octaves"]
+            persistence = self.signal_params["persistence"]
+            lacunarity = self.signal_params["lacunarity"]
+            amplitude = self.signal_params["amplitude_ratios"]
+            frequency = self.signal_params["frequency"]
+            unix_time_stamp = time.mktime(date_time.timetuple())%86400 
+            signal = self.avg_power_per_hvac * self.nb_hvac       
+            perlin = noise.pnoise1(
+                    unix_time_stamp * frequency,
+                    octaves=octaves,
+                    persistence=persistence,
+                    lacunarity=lacunarity,
+                )
+            self.current_signal = signal + (
+                signal
+                * amplitude
+                * perlin
+            )
         else:
             raise ValueError("Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode))
         return self.current_signal

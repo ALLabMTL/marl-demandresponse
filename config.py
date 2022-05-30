@@ -198,7 +198,14 @@ config_dict = {
 			"regular_steps": {
 				"periods": [300],					# In seconds
 				"ratios": [0.7],					# Ratio of time "on"
-			}
+			},
+			"perlin": {
+				"amplitude_ratios": 0.9, # As a ratio of avg_power_per_hvac
+				"octaves": 5,
+				"persistence": 0.2,
+				"lacunarity": 10,
+				"frequency": 0.01, 
+			},
 		}
 	},
 	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
