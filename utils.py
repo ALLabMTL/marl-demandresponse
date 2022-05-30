@@ -20,7 +20,7 @@ def render_and_wandb_init(opt, config_dict):
         wandb_run = wandb_setup(opt, config_dict)
     return render, log_wandb, wandb_run
 
-def adjust_config(opt, config_dict):
+def adjust_config_train(opt, config_dict):
     """Changes configuration of config_dict based on args."""
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
@@ -32,6 +32,8 @@ def adjust_config(opt, config_dict):
         config_dict["default_hvac_prop"]['lockout_duration'] = opt.lockout_duration
     if opt.signal_mode != "config":
         config_dict["default_env_prop"]['power_grid_prop']["signal_mode"] = opt.signal_mode
+    if opt.base_power_mode != "config":
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode        
     if opt.house_noise_mode != "config":
         config_dict["noise_house_prop"]['noise_mode'] = opt.house_noise_mode
     if opt.house_noise_mode_test == "train":
@@ -52,6 +54,37 @@ def adjust_config(opt, config_dict):
         config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
         config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.agents_comm_mode != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode
+
+
+def adjust_config_deploy(opt, config_dict):
+    if opt.nb_agents != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
+    if opt.time_step != -1:
+        config_dict["default_env_prop"]["time_step"] = opt.time_step
+    if opt.cooling_capacity != -1:
+        config_dict["default_hvac_prop"]["cooling_capacity"] = opt.cooling_capacity
+    if opt.lockout_duration != -1:
+        config_dict["default_hvac_prop"]["lockout_duration"] = opt.lockout_duration
+    if opt.signal_mode != "config":
+        config_dict["default_env_prop"]["power_grid_prop"]["signal_mode"] = opt.signal_mode
+    if opt.house_noise_mode != "config":
+        config_dict["noise_house_prop"]["noise_mode"] = opt.house_noise_mode
+    if opt.hvac_noise_mode != "config":
+        config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
+    if opt.OD_temp_mode != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
+    if opt.no_solar_gain:
+        config_dict["default_house_prop"]["shading_coeff"] = 0
+    if opt.base_power_mode != "config":
+        config_dict["default_env_prop"]['power_grid_prop']["base_power_mode"] = opt.base_power_mode
+    if opt.nb_agents_comm != -1:
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.nb_agents_comm != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
 
 # Applying noise on environment properties
 def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, default_hvac_prop, noise_hvac_prop):
@@ -65,22 +98,30 @@ def applyPropertyNoise(default_env_prop, default_house_prop, noise_house_prop, d
     for i in range(nb_agents):
         house_prop = deepcopy(default_house_prop)
         apply_house_noise(house_prop, noise_house_prop)
-        house_prop["id"] = str(i)
+        house_id = i
+        house_prop["id"] = house_id
         hvac_prop = deepcopy(default_hvac_prop)
         apply_hvac_noise(hvac_prop, noise_hvac_prop)
-        hvac_id = str(i) + "_1"
-        hvac_prop["id"] = hvac_id
-        agent_ids.append(hvac_id)
-        house_prop["hvac_properties"] = [hvac_prop]
+        hvac_prop["id"] = house_id
+        agent_ids.append(house_id)
+        house_prop["hvac_properties"] = hvac_prop
         houses_properties.append(house_prop)
 
     env_properties["cluster_prop"]["houses_properties"] = houses_properties
     env_properties["agent_ids"] = agent_ids
     env_properties["nb_hvac"] = len(agent_ids)
 
-    # Setting the
-    env_properties["start_datetime"] = get_random_date_time(datetime.strptime(
-        default_env_prop["base_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    # Setting the date
+    if env_properties["start_datetime_mode"] == "random":
+        env_properties["start_datetime"] = get_random_date_time(datetime.strptime(
+            default_env_prop["start_datetime"], "%Y-%m-%d %H:%M:%S"))  # Start date and time (Y,M,D, H, min, s)
+    elif env_properties["start_datetime_mode"] == "fixed":
+        env_properties["start_datetime"] = datetime.strptime(default_env_prop["start_datetime"], "%Y-%m-%d %H:%M:%S")
+    else:
+        raise ValueError(
+                "start_datetime_mode in default_env_prop in config.py must be random or fixed. Current value: {}.".format(
+                    env_properties["start_datetime_mode"] == "fixed"
+                ))
 
     return env_properties
 
@@ -90,13 +131,15 @@ def apply_house_noise(house_prop, noise_house_prop):
     noise_house_params = noise_house_prop["noise_parameters"][noise_house_mode]
 
     # Gaussian noise: target temp
-    house_prop["init_temp"] += np.abs(random.gauss(0,
+    house_prop["init_air_temp"] += np.abs(random.gauss(0,
+                                      noise_house_params["std_start_temp"]))
+    house_prop["init_mass_temp"] += np.abs(random.gauss(0,
                                       noise_house_params["std_start_temp"]))
     house_prop["target_temp"] += np.abs(random.gauss(0,
                                         noise_house_params["std_target_temp"]))
 
     # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-
+    
     factor_Ua = random.triangular(noise_house_params["factor_thermo_low"], noise_house_params["factor_thermo_high"], 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     house_prop["Ua"] *= factor_Ua
 
@@ -117,16 +160,19 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     hvac_prop["latent_cooling_fraction"] += random.gauss(
         0, noise_hvac_params["std_latent_cooling_fraction"])
 
+
     # Factor noise: COP, cooling_capacity
     factor_COP = random.triangular(noise_hvac_params["factor_COP_low"], noise_hvac_params["factor_COP_high"],
                                    1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
+    
+  
     hvac_prop["COP"] *= factor_COP
 
     factor_cooling_capacity = random.triangular(noise_hvac_params["factor_cooling_capacity_low"],
                                                 noise_hvac_params["factor_cooling_capacity_high"],
                                                 1)  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
-
+    
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
     days_in_year = 364
@@ -135,6 +181,7 @@ def get_random_date_time(start_date_time):
     random_seconds = random.randrange(seconds_in_day)
     random_date = start_date_time + \
         timedelta(days=random_days, seconds=random_seconds)
+    
     return random_date
 
 # Multi agent management
@@ -193,12 +240,31 @@ def normStateDict(sDict, config_dict, returnDict=False):
         sDict["hvac_lockout_duration"]
 
     result["reg_signal"] = sDict["reg_signal"] / \
-        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+        (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
     result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / \
-        (default_env_prop["power_grid_prop"]["avg_power_per_hvac"]
+        (default_env_prop["norm_reg_sig"]
          * default_env_prop["cluster_prop"]["nb_agents"])
-    return result if returnDict else np.array(list(result.values()))
+
+    temp_messages = []
+    for message in sDict["message"]:
+        r_message = {}
+        r_message["current_temp_diff_to_target"] = message["current_temp_diff_to_target"]/5   # Already a difference, only need to normalize like k_temps
+        r_message["hvac_seconds_since_off"] = message["hvac_seconds_since_off"]/sDict["hvac_lockout_duration"]
+        r_message["hvac_consumption"] = message["hvac_consumption"]/default_env_prop["norm_reg_sig"]
+        temp_messages.append(r_message)
+
+    if returnDict:
+        result["message"] = temp_messages
+
+    else:   # Flatten the dictionary in a single np_array
+        flat_messages = []
+        for message in temp_messages:
+            flat_message = list(message.values())
+            flat_messages = flat_messages + flat_message
+        result = np.array(list(result.values()) + flat_messages)
+
+    return result
 
 #%% Testing
 
@@ -222,12 +288,14 @@ def test_dqn_agent(agent, env, nb_time_steps_test, config_dict, time_steps_per_e
 
     return mean_avg_return
 
-def test_ppo_agent(agent, env, config_dict, opt):
+def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
     """
     Test ppo agent on an episode of nb_test_timesteps, with 
     """
     env = deepcopy(env)
     cumul_avg_reward = 0
+    cumul_temp_error = 0
+    cumul_signal_error = 0
     obs_dict = env.reset()
     with torch.no_grad():
         for t in range(opt.nb_time_steps_test):
@@ -235,11 +303,15 @@ def test_ppo_agent(agent, env, config_dict, opt):
                 obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
             action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-            cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
-
+            for i in range(env.nb_agents):
+                cumul_avg_reward += rewards_dict[i] / env.nb_agents
+                cumul_temp_error += np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"]) / env.nb_agents
+                cumul_signal_error += np.abs(obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]) / env.nb_agents
     mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
+    mean_temp_error = cumul_temp_error/opt.nb_time_steps_test
+    mean_signal_error = cumul_signal_error/opt.nb_time_steps_test
 
-    return mean_avg_return
+    return {'Mean test return': mean_avg_return, 'Test mean temperature error':mean_temp_error, 'Test mean signal error': mean_signal_error, "Training steps": tr_time_steps} 
 
 def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
     '''
@@ -281,3 +353,18 @@ def saveActorNetDict(agent, path):
         os.makedirs(path)
     actor_net = agent.actor_net
     torch.save(actor_net.state_dict(), os.path.join(path, 'actor.pth'))
+
+def clipInterpolationPoint(point, parameter_dict):
+    for key in point.keys():
+        values = np.array(parameter_dict[key])
+        if point[key] > np.max(values):
+            point[key] = np.max(values)
+        elif point[key] < np.min(values):
+            point[key] = np.min(values)
+    return point
+
+def sortDictKeys(point, dict_keys):
+    point2 = {}
+    for key in dict_keys:
+        point2[key] = point[key]
+    return point2

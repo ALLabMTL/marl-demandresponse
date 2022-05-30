@@ -7,9 +7,10 @@ config_dict = {
 
 "default_house_prop" : {
 	"id": 1,
-	"init_temp": 20,
+	"init_air_temp": 20,
+	"init_mass_temp": 20,
 	"target_temp": 20,
-	"deadband": 2,
+	"deadband": 0,
 	"Ua" : 2.18e02,								# House walls conductance (W/K) (75 for walls and ceiling, 4.5 for two doors, 58 for windows). Multiplied by 3 to account for drafts (according to https://dothemath.ucsd.edu/2012/11/this-thermal-house/)
 	"Cm" : 3.45e06,							# House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)
 	"Ca" : 9.08e05,						# Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
@@ -161,7 +162,8 @@ config_dict = {
 # Env properties
 
 "default_env_prop" : {
-	"base_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
+	"start_datetime": '2021-01-01 00:00:00',   	# Start date and time (Y-m-d H:M:S)
+	"start_datetime_mode" : "random",		# Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)
 	"time_step": 4,							# Time step in seconds
 	"cluster_prop": {
 		"temp_mode": "noisy_sinusoidal",			# Can be: constant, sinusoidal, noisy_sinusoidal
@@ -183,21 +185,36 @@ config_dict = {
 			},
 
 		},
-		"nb_agents": 1,							# Number of agents (or houses)
+		"nb_agents": 1,							# Number of houses
+		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
+		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
 	},
 	"power_grid_prop": {
-		"avg_power_per_hvac": 4200,					# Per hvac. In Watts. Based on average necessary power for bang-bang controller.
-		"init_signal_per_hvac": 910, 				# Per hvac.
+		"base_power_mode" : "interpolation", # Interpolation (based on deadband bang-bang controller) or constant
+		"base_power_parameters": {
+			"constant" : {
+				"avg_power_per_hvac": 4200,				# Per hvac. In Watts. 
+				"init_signal_per_hvac": 910, 			# Per hvac.
+			},
+			"interpolation": {
+				"path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
+				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
+				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
+				"interp_update_period": 300, 			# Seconds
+			},		
+		},
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
 		"signal_parameters": {
-			"none": {},
+			"none": {
+
+			},
 			"sinusoidals": {
 				"periods": [400, 1200],					# In seconds
 				"amplitude_ratios": [0.1, 0.3],			# As a ratio of avg_power_per_hvac
 			},
 			"regular_steps": {
-				"periods": [300],					# In seconds
-				"ratios": [0.7],					# Ratio of time "on"
+				"amplitude_per_hvac": 6000,					# In watts
+				"period": 300,						# In seconds
 			},
 			"perlin": {
 				"amplitude_ratios": 0.9, # As a ratio of avg_power_per_hvac
@@ -210,6 +227,7 @@ config_dict = {
 	},
 	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
 	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+	"norm_reg_sig": 7500							# Average power use, for signal normalization 
 },
 
 # NN properties
