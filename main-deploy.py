@@ -2,7 +2,7 @@
 from env import *
 from agents import *
 from config import config_dict
-from utils import get_actions, adjust_config_deploy
+from utils import get_actions, adjust_config_deploy, normStateDict
 from wandb_setup import wandb_setup
 from copy import deepcopy
 import warnings
@@ -46,6 +46,10 @@ if log_wandb:
     wandb_run = wandb_setup(opt, config_dict)
 
 env = MADemandResponseEnv(config_dict)
+obs_dict = env.reset()
+num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
+
+
 time_steps_log = int(opt.nb_time_steps / opt.nb_logs)
 nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
 houses = env.cluster.houses
@@ -59,7 +63,7 @@ for house_id in houses.keys():
         agent_prop["net_seed"] = opt.net_seed
         agent_prop["exploration_temp"] = opt.exploration_temp
 
-    actors[house_id] = agents_dict[opt.agent](agent_prop, config_dict)
+    actors[house_id] = agents_dict[opt.agent](agent_prop, config_dict, num_state=num_state)
 
 
 obs_dict = env.reset()

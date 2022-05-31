@@ -35,6 +35,7 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
 
 
     recent_signal = signal[max(-50,-len(signal)):]
+    recent_consumption = consumption[max(-50,-len(consumption)):]
 
     if nb_of_ignored_timestep > 0:
         temp_diff = temp_diff[:-nb_of_ignored_timestep]
@@ -72,12 +73,14 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
     fig.set_size_inches(6.4, 7.2)
     plt.xticks(x)
     axs[0].plot( recent_signal, color="dodgerblue")
+    axs[0].plot( recent_consumption, color="yellow")
     axs[0].legend(
-        ["Most recent signal"],
+        ["Most recent signal", "Most recent consumption"],
         loc="lower right",
         framealpha=0.3,
     )
     axs[0].set_ylabel("Recent RS", color="white")
+    axs[0].set_ylim(ymin=0,ymax=66000)
     
    
     axs[1].plot(x, signal, color="dodgerblue")
