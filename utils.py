@@ -102,13 +102,9 @@ def adjust_config_deploy(opt, config_dict):
             "base_power_mode"
         ] = opt.base_power_mode
     if opt.nb_agents_comm != -1:
-        config_dict["default_env_prop"]["cluster_prop"][
-            "nb_agents_comm"
-        ] = opt.nb_agents_comm
-    if opt.nb_agents_comm != "config":
-        config_dict["default_env_prop"]["cluster_prop"][
-            "agents_comm_mode"
-        ] = opt.agents_comm_mode
+        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+    if opt.agents_comm_mode != "config":
+        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
 
 
 # Applying noise on environment properties
@@ -392,35 +388,19 @@ def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             for i in range(env.nb_agents):
                 cumul_avg_reward += rewards_dict[i] / env.nb_agents
-                cumul_temp_error += (
-                    np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"])
-                    / env.nb_agents
-                )
-                cumul_signal_error += (
-                    np.abs(
-                        obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]
-                    )
-                    / env.nb_agents
-                )
-    mean_avg_return = cumul_avg_reward / opt.nb_time_steps_test
-    mean_temp_error = cumul_temp_error / opt.nb_time_steps_test
-    mean_signal_error = cumul_signal_error / opt.nb_time_steps_test
+                cumul_temp_error += np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"]) / env.nb_agents
+                cumul_signal_error += np.abs(obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]) / (env.nb_agents**2)
+    mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
+    mean_temp_error = cumul_temp_error/opt.nb_time_steps_test
+    mean_signal_error = cumul_signal_error/opt.nb_time_steps_test
 
-    return {
-        "Mean test return": mean_avg_return,
-        "Test mean temperature error": mean_temp_error,
-        "Test mean signal error": mean_signal_error,
-        "Training steps": tr_time_steps,
-    }
+    return {'Mean test return': mean_avg_return, 'Test mean temperature error':mean_temp_error, 'Test mean signal error': mean_signal_error, "Training steps": tr_time_steps} 
 
-
-def testAgentHouseTemperature(
-    agent, state, low_temp, high_temp, config_dict, reg_signal
-):
-    """
+def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
+    '''
     Receives an agent and a given state. Tests the agent probability output for 100 points
     given range of indoors temperature, returning a vector for the probability of True (on).
-    """
+    '''
     temp_range = np.linspace(low_temp, high_temp, num=100)
     prob_on = np.zeros(100)
     for i in range(100):

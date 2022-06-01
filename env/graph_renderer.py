@@ -32,6 +32,11 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
         return None
     # find the mean
     nb_of_ignored_timestep = len(temp_diff) % array_step
+
+
+    recent_signal = signal[max(-50,-len(signal)):]
+    recent_consumption = consumption[max(-50,-len(consumption)):]
+
     if nb_of_ignored_timestep > 0:
         temp_diff = temp_diff[:-nb_of_ignored_timestep]
         air_temp = air_temp[:-nb_of_ignored_timestep]
@@ -59,43 +64,54 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
 
     fig = plt.figure(facecolor="#252525")
 
-    gs = fig.add_gridspec(3, hspace=0)
-    axs = gs.subplots(sharex=True)
+    gs = fig.add_gridspec(4, hspace=0)
+    axs = gs.subplots(sharex=False)
     fig.suptitle(
         "Evolution of the temperature and \nthe energy consumption for the last timesteps",
         color="white",
     )
     fig.set_size_inches(6.4, 7.2)
     plt.xticks(x)
-    axs[0].plot(x, signal, color="dodgerblue")
-    axs[0].plot(x, consumption, color="yellow")
-    # axs[0].plot(signal , color="orange")
-    axs[0].set_ylabel("Regulation signal", color="white")
+    axs[0].plot( recent_signal, color="dodgerblue")
+    axs[0].plot( recent_consumption, color="yellow")
     axs[0].legend(
+        ["Most recent signal", "Most recent consumption"],
+        loc="lower right",
+        framealpha=0.3,
+    )
+    axs[0].set_ylabel("Recent RS", color="white")
+    axs[0].set_ylim(ymin=0,ymax=66000)
+    
+   
+    axs[1].plot(x, signal, color="dodgerblue")
+    axs[1].plot(x, consumption, color="yellow")
+    # axs[0].plot(signal , color="orange")
+    axs[1].set_ylabel("Regulation signal", color="white")
+    axs[1].legend(
         ["Target Signal", "Current consumption"],
         loc="lower right",
         framealpha=0.3,
     )
-    axs[0].grid(color="0.3")
-    axs[1].plot(x, temp_diff, color="orangered")
-    axs[1].legend(["Temperature difference"], loc="lower right", framealpha=0.3)
 
-    axs[1].set_ylabel("Average temperature difference", color="white")
-    axs[1].grid(color="0.3")
+    axs[2].plot(x, temp_diff, color="orangered")
+    axs[2].legend(["Temperature difference"], loc="lower right", framealpha=0.3)
 
-    axs[2].plot(x, air_temp, color="lightblue")
-    axs[2].plot(x, mass_temp, color="maroon")
-    axs[2].plot(x, target_temp, color="gold")
-    axs[2].plot(x, OD_temp, color="forestgreen")
-    axs[2].legend(["Air","Mass","Target","Outdoors"], loc="lower right", framealpha=0.3)
+    axs[2].set_ylabel("Average temperature difference", color="white")
+   
 
-    axs[2].set_ylabel("Temperature", color="white")
-    axs[2].grid(color="0.3")
+    axs[3].plot(x, air_temp, color="lightblue")
+    axs[3].plot(x, mass_temp, color="maroon")
+    axs[3].plot(x, target_temp, color="gold")
+    axs[3].plot(x, OD_temp, color="forestgreen")
+    axs[3].legend(["Air","Mass","Target","Outdoors"], loc="lower right", framealpha=0.3)
+
+    axs[3].set_ylabel("Temperature", color="white")
 
     # cax = divider.append_axes("bottom", size="100%", pad=0.05)
 
     # Hide x labels and tick labels for all but bottom plot.
-    for ax in axs[:3]:
+    for ax in axs[:4]:
+        ax.grid(color="0.3")
         ax.label_outer()
         ax.set_facecolor("#252525")
         ax.tick_params(axis="x", colors="white")

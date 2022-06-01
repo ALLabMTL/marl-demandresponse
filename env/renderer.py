@@ -244,6 +244,8 @@ class Renderer(object):
             str(round(df["temperature_difference"].mean(), 2)) + " °C"
         )
         self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
+        self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
+        self.data_messages["Consumption error (%)"] = "{:.3f}%".format((df["reg_signal"][0] - df["cluster_hvac_power"][0])/df["reg_signal"][0] * 100)
 
     def render(self, obs):
 
