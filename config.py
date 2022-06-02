@@ -217,11 +217,10 @@ config_dict = {
 				"period": 300,						# In seconds
 			},
 			"perlin": {
-				"amplitude_ratios": 0.9, # As a ratio of avg_power_per_hvac
-				"octaves": 5,
-				"persistence": 0.2,
-				"lacunarity": 10,
-				"frequency": 0.01, 
+				"amplitude_ratios":0.9,
+				"nb_octaves":5,
+				"octaves_step":1,
+				"period":400
 			},
 		}
 	},

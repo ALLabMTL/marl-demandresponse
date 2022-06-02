@@ -1,3 +1,4 @@
+from sympy import octave_code
 import gym
 import ray
 import numpy as np
@@ -13,10 +14,10 @@ from ray.rllib.utils.annotations import override, PublicAPI
 from ray.rllib.utils.typing import MultiAgentDict, AgentID
 from typing import Tuple, Dict, List, Any
 import sys
-from utils import applyPropertyNoise
+from utils import applyPropertyNoise, Perlin
 import time
 from datetime import datetime
-import noise
+
 
 sys.path.append("..")
 sys.path.append("./monteCarlo")
@@ -944,6 +945,13 @@ class PowerGrid(object):
             else:
                 raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
         ## Error
+        if power_grid_prop["signal_mode"] == "perlin":
+            self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
+            nb_octaves = self.signal_params["nb_octaves"]
+            octaves_step = self.signal_params["nb_octaves"]
+            period = self.signal_params["period"]
+            self.perlin = Perlin(1, nb_octaves, octaves_step, period)
+        
         else:
             raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
 
@@ -1034,19 +1042,10 @@ class PowerGrid(object):
             signal = amplitude * np.heaviside((time_sec % period) - (1 - ratio) * period, 1)
             self.current_signal = signal
         elif self.signal_mode == "perlin":
-            octaves = self.signal_params["octaves"]
-            persistence = self.signal_params["persistence"]
-            lacunarity = self.signal_params["lacunarity"]
             amplitude = self.signal_params["amplitude_ratios"]
-            frequency = self.signal_params["frequency"]
             unix_time_stamp = time.mktime(date_time.timetuple())%86400 
             signal = self.base_power
-            perlin = noise.pnoise1(
-                    unix_time_stamp * frequency,
-                    octaves=octaves,
-                    persistence=persistence,
-                    lacunarity=lacunarity,
-                )
+            perlin = self.perlin.calculate_noise(unix_time_stamp)
             self.current_signal = signal + (
                 signal
                 * amplitude
