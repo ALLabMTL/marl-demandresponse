@@ -208,6 +208,9 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     noise_hvac_mode = noise_hvac_prop["noise_mode"]
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
 
+    hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"])[0]
+
+"""
     # Gaussian noise: latent_cooling_fraction
     hvac_prop["latent_cooling_fraction"] += random.gauss(
         0, noise_hvac_params["std_latent_cooling_fraction"]
@@ -226,7 +229,7 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
         1,
     )  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
-
+"""
 
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
