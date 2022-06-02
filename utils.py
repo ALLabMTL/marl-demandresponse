@@ -322,11 +322,11 @@ def normStateDict(sDict, config_dict, returnDict=False):
         r_message["hvac_seconds_since_off"] = (
             message["hvac_seconds_since_off"] / sDict["hvac_lockout_duration"]
         )
-        r_message["hvac_consumption"] = (
-            message["hvac_consumption"] / default_env_prop["norm_reg_sig"]
+        r_message["hvac_curr_consumption"] = (
+            message["hvac_curr_consumption"] / default_env_prop["norm_reg_sig"]
         )
-        r_message["hvac_capacity"] = (
-            message["hvac_consumption"] / default_env_prop["norm_reg_sig"]
+        r_message["hvac_max_consumption"] = (
+            message["hvac_max_consumption"] / default_env_prop["norm_reg_sig"]
         )
         temp_messages.append(r_message)
 

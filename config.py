@@ -117,15 +117,15 @@ config_dict = {
 			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.95,   # Lowest random factor for COP
 			"factor_COP_high": 1.05,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
 			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.85,   # Lowest random factor for COP
 			"factor_COP_high": 1.15,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.6666667,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.3333333333,   # Highest random factor for cooling_capacity
 		},
 	},
 },
@@ -144,15 +144,15 @@ config_dict = {
 			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.95,   # Lowest random factor for COP
 			"factor_COP_high": 1.05,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
 			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.85,   # Lowest random factor for COP
 			"factor_COP_high": 1.15,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.6666667,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.3333333333,   # Highest random factor for cooling_capacity
 		},
 	},
 },

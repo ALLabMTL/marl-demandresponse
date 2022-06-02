@@ -338,6 +338,7 @@ class HVAC(object):
         self.lockout = False
         self.seconds_since_off = self.lockout_duration
         self.time_step = time_step
+        self.max_consumption = self.cooling_capacity / self.COP
 
         if self.latent_cooling_fraction > 1 or self.latent_cooling_fraction < 0:
             raise ValueError(
@@ -420,7 +421,7 @@ class HVAC(object):
         power_cons: float, electric power consumption of the HVAC, in Watts
         """
         if self.turned_on:
-            power_cons = self.cooling_capacity / self.COP
+            power_cons = self.max_consumption
         else:
             power_cons = 0
 
@@ -529,8 +530,8 @@ class SingleHouse(object):
         message = {
             "current_temp_diff_to_target": self.current_temp - self.target_temp,
             "hvac_seconds_since_off": self.hvac.seconds_since_off,
-            "hvac_consumption": self.hvac.power_consumption(),
-            "hvac_capacity": self.hvac.cooling_capacity,
+            "hvac_curr_consumption": self.hvac.power_consumption(),
+            "hvac_max_consumption": self.hvac.max_consumption,
         }
 
         return message
