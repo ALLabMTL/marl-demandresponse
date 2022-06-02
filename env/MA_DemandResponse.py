@@ -732,6 +732,45 @@ class ClusterHouses(object):
             hvac = house.hvac
             self.cluster_hvac_power += hvac.power_consumption()
 
+        self.build_agent_comm_links()
+
+    def build_agent_comm_links(self):
+        self.agent_communicators = {}
+        nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+
+        if self.cluster_prop["agents_comm_mode"] == "neighbours":
+            for agent_id in self.agent_ids:
+                possible_ids = deepcopy(self.agent_ids)
+                # Give neighbours (in a circular manner when reaching extremes of the .
+                half_before = [(agent_id - int(np.floor(nb_comm/2)) + i)%len(possible_ids) for i in range(int(np.floor(nb_comm/2)))]
+                half_after = [(agent_id + 1 + i)%len(possible_ids) for i in range(int(np.ceil(nb_comm/2)))]
+                ids_houses_messages = half_before + half_after
+                self.agent_communicators[agent_id] = ids_houses_messages
+
+        elif self.cluster_prop["agents_comm_mode"] == "closed_groups":
+            for agent_id in self.agent_ids:
+                possible_ids = deepcopy(self.agent_ids)
+                base = agent_id - (agent_id%(nb_comm + 1))
+                if base + nb_comm <= self.cluster_prop["nb_agents"]:
+                    ids_houses_messages = [base + i for i in range(self.cluster_prop["nb_agents_comm"] + 1)]
+                else:
+                    ids_houses_messages = [self.cluster_prop["nb_agents"] - nb_comm - 1 + i for i in range(nb_comm + 1)]
+                ids_houses_messages.remove(agent_id)
+                self.agent_communicators[agent_id] = ids_houses_messages
+
+        elif self.cluster_prop["agents_comm_mode"] == "random_sample":
+            pass
+
+        elif self.cluster_prop["agents_comm_mode"] == "random_fixed":
+            for agent_id in self.agent_ids:
+                possible_ids = deepcopy(self.agent_ids)
+                possible_ids.remove(agent_id)
+                ids_houses_messages = random.sample(possible_ids, k=nb_comm)
+                self.agent_communicators[agent_id] = ids_houses_messages
+
+        else:
+            raise ValueError("Cluster property: unknown agents_comm_mode '{}'.".format(self.cluster_prop["agents_comm_mode"]))
+
     def make_cluster_obs_dict(self, date_time):
         """
         Generate the cluster observation dictionary for all agents.
@@ -782,21 +821,17 @@ class ClusterHouses(object):
 
             # Messages from the other agents
 
-            if self.cluster_prop["agents_comm_mode"] == "random":
+            if self.cluster_prop["agents_comm_mode"] == "random_sample":
                 possible_ids = deepcopy(self.agent_ids)
-                nb_comm = np.min(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
+                nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
                 possible_ids.remove(house_id)
                 ids_houses_messages = random.sample(possible_ids, k=nb_comm)
 
-            elif self.cluster_prop["agents_comm_mode"] == "neighbours":
-                possible_ids = deepcopy(self.agent_ids)
-                nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
-                # Give neighbours (in a circular manner when reaching extremes of the .
-                half_before = [(house_id - int(np.floor(nb_comm/2)) + i)%len(possible_ids) for i in range(int(np.floor(nb_comm/2)))]
-                half_after = [(house_id + 1 + i)%len(possible_ids) for i in range(int(np.ceil(nb_comm/2)))]
-                ids_houses_messages = half_before + half_after
             else:
-                raise ValueError("Cluster property: agents_comm_mode must be 'random' or 'neighbours'. It is currently '{}'.".format(self.cluster_prop["agents_comm_mode"]))
+                ids_houses_messages = self.agent_communicators[house_id]
+
+
+            
             cluster_obs_dict[house_id]["message"] = []
             for id_house_message in ids_houses_messages:
                 cluster_obs_dict[house_id]["message"].append(self.houses[id_house_message].message())
