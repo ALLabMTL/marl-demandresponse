@@ -201,11 +201,12 @@ config_dict = {
 				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
 				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
 				"interp_update_period": 300, 			# Seconds
+				"interp_nb_agents": 100 					# Max number of agents over which the interpolation is run
 			},		
 		},
-		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
+		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: flat, sinusoidal, regular_steps
 		"signal_parameters": {
-			"none": {
+			"flat": {
 
 			},
 			"sinusoidals": {

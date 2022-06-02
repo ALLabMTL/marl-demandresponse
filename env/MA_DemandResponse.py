@@ -17,6 +17,8 @@ import sys
 from utils import applyPropertyNoise, Perlin
 import time
 from datetime import datetime
+#import noise
+#import wandb
 
 
 sys.path.append("..")
@@ -953,7 +955,6 @@ class PowerGrid(object):
 
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
-
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
 
         ## Constant base power
@@ -974,21 +975,23 @@ class PowerGrid(object):
 
             self.interp_update_period = power_grid_prop["base_power_parameters"]["interpolation"]["interp_update_period"]
             self.time_since_last_interp = self.interp_update_period + 1 
+            self.interp_nb_agents = power_grid_prop["base_power_parameters"]["interpolation"]["interp_nb_agents"]
 
             if cluster_houses:
                 self.cluster_houses = cluster_houses
             else:
                 raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
         ## Error
+
+        else:
+            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+
         if power_grid_prop["signal_mode"] == "perlin":
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["nb_octaves"]
             period = self.signal_params["period"]
             self.perlin = Perlin(1, nb_octaves, octaves_step, period)
-        
-        else:
-            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
 
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
@@ -1002,8 +1005,17 @@ class PowerGrid(object):
             "date": date_time.timetuple().tm_yday,
             "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
         }
+
+        all_ids = list(self.cluster_houses.houses.keys())
+        if len(all_ids) <= self.interp_nb_agents:
+            interp_house_ids = all_ids
+            multi_factor = 1
+        else:
+            interp_house_ids = random.choices(all_ids, k=self.interp_nb_agents)
+            multi_factor = float(len(all_ids))/self.interp_nb_agents
+
         # Adding the interpolated power for each house
-        for house_id in self.cluster_houses.houses.keys():
+        for house_id in interp_house_ids:
             house = self.cluster_houses.houses[house_id]
             point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
             point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
@@ -1013,9 +1025,10 @@ class PowerGrid(object):
             point["mass_temp"] = house.current_mass_temp - house.target_temp                
             point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
             point["HVAC_power"] = house.hvac.cooling_capacity
-            point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
+            point = clipInterpolationPoint(point, self.interp_parameters_dict)
             point = sortDictKeys(point, self.interp_dict_keys)
             base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
+        base_power *= multi_factor
         return base_power        
 
     def step(self, date_time, time_step) -> float:

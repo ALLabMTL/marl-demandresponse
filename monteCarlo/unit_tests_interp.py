@@ -51,8 +51,6 @@ class TestPowerInterpolator(unittest.TestCase):
             reader = csv.reader(f)
             self.dict_keys = list(reader)[0]
 
-        d0 = datetime.date(2021, 1, 1)
-
         self.power_data = np.load(path)
         self.parameters_dict = deepcopy(parameters_dict)
 
@@ -271,6 +269,43 @@ class TestPowerInterpolator(unittest.TestCase):
         self.assertLessEqual(self.power_interp.interpolateGridFast(OD_5), self.power_interp.interpolateGridFast(OD_6) + 10)
         print("OD_5 < OD_6")
 
+
+        ### HVAC power
+        hvacp_0 = {
+            "Ua_ratio": 1,
+            "Cm_ratio": 1,
+            "Ca_ratio": 1,
+            "Hm_ratio": 1,
+            "air_temp": 6,
+            "mass_temp": 0,
+            "OD_temp": 9,
+            "HVAC_power": 10000,
+            "hour": 11.0*SECOND_IN_A_HOUR,
+            "date": 79,
+        }
+
+
+        hvacp_1 = deepcopy(hvacp_0)
+        hvacp_2 = deepcopy(hvacp_0)
+        hvacp_3= deepcopy(hvacp_0)
+        hvacp_4 = deepcopy(hvacp_0)
+        hvacp_5 = deepcopy(hvacp_0)
+        hvacp_6 = deepcopy(hvacp_0)
+
+        hvacp_1["HVAC_power"] = 10000
+        hvacp_2["HVAC_power"] = 11000
+        hvacp_3["HVAC_power"] = 13000
+        hvacp_4["HVAC_power"] = 16000
+        hvacp_5["HVAC_power"] = 18000
+        hvacp_6["HVAC_power"] = 20000
+
+        print("hvacp_0: {}".format(self.power_interp.interpolateGridFast(hvacp_0)))
+        print("hvacp_1: {}".format(self.power_interp.interpolateGridFast(hvacp_1)))
+        print("hvacp_2: {}".format(self.power_interp.interpolateGridFast(hvacp_2)))
+        print("hvacp_3: {}".format(self.power_interp.interpolateGridFast(hvacp_3)))
+        print("hvacp_4: {}".format(self.power_interp.interpolateGridFast(hvacp_4)))
+        print("hvacp_5: {}".format(self.power_interp.interpolateGridFast(hvacp_5)))
+        print("hvacp_6: {}".format(self.power_interp.interpolateGridFast(hvacp_6)))
 
 if __name__ == '__main__':
     unittest.main()
