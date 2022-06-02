@@ -529,7 +529,8 @@ class SingleHouse(object):
         message = {
             "current_temp_diff_to_target": self.current_temp - self.target_temp,
             "hvac_seconds_since_off": self.hvac.seconds_since_off,
-            "hvac_consumption": self.hvac.power_consumption()
+            "hvac_consumption": self.hvac.power_consumption(),
+            "hvac_capacity": self.hvac.cooling_capacity,
         }
 
         return message

@@ -325,6 +325,9 @@ def normStateDict(sDict, config_dict, returnDict=False):
         r_message["hvac_consumption"] = (
             message["hvac_consumption"] / default_env_prop["norm_reg_sig"]
         )
+        r_message["hvac_capacity"] = (
+            message["hvac_consumption"] / default_env_prop["norm_reg_sig"]
+        )
         temp_messages.append(r_message)
 
     if returnDict:
