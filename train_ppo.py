@@ -19,6 +19,7 @@ import os
 import random
 import numpy as np
 from collections import namedtuple
+import wandb
 
 #%% Functions
 
@@ -91,8 +92,6 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         # Test policy
         if t % time_steps_test_log == time_steps_test_log - 1:        # Test policy
             print(f"Testing at time {t}")
-            prob_on_test_on = np.vstack((prob_on_test_on, testAgentHouseTemperature(agent, obs_dict[0], 10, 30, config_dict, obs_dict[0]["hvac_cooling_capacity"]/obs_dict[0]["hvac_COP"])))
-            prob_on_test_off = np.vstack((prob_on_test_off, testAgentHouseTemperature(agent, obs_dict[0], 10, 30, config_dict, 0.0)))
             metrics_test = test_ppo_agent(agent, env, config_dict, opt, t)
             if log_wandb:
                 wandb_run.log(metrics_test)
@@ -102,11 +101,14 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     if render:
         renderer.__del__(obs_dict)
 
-    colorPlotTestAgentHouseTemp(prob_on_test_on, prob_on_test_off, 10, 30, time_steps_test_log, log_wandb)
 
     if opt.save_actor_name:
         path = os.path.join(".", "actors", opt.save_actor_name)
         saveActorNetDict(agent, path)
+        if log_wandb:
+            wandb.save(os.path.join(path, "actor.pth"))
+
+
         
 #%% Train
 
