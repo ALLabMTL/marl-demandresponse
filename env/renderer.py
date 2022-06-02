@@ -246,6 +246,8 @@ class Renderer(object):
         self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
         self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
         self.data_messages["Consumption error (%)"] = "{:.3f}%".format((df["reg_signal"][0] - df["cluster_hvac_power"][0])/df["reg_signal"][0] * 100)
+        self.data_messages["RMSE"] = "{:.0f}".format(np.sqrt(np.mean(( self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :] - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :] )**2)))
+        self.data_messages["Cumulative average offset"] = "{:.0f}".format(np.mean(self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :] - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :] ))
 
     def render(self, obs):
 

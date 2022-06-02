@@ -80,7 +80,7 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
         framealpha=0.3,
     )
     axs[0].set_ylabel("Recent RS", color="white")
-    axs[0].set_ylim(ymin=0,ymax=66000)
+    axs[0].set_ylim(ymin=0)
     
    
     axs[1].plot(x, signal, color="dodgerblue")
