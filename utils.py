@@ -63,9 +63,9 @@ def adjust_config_train(opt, config_dict):
     if opt.no_solar_gain:
         config_dict["default_house_prop"]["shading_coeff"] = 0
     if opt.alpha_temp != -1:
-        config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
+        config_dict["default_env_prop"]["reward_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
-        config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+        config_dict["default_env_prop"]["reward_prop"]["alpha_sig"] = opt.alpha_sig
     if opt.nb_agents_comm != -1:
         config_dict["default_env_prop"]["cluster_prop"][
             "nb_agents_comm"
@@ -74,8 +74,16 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["cluster_prop"][
             "agents_comm_mode"
         ] = opt.agents_comm_mode
+    if opt.temp_penalty_mode != "config":
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_mode"] = opt.temp_penalty_mode
+    if opt.alpha_ind_L2 != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_ind_L2"] = opt.alpha_ind_L2
+    if opt.alpha_common_L2 != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_L2"] = opt.alpha_common_L2
+    if opt.alpha_common_max != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_max"] = opt.alpha_common_max
 
-
+        
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
@@ -310,10 +318,10 @@ def normStateDict(sDict, config_dict, returnDict=False):
     )
 
     result["reg_signal"] = sDict["reg_signal"] / (
-        default_env_prop["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
     )
     result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (
-        default_env_prop["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
     )
 
     temp_messages = []
@@ -326,10 +334,10 @@ def normStateDict(sDict, config_dict, returnDict=False):
             message["hvac_seconds_since_off"] / sDict["hvac_lockout_duration"]
         )
         r_message["hvac_curr_consumption"] = (
-            message["hvac_curr_consumption"] / default_env_prop["norm_reg_sig"]
+            message["hvac_curr_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
         r_message["hvac_max_consumption"] = (
-            message["hvac_max_consumption"] / default_env_prop["norm_reg_sig"]
+            message["hvac_max_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
         temp_messages.append(r_message)
 
@@ -496,3 +504,13 @@ class Perlin:
 
         plt.plot(l)
         plt.show()
+
+def deadbandL2(target, deadband, value):
+    if target + deadband / 2 < value:
+        deadband_L2 = (value - (target + deadband / 2)) ** 2
+    elif target - deadband / 2 > value:
+        deadband_L2 = ((target - deadband / 2) - value) ** 2
+    else:
+        deadband_L2 = 0.0
+
+    return deadband_L2

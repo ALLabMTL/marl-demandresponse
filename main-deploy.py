@@ -72,11 +72,13 @@ obs_dict = env.reset()
 
 cumul_temp_offset = 0
 cumul_temp_error = 0
+max_temp_error = 0
 cumul_signal_offset = 0
 cumul_signal_error = 0
 
 cumul_squared_error_sig = 0
 cumul_squared_error_temp = 0
+cumul_squared_max_error_temp = 0
 
 actions = get_actions(actors, obs_dict)
 t1_start = time.process_time() 
@@ -87,12 +89,21 @@ for i in range(nb_time_steps):
     actions = get_actions(actors, obs_dict)
     if opt.render:
         renderer.render(obs_dict)
+    max_temp_error_houses = 0
     for k in obs_dict.keys():
         temp_error = obs_dict[k]["house_temp"] - obs_dict[k]["house_target_temp"]
         cumul_temp_offset += temp_error / env.nb_agents
         cumul_temp_error += np.abs(temp_error) / env.nb_agents
+        if np.abs(temp_error) > max_temp_error:
+            max_temp_error = np.abs(temp_error)
+        if np.abs(temp_error) > max_temp_error_houses:
+            max_temp_error_houses = np.abs(temp_error)
+
         if i >= opt.start_stats_from:
             cumul_squared_error_temp += temp_error**2
+            
+    if i>= opt.start_stats_from:
+        cumul_squared_max_error_temp += max_temp_error_houses**2
 
     signal_error = obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     cumul_signal_offset += signal_error
@@ -113,6 +124,7 @@ for i in range(nb_time_steps):
                 {
                     "Mean temperature offset": mean_temp_offset,
                     "Mean temperature error": mean_temp_error,
+                    "Max temperature error": max_temp_error,
                     "Mean signal offset": mean_signal_offset,
                     "Mean signal error": mean_signal_error,
                     "Time step": i,
@@ -121,6 +133,7 @@ for i in range(nb_time_steps):
 
         cumul_temp_offset = 0
         cumul_temp_error = 0
+        max_temp_error = 0
         cumul_signal_offset = 0
         cumul_signal_error = 0
         print("Time step: {}".format(i))
@@ -129,11 +142,14 @@ for i in range(nb_time_steps):
 
 rmse_sig_per_ag = np.sqrt(cumul_squared_error_sig/(nb_time_steps-opt.start_stats_from))/env.nb_agents
 rmse_temp = np.sqrt(cumul_squared_error_temp/((nb_time_steps-opt.start_stats_from)*env.nb_agents))
+rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/((nb_time_steps-opt.start_stats_from)*env.nb_agents))
 print("RMSE Signal per agent: {} W".format(int(rmse_sig_per_ag)))
 print("RMSE Temperature: {} C".format(rmse_temp))
+print("RMS Max Error Temperature: {} C".format(rms_max_error_temp))
 if log_wandb:
     wandb_run.log({
         "RMSE signal per agent": rmse_sig_per_ag,
-        "RMSE temperature": rmse_temp
+        "RMSE temperature": rmse_temp,
+        "RMS Max Error temperature": rms_max_error_temp,
         }
     )

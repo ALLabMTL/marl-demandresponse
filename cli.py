@@ -217,6 +217,30 @@ def cli_train():
         action="store_true",
         help="Removes the solar gain from the simulation.")
 
+    parser.add_argument(
+        "--temp_penalty_mode",
+        type=str,
+        default="config",
+        help="Mode of temperature reward.")
+
+    parser.add_argument(
+        "--alpha_ind_L2",
+        type=float,
+        default=-1,
+        help="Coefficient of independant L2 in mixture temperature loss")    
+
+    parser.add_argument(
+        "--alpha_common_L2",
+        type=float,
+        default=1,
+        help="Coefficient of common L2 in mixture temperature loss")
+
+    parser.add_argument(
+        "--alpha_common_max",
+        type=float,
+        default=1,
+        help="Coefficient of common_max in mixture temperature loss")        
+
     opt = parser.parse_args()
     
     return opt

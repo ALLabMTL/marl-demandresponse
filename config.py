@@ -248,9 +248,24 @@ config_dict = {
 			},
 		}
 	},
-	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-	"norm_reg_sig": 7500							# Average power use, for signal normalization 
+	"reward_prop": {
+		"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+		"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+		"norm_reg_sig": 7500,							# Average power use, for signal normalization 
+		"temp_penalty_mode": "individual_L2",				# Mode of temperature penalty
+		"temp_penalty_parameters": {
+			"individual_L2": {},
+			"common_L2" : {},
+			"common_max_error" : {},
+			"mixture": {
+				"alpha_ind_L2" : 1,
+				"alpha_common_L2" : 1,
+				"alpha_common_max" : 1,
+			},
+		},
+		"sig_penalty_mode": "common_L2",					# Mode of signal penalty
+	}
+
 },
 
 # NN properties
