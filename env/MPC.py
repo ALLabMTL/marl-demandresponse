@@ -6,6 +6,9 @@ n_hvac = 10
 rolling_horizon = 60
 
 HVAC_state = cp.Variable((n_hvac,rolling_horizon))
+agent_temparature = cp.Variable((n_hvac,rolling_horizon))
+agent_target_temparature = []
+signal = [1]* rolling_horizon
 constraints = [HVAC_state ==0]
 problem = cp.Problem(cp.Minimize(cp.sum_squares(HVAC_state)), constraints)
 problem.solve()
