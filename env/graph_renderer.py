@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, consumption, timestep):
+def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, signal, consumption, timestep):
     start_point_graph = max(0, timestep - len(temp_diff))
 
     if len(temp_diff) < 50:
@@ -39,6 +39,7 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
 
     if nb_of_ignored_timestep > 0:
         temp_diff = temp_diff[:-nb_of_ignored_timestep]
+        temp_err = temp_err[:-nb_of_ignored_timestep]
         air_temp = air_temp[:-nb_of_ignored_timestep]
         mass_temp = mass_temp[:-nb_of_ignored_timestep]
         target_temp = target_temp[:-nb_of_ignored_timestep]
@@ -46,6 +47,7 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
         signal = signal[:-nb_of_ignored_timestep]
         consumption = consumption[:-nb_of_ignored_timestep]
     temp_diff = np.mean(temp_diff.reshape(-1, array_step), axis=1)
+    temp_err = np.mean(temp_err.reshape(-1, array_step), axis=1)
     air_temp = np.mean(air_temp.reshape(-1, array_step), axis=1)
     mass_temp = np.mean(mass_temp.reshape(-1, array_step), axis=1)
     target_temp = np.mean(target_temp.reshape(-1, array_step), axis=1)
@@ -94,7 +96,8 @@ def make_graph(temp_diff, air_temp, mass_temp, target_temp, OD_temp, signal, con
     )
 
     axs[2].plot(x, temp_diff, color="orangered")
-    axs[2].legend(["Temperature difference"], loc="lower right", framealpha=0.3)
+    axs[2].plot(x, temp_err, color="darkblue")
+    axs[2].legend(["Mean temperature difference", "Mean temperature error"], loc="lower right", framealpha=0.3)
 
     axs[2].set_ylabel("Average temperature difference", color="white")
    

@@ -370,6 +370,13 @@ def cli_deploy(agents_dict):
         help="Mode for choosing the agents to communicate with. Can be 'neighbours' or 'random'",
     )
 
+    parser.add_argument(
+        "--start_stats_from",
+        type=int,
+        default=0,
+        help="Number of time steps from which the stats are calculated.")
+
+
     opt = parser.parse_args()
     
     return opt
