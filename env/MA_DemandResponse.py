@@ -784,6 +784,9 @@ class ClusterHouses(object):
         nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
 
         if self.cluster_prop["agents_comm_mode"] == "neighbours":
+            # This is to get the neighbours of each agent in a circular fashion, 
+            # if agent_id is 5, the half before will be [0, 1, 2, 3, 4] and half after will be [6, 7, 8, 9, 10]
+            # if agent_id is 1, the half before will be [7, 8, 9, 10, 0] and half after will be [2, 3, 4, 5, 6]
             for agent_id in self.agent_ids:
                 possible_ids = deepcopy(self.agent_ids)
                 # Give neighbours (in a circular manner when reaching extremes of the .
