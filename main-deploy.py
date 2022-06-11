@@ -142,7 +142,7 @@ for i in range(nb_time_steps):
 
 rmse_sig_per_ag = np.sqrt(cumul_squared_error_sig/(nb_time_steps-opt.start_stats_from))/env.nb_agents
 rmse_temp = np.sqrt(cumul_squared_error_temp/((nb_time_steps-opt.start_stats_from)*env.nb_agents))
-rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/((nb_time_steps-opt.start_stats_from)*env.nb_agents))
+rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/(nb_time_steps-opt.start_stats_from))
 print("RMSE Signal per agent: {} W".format(int(rmse_sig_per_ag)))
 print("RMSE Temperature: {} C".format(rmse_temp))
 print("RMS Max Error Temperature: {} C".format(rms_max_error_temp))

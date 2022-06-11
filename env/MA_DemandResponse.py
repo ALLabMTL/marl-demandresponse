@@ -1028,7 +1028,7 @@ class PowerGrid(object):
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["nb_octaves"]
             period = self.signal_params["period"]
-            self.perlin = Perlin(1, nb_octaves, octaves_step, period)
+            self.perlin = Perlin(1, nb_octaves, octaves_step, period, random.random())   # Random seed (will be the same given a seeded random function)
 
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]

@@ -260,7 +260,7 @@ config_dict = {
 			"mixture": {
 				"alpha_ind_L2" : 1,
 				"alpha_common_L2" : 1,
-				"alpha_common_max" : 1,
+				"alpha_common_max" : 0,
 			},
 		},
 		"sig_penalty_mode": "common_L2",					# Mode of signal penalty
