@@ -5,10 +5,10 @@ import numpy as np
 import cvxpy as cp
 
 
-hvac_power = np.array([1] * 60)
-initial_air_temperature = np.array([24] * 60)
-initial_mass_temperature = np.array([24] * 60)
-target_temperature = np.array([20] * 60)
+hvac_power = np.array([1] * 15)
+initial_air_temperature = np.array([24] * 15)
+initial_mass_temperature = np.array([24] * 15)
+target_temperature = np.array([20] * 15)
 remaining_lockout = [9, 9, 5, 5, 5, 5, 5, 5, 5, 5]
 temperature_extérieur = 20
 
@@ -22,65 +22,43 @@ signal = np.array([5] * rolling_horizon)
 
 time_step_sec = 4
 Hm, Ca, Ua, Cm = (
-    np.array([1] * 60),
-    np.array([1] * 60),
-    np.array([1] * 60),
-    np.array([1] * 60),
+    np.array([1] * 15),
+    np.array([1] * 15),
+    np.array([1] * 15),
+    np.array([1] * 15),
 )
 
 # Convert Celsius temperatures in Kelvin
-od_temp_K = od_temp + 273
-current_temp_K = self.current_temp + 273
-current_mass_temp_K = self.current_mass_temp + 273
+od_temp_K = 30 + 273
 
-# Heat from hvacs (negative if it is AC)
-total_Qhvac = 0
-for hvac_id in self.hvacs_ids:
-    hvac = self.hvacs[hvac_id]
-    total_Qhvac += hvac.get_Q()
 
 # Total heat addition to air
-other_Qa = self.house_solar_gain(date_time)  # windows, ...
-Qa = total_Qhvac + other_Qa
+other_Qa = np.array([1] * 15)  # Solar gain
+Qa = cp.Variable((rolling_horizon, nb_agent))
 # Heat from inside devices (oven, windows, etc)
-Qm = 0
+
 
 # Variables and time constants
-a = Cm * Ca / Hm
-b = Cm * (Ua + Hm) / Hm + Ca
-c = Ua
-d = Qm + Qa + Ua * od_temp_K
-g = Qm / Hm
+a = (Cm[i] * Ca[i] / Hm[i] for i in range(15))
+b = (Cm[i] * (Ua[i] + Hm[i]) / Hm[i] + Ca[i] for i in range(15))
+c = (Ua[i] for i in range(15))
+d = (Qa[i] + Ua[i] * od_temp_K[i] for i in range(15))
 
-r1 = (-b + np.sqrt(b**2 - 4 * a * c)) / (2 * a)
-r2 = (-b - np.sqrt(b**2 - 4 * a * c)) / (2 * a)
 
-dTA0dt = (
-    Hm * current_mass_temp_K / Ca
-    - (Ua + Hm) * current_temp_K / Ca
-    + Ua * od_temp_K / Ca
-    + Qa / Ca
-)
+r1 = ((-b[i] + np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15))
+r2 = ((-b[i] - np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15))
 
-A1 = (r2 * current_temp_K - dTA0dt - r2 * d / c) / (r2 - r1)
-A2 = current_temp_K - d / c - A1
-A3 = r1 * Ca / Hm + (Ua + Hm) / Hm
-A4 = r2 * Ca / Hm + (Ua + Hm) / Hm
+dTA0dt = cp.Variable((rolling_horizon, nb_agent))
+A1 = cp.Variable((rolling_horizon, nb_agent))
+A2 = cp.Variable((rolling_horizon, nb_agent))
+A3 = (r1[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15))
+A4 = (r2[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15))
 
 # Updating the temperature
-old_temp_K = current_temp_K
-new_current_temp_K = (
-    A1 * np.exp(r1 * time_step_sec) + A2 * np.exp(r2 * time_step_sec) + d / c
-)
-new_current_mass_temp_K = (
-    A1 * A3 * np.exp(r1 * time_step_sec)
-    + A2 * A4 * np.exp(r2 * time_step_sec)
-    + g
-    + d / c
-)
 
-self.current_temp = new_current_temp_K - 273
-self.current_mass_temp = new_current_mass_temp_K - 273
+new_current_temp_K = cp.Variable((rolling_horizon, nb_agent))
+new_current_mass_temp_K = cp.Variable((rolling_horizon, nb_agent))
+
 past = np.zeros((nb_agent, lockout_duration))
 
 for i, remaining_t in enumerate(remaining_lockout):
@@ -101,6 +79,11 @@ constraints = [
     consumption[i]
     == cp.sum(cp.multiply(HVAC_state[i + lockout_duration], hvac_power[:nb_agent]))
     for i in range(rolling_horizon)
+]
+constraints += [
+    Qa[t][i] == HVAC_state[t][i] * hvac_power[t][i] + other_Qa[t]
+    for t in range(rolling_horizon)
+    for i in range(nb_agent)
 ]
 constraints += [HVAC_state[:lockout_duration] == past]
 constraints += [air_temperature[0] == initial_air_temperature[:nb_agent]]
