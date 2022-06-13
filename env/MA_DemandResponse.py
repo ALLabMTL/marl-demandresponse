@@ -161,7 +161,6 @@ class MADemandResponseEnv(MultiAgentEnv):
         cluster_obs_dict, cluster_hvac_power, _ = self.cluster.step(
             self.datetime, action_dict, self.time_step
         )
-        print("Env step at {}: - {}".format(self.datetime.hour, self.datetime))
 
         # Compute reward with the old grid signal
         rewards_dict = self.compute_rewards(cluster_hvac_power)
@@ -965,7 +964,6 @@ class ClusterHouses(object):
         time_day = date_time.hour + date_time.minute / 60.0 
 
         temperature = amplitude * np.sin(2 * np.pi * (time_day + delay) / 24) + bias
-        print("Time: {}, temperature: {}".format(time_day, temperature))
 
         # Adding noise
         temperature += random.gauss(0, self.temp_std)
