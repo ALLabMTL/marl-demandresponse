@@ -176,37 +176,50 @@ config_dict = {
 				"day_temp": 26.5,				# Day temperature
 				"night_temp": 26.5,				# Night temperature
 				"temp_std": 0,					# Noise std dev on the temperature
+				"random_phase_offset": False,
 			},
 			"sinusoidal": {
 				"day_temp": 30,
 				"night_temp": 23,
 				"temp_std": 0,
+				"random_phase_offset": False,
 			},
 			"sinusoidal_hot": {
 				"day_temp": 30,
 				"night_temp": 28,
 				"temp_std": 0,
+				"random_phase_offset": False,
 			},
 			"sinusoidal_cold": {
 				"day_temp": 24,
 				"night_temp": 22,
 				"temp_std": 0,
+				"random_phase_offset": False,
 			},
 			"noisy_sinusoidal": {
 				"day_temp": 30,
 				"night_temp": 23,
 				"temp_std": 0.5,
+				"random_phase_offset": False,
 			},
 			"noisy_sinusoidal_hot": {
 				"day_temp": 30,
 				"night_temp": 28,
 				"temp_std": 0.5,			
+				"random_phase_offset": False,
 			},
 			"noisy_sinusoidal_cold": {
 				"day_temp": 24,
 				"night_temp": 22,
-				"temp_std": 0.5,			
+				"temp_std": 0.5,		
+				"random_phase_offset": False,	
 			},			
+			"shifting_sinusoidal": {
+				"day_temp": 30,
+				"night_temp": 23,
+				"temp_std": 0,
+				"random_phase_offset": True,
+			}
 		},
 		"nb_agents": 1,							# Number of houses
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with

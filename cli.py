@@ -265,6 +265,13 @@ def cli_deploy(agents_dict):
     )
 
     parser.add_argument(
+        "--render_after",
+        type=int,
+        default=-1,
+        help="Delay in time steps before rendering",
+    )
+
+    parser.add_argument(
         "--nb_agents",
         type=int,
         default=1,
