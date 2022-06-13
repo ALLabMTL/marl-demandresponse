@@ -75,6 +75,9 @@ cumul_temp_error = 0
 max_temp_error = 0
 cumul_signal_offset = 0
 cumul_signal_error = 0
+cumul_OD_temp = 0
+cumul_signal = 0
+cumul_cons = 0
 
 cumul_squared_error_sig = 0
 cumul_squared_error_temp = 0
@@ -87,7 +90,7 @@ t1_start = time.process_time()
 for i in range(nb_time_steps):
     obs_dict, _, _, info = env.step(actions)
     actions = get_actions(actors, obs_dict)
-    if opt.render:
+    if opt.render and i >= opt.render_after:
         renderer.render(obs_dict)
     max_temp_error_houses = 0
     for k in obs_dict.keys():
@@ -104,7 +107,10 @@ for i in range(nb_time_steps):
             
     if i>= opt.start_stats_from:
         cumul_squared_max_error_temp += max_temp_error_houses**2
-
+    cumul_OD_temp += obs_dict[0]["OD_temp"]
+    cumul_signal += obs_dict[0]["reg_signal"]
+    cumul_cons += obs_dict[0]["cluster_hvac_power"]
+    
     signal_error = obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     cumul_signal_offset += signal_error
     cumul_signal_error += np.abs(signal_error)
@@ -118,6 +124,9 @@ for i in range(nb_time_steps):
         mean_temp_error = cumul_temp_error / time_steps_log
         mean_signal_offset = cumul_signal_offset / time_steps_log
         mean_signal_error = cumul_signal_error / time_steps_log
+        mean_OD_temp = cumul_OD_temp / time_steps_log
+        mean_signal = cumul_signal / time_steps_log
+        mean_consumption = cumul_cons / time_steps_log
 
         if log_wandb:
             wandb_run.log(
@@ -127,6 +136,10 @@ for i in range(nb_time_steps):
                     "Max temperature error": max_temp_error,
                     "Mean signal offset": mean_signal_offset,
                     "Mean signal error": mean_signal_error,
+                    "Mean outside temperature": mean_OD_temp,
+                    "Mean signal" : mean_signal,
+                    "Mean consumption": mean_consumption,
+                    "Time (hour)": obs_dict[0]["datetime"].hour,
                     "Time step": i,
                 }
             )
@@ -136,6 +149,9 @@ for i in range(nb_time_steps):
         max_temp_error = 0
         cumul_signal_offset = 0
         cumul_signal_error = 0
+        cumul_OD_temp = 0
+        cumul_signal = 0
+        cumul_cons = 0
         print("Time step: {}".format(i))
         t1_stop = time.process_time()
         print("Elapsed time for {}% of steps: {} seconds.".format(int(np.round(float(i)/nb_time_steps*100)), int(t1_stop - t1_start))) 
