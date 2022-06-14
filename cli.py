@@ -220,14 +220,14 @@ def cli_train():
     parser.add_argument(
         "--layers_critic",
         type=str,
-        default=[100],
+        default="config",
         help="List containing the number of neurons on each layers of the critic NN model"
     )
 
     parser.add_argument(
         "--layers_actor",
         type=str,
-        default=[100],
+        default="config",
         help="List containing the number of neurons on each layers of the critic NN model"
     )
     
