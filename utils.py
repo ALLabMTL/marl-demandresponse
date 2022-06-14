@@ -74,6 +74,11 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["cluster_prop"][
             "agents_comm_mode"
         ] = opt.agents_comm_mode
+    if opt.layers_actor != [100]:
+        config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
+    if opt.layers_critic != [100]:
+        config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
+
 
 
 def adjust_config_deploy(opt, config_dict):

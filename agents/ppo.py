@@ -17,8 +17,8 @@ class PPO():
         torch.manual_seed(self.seed)
 
         self.batch_size = opt.batch_size
-        self.actor_net = Actor(num_state=num_state, num_action=num_action)
-        self.critic_net = Critic(num_state=num_state)
+        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers=config_dict["nn_prop"]["actor_layers"])
+        self.critic_net = Critic(num_state=num_state, layers=config_dict["nn_prop"]["critic_layers"])
         self.buffer = []
         self.buffer_capacity = buffer_capacity
         self.ppo_update_time = ppo_update_time

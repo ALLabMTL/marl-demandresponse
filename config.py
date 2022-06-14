@@ -232,7 +232,8 @@ config_dict = {
 # NN properties
 
 "nn_prop": {
-    "layers": [20,20],
+    "actor_layers": [100],
+	"critic_layers": [100],
     "gamma": 0.99,
     "tau": 0.01,
     "buffer_capacity": 10000,

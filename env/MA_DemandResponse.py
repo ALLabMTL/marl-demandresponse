@@ -980,7 +980,7 @@ class PowerGrid(object):
             else:
                 raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
         ## Error
-        if power_grid_prop["signal_mode"] == "perlin":
+        elif power_grid_prop["signal_mode"] == "perlin":
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["nb_octaves"]
