@@ -107,25 +107,29 @@ config_dict = {
 	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
 	"noise_parameters": {
 		"no_noise": {
-			"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
-			"factor_COP_low": 1,   # Lowest random factor for COP
-			"factor_COP_high": 1,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 1,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
+			"cooling_capacity_list": [15000]
+			#"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
+			#"factor_COP_low": 1,   # Lowest random factor for COP
+			#"factor_COP_high": 1,   # Highest random factor for COP
+			#"factor_cooling_capacity_low": 1,   # Lowest random factor for cooling_capacity
+			#"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
 		},
 		"small_noise": {
-			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
-			"factor_COP_low": 0.95,   # Lowest random factor for COP
-			"factor_COP_high": 1.05,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+			"cooling_capacity_list": [10000, 15000]
+
+			#"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
+			#"factor_COP_low": 0.95,   # Lowest random factor for COP
+			#"factor_COP_high": 1.05,   # Highest random factor for COP
+			#"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
+			#"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
-			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
-			"factor_COP_low": 0.85,   # Lowest random factor for COP
-			"factor_COP_high": 1.15,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+			"cooling_capacity_list": [10000, 15000, 20000]
+			#"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
+			#"factor_COP_low": 0.85,   # Lowest random factor for COP
+			#"factor_COP_high": 1.15,   # Highest random factor for COP
+			#"factor_cooling_capacity_low": 0.6666667,   # Lowest random factor for cooling_capacity
+			#"factor_cooling_capacity_high": 1.3333333333,   # Highest random factor for cooling_capacity
 		},
 	},
 },
@@ -144,15 +148,15 @@ config_dict = {
 			"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.95,   # Lowest random factor for COP
 			"factor_COP_high": 1.05,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.95,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.05,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
 			"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
 			"factor_COP_low": 0.85,   # Lowest random factor for COP
 			"factor_COP_high": 1.15,   # Highest random factor for COP
-			"factor_cooling_capacity_low": 0.85,   # Lowest random factor for cooling_capacity
-			"factor_cooling_capacity_high": 1.15,   # Highest random factor for cooling_capacity
+			"factor_cooling_capacity_low": 0.6666667,   # Lowest random factor for cooling_capacity
+			"factor_cooling_capacity_high": 1.3333333333,   # Highest random factor for cooling_capacity
 		},
 	},
 },
@@ -172,18 +176,50 @@ config_dict = {
 				"day_temp": 26.5,				# Day temperature
 				"night_temp": 26.5,				# Night temperature
 				"temp_std": 0,					# Noise std dev on the temperature
+				"random_phase_offset": False,
 			},
 			"sinusoidal": {
 				"day_temp": 30,
 				"night_temp": 23,
 				"temp_std": 0,
+				"random_phase_offset": False,
+			},
+			"sinusoidal_hot": {
+				"day_temp": 30,
+				"night_temp": 28,
+				"temp_std": 0,
+				"random_phase_offset": False,
+			},
+			"sinusoidal_cold": {
+				"day_temp": 24,
+				"night_temp": 22,
+				"temp_std": 0,
+				"random_phase_offset": False,
 			},
 			"noisy_sinusoidal": {
 				"day_temp": 30,
 				"night_temp": 23,
 				"temp_std": 0.5,
+				"random_phase_offset": False,
 			},
-
+			"noisy_sinusoidal_hot": {
+				"day_temp": 30,
+				"night_temp": 28,
+				"temp_std": 0.5,			
+				"random_phase_offset": False,
+			},
+			"noisy_sinusoidal_cold": {
+				"day_temp": 24,
+				"night_temp": 22,
+				"temp_std": 0.5,		
+				"random_phase_offset": False,	
+			},			
+			"shifting_sinusoidal": {
+				"day_temp": 30,
+				"night_temp": 23,
+				"temp_std": 0,
+				"random_phase_offset": True,
+			}
 		},
 		"nb_agents": 1,							# Number of houses
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
@@ -201,11 +237,12 @@ config_dict = {
 				"path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
 				"path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
 				"interp_update_period": 300, 			# Seconds
+				"interp_nb_agents": 100 					# Max number of agents over which the interpolation is run
 			},		
 		},
-		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: none, sinusoidal, regular_steps
+		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: flat, sinusoidal, regular_steps
 		"signal_parameters": {
-			"none": {
+			"flat": {
 
 			},
 			"sinusoidals": {
@@ -224,9 +261,24 @@ config_dict = {
 			},
 		}
 	},
-	"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-	"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-	"norm_reg_sig": 7500							# Average power use, for signal normalization 
+	"reward_prop": {
+		"alpha_temp": 1,									# Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+		"alpha_sig": 1,									# Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
+		"norm_reg_sig": 7500,							# Average power use, for signal normalization 
+		"temp_penalty_mode": "individual_L2",				# Mode of temperature penalty
+		"temp_penalty_parameters": {
+			"individual_L2": {},
+			"common_L2" : {},
+			"common_max_error" : {},
+			"mixture": {
+				"alpha_ind_L2" : 1,
+				"alpha_common_L2" : 1,
+				"alpha_common_max" : 0,
+			},
+		},
+		"sig_penalty_mode": "common_L2",					# Mode of signal penalty
+	}
+
 },
 
 # NN properties

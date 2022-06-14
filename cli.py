@@ -230,7 +230,30 @@ def cli_train():
         default=[100],
         help="List containing the number of neurons on each layers of the critic NN model"
     )
+    
+    parser.add_argument(
+        "--temp_penalty_mode",
+        type=str,
+        default="config",
+        help="Mode of temperature reward.")
 
+    parser.add_argument(
+        "--alpha_ind_L2",
+        type=float,
+        default=-1,
+        help="Coefficient of independant L2 in mixture temperature loss")    
+
+    parser.add_argument(
+        "--alpha_common_L2",
+        type=float,
+        default=1,
+        help="Coefficient of common L2 in mixture temperature loss")
+
+    parser.add_argument(
+        "--alpha_common_max",
+        type=float,
+        default=1,
+        help="Coefficient of common_max in mixture temperature loss")        
 
     opt = parser.parse_args()
     
@@ -253,6 +276,13 @@ def cli_deploy(agents_dict):
         choices=agents_dict.keys(),
         required=True,
         help="Agent for control",
+    )
+
+    parser.add_argument(
+        "--render_after",
+        type=int,
+        default=-1,
+        help="Delay in time steps before rendering",
     )
 
     parser.add_argument(
@@ -398,6 +428,12 @@ def cli_deploy(agents_dict):
         default=[100],
         help="List containing the number of neurons on each layers of the critic NN model"
     )
+    
+    parser.add_argument(
+        "--start_stats_from",
+        type=int,
+        default=0,
+        help="Number of time steps from which the stats are calculated.")
 
 
     opt = parser.parse_args()

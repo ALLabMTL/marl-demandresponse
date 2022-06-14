@@ -14,9 +14,11 @@ from ray.rllib.utils.annotations import override, PublicAPI
 from ray.rllib.utils.typing import MultiAgentDict, AgentID
 from typing import Tuple, Dict, List, Any
 import sys
-from utils import applyPropertyNoise, Perlin
+from utils import applyPropertyNoise, Perlin, deadbandL2
 import time
 from datetime import datetime
+#import noise
+#import wandb
 
 
 sys.path.append("..")
@@ -24,39 +26,6 @@ sys.path.append("./monteCarlo")
 from utils import applyPropertyNoise, clipInterpolationPoint, sortDictKeys
 from interpolation import PowerInterpolator
 
-
-def reg_signal_penalty(cluster_hvac_power, power_grid_reg_signal, nb_agents):
-    """
-    Returns: a float, representing the positive penalty due to the distance between the regulation signal and the total power used by the TCLs.
-
-    Parameters:
-    cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
-    power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
-    """
-
-    penalty = ((cluster_hvac_power - power_grid_reg_signal) / nb_agents) ** 2
-
-    return penalty
-
-
-def compute_temp_penalty(target_temp, deadband, house_temp):
-    """
-    Returns: a float, representing the positive penalty due to distance between the target (indoors) temperature and the indoors temperature in a house.
-
-    Parameters:
-    target_temp: a float. Target indoors air temperature, in Celsius.
-    deadband: a float. Margin of tolerance for indoors air temperature difference, in Celsius.
-    house_temp: a float. Current indoors air temperature, in Celsius
-    """
-
-    if target_temp + deadband / 2 < house_temp:
-        temperature_penalty = (house_temp - (target_temp + deadband / 2)) ** 2
-    elif target_temp - deadband / 2 > house_temp:
-        temperature_penalty = ((target_temp - deadband / 2) - house_temp) ** 2
-    else:
-        temperature_penalty = 0.0
-    temperature_penalty = np.clip(temperature_penalty, 0, 20)
-    return temperature_penalty
 
 
 class MADemandResponseEnv(MultiAgentEnv):
@@ -189,14 +158,12 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         self.datetime += self.time_step
         # Cluster step
-        cluster_obs_dict, temp_penalty_dict, cluster_hvac_power, _ = self.cluster.step(
+        cluster_obs_dict, cluster_hvac_power, _ = self.cluster.step(
             self.datetime, action_dict, self.time_step
         )
 
         # Compute reward with the old grid signal
-        rewards_dict = self.compute_rewards(
-            temp_penalty_dict, cluster_hvac_power, self.power_grid.current_signal
-        )
+        rewards_dict = self.compute_rewards(cluster_hvac_power)
 
         # Power grid step
         power_grid_reg_signal = self.power_grid.step(self.datetime, self.time_step)
@@ -235,8 +202,89 @@ class MADemandResponseEnv(MultiAgentEnv):
 
         return obs_dict
 
+    def reg_signal_penalty(self, cluster_hvac_power):
+        """
+        Returns: a float, representing the positive penalty due to the distance between the regulation signal and the total power used by the TCLs.
+
+        Parameters:
+        cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
+        power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
+        """
+        sig_penalty_mode = self.default_env_prop["reward_prop"]["sig_penalty_mode"]
+
+        if sig_penalty_mode == "common_L2":
+            penalty = ((cluster_hvac_power - self.power_grid.current_signal) / self.nb_agents) ** 2
+        else:
+            raise ValueError("Unknown signal penalty mode: {}".format(sig_penalty_mode))
+
+        return penalty
+
+
+
+    def compute_temp_penalty(self, one_house_id):
+        """
+        Returns: a float, representing the positive penalty due to distance between the target (indoors) temperature and the indoors temperature in a house.
+
+        Parameters:
+        target_temp: a float. Target indoors air temperature, in Celsius.
+        deadband: a float. Margin of tolerance for indoors air temperature difference, in Celsius.
+        house_temp: a float. Current indoors air temperature, in Celsius
+        """
+        temp_penalty_mode = self.default_env_prop["reward_prop"]["temp_penalty_mode"]
+
+        if temp_penalty_mode == "individual_L2":
+
+            house = self.cluster.houses[one_house_id]
+            temperature_penalty = deadbandL2(house.target_temp, house.deadband, house.current_temp)
+
+            #temperature_penalty = np.clip(temperature_penalty, 0, 20)
+
+        elif temp_penalty_mode == "common_L2":
+            ## Mean of all houses L2
+            temperature_penalty = 0
+            for house_id in self.agent_ids:
+                house = self.cluster.houses[house_id]
+                house_temperature_penalty = deadbandL2(house.target_temp, house.deadband, house.current_temp)
+                temperature_penalty += house_temperature_penalty/self.nb_agents
+
+        elif temp_penalty_mode == "common_max":
+            temperature_penalty = 0
+            for house_id in self.agent_ids:
+                house = self.cluster.houses[house_id]
+                house_temperature_penalty = deadbandL2(house.target_temp, house.deadband, house.current_temp)
+                if house_temperature_penalty > temperature_penalty:
+                    temperature_penalty = house_temperature_penalty
+
+
+        elif temp_penalty_mode == "mixture":
+            temp_penalty_params = self.default_env_prop["reward_prop"]["temp_penalty_parameters"][temp_penalty_mode]
+
+            ## Common and max penalties
+            common_L2 = 0
+            common_max = 0
+            for house_id in self.agent_ids:
+                house = self.cluster.houses[house_id]
+                house_temperature_penalty = deadbandL2(house.target_temp, house.deadband, house.current_temp)
+                if house_id == one_house_id:
+                    ind_L2 = house_temperature_penalty
+                common_L2 += house_temperature_penalty/self.nb_agents
+                if house_temperature_penalty > common_max:
+                    common_max = house_temperature_penalty
+
+            ## Putting together
+            alpha_ind_L2 = temp_penalty_params["alpha_ind_L2"]
+            alpha_common_L2 = temp_penalty_params["alpha_common_L2"]
+            alpha_common_max = temp_penalty_params["alpha_common_max"]
+            temperature_penalty = (alpha_ind_L2 * ind_L2 + alpha_common_L2 * common_L2 + alpha_common_max * common_max) / (alpha_ind_L2 + alpha_common_L2 + alpha_common_max)
+
+        else:
+            raise ValueError("Unknown temperature penalty mode: {}".format(temp_penalty_mode))
+
+        return temperature_penalty
+
+
     def compute_rewards(
-        self, temp_penalty_dict, cluster_hvac_power, power_grid_reg_signal
+        self, cluster_hvac_power
     ):
         """
         Compute the reward of each TCL agent
@@ -251,28 +299,23 @@ class MADemandResponseEnv(MultiAgentEnv):
         """
 
         rewards_dict: dict[str, float] = {}
-        signal_penalty = reg_signal_penalty(
-            cluster_hvac_power, power_grid_reg_signal, self.nb_agents
-        )
+        signal_penalty = self.reg_signal_penalty(cluster_hvac_power)
 
-        norm_temp_penalty = compute_temp_penalty(
-            self.default_house_prop["target_temp"],
-            2,
-            self.default_house_prop["target_temp"] + 3,
-        )
+        norm_temp_penalty = deadbandL2(self.default_house_prop["target_temp"], 0, self.default_house_prop["target_temp"] + 1)
 
-        norm_sig_penalty = reg_signal_penalty(
-            self.default_env_prop["norm_reg_sig"],
-            0.75 * self.default_env_prop["norm_reg_sig"],
-            1,
-        )
+        norm_sig_penalty = deadbandL2(self.default_env_prop["reward_prop"]["norm_reg_sig"], 0, 0.75 * self.default_env_prop["reward_prop"]["norm_reg_sig"])
+
+        temp_penalty_dict = {}
+        # Temperature penalties
+        for house_id in self.agent_ids:
+            house = self.cluster.houses[house_id]
+            temp_penalty_dict[house_id] = self.compute_temp_penalty(house_id)
+
 
         for agent_id in self.agent_ids:
-            rewards_dict[agent_id] = -1 * (
-                self.env_properties["alpha_temp"]
-                * temp_penalty_dict[agent_id]
+            rewards_dict[agent_id] = -1 * (self.env_properties["reward_prop"]["alpha_temp"] * temp_penalty_dict[agent_id]
                 / norm_temp_penalty
-                + self.env_properties["alpha_sig"] * signal_penalty / norm_sig_penalty
+                + self.env_properties["reward_prop"]["alpha_sig"] * signal_penalty / norm_sig_penalty
             )
         return rewards_dict
 
@@ -336,6 +379,7 @@ class HVAC(object):
         self.lockout = False
         self.seconds_since_off = self.lockout_duration
         self.time_step = time_step
+        self.max_consumption = self.cooling_capacity / self.COP
 
         if self.latent_cooling_fraction > 1 or self.latent_cooling_fraction < 0:
             raise ValueError(
@@ -418,7 +462,7 @@ class HVAC(object):
         power_cons: float, electric power consumption of the HVAC, in Watts
         """
         if self.turned_on:
-            power_cons = self.cooling_capacity / self.COP
+            power_cons = self.max_consumption
         else:
             power_cons = 0
 
@@ -527,7 +571,8 @@ class SingleHouse(object):
         message = {
             "current_temp_diff_to_target": self.current_temp - self.target_temp,
             "hvac_seconds_since_off": self.hvac.seconds_since_off,
-            "hvac_consumption": self.hvac.power_consumption()
+            "hvac_curr_consumption": self.hvac.power_consumption(),
+            "hvac_max_consumption": self.hvac.max_consumption,
         }
 
         return message
@@ -723,6 +768,11 @@ class ClusterHouses(object):
         self.day_temp = self.temp_params["day_temp"]
         self.night_temp = self.temp_params["night_temp"]
         self.temp_std = self.temp_params["temp_std"]
+        self.random_phase_offset = self.temp_params["random_phase_offset"]
+        if self.random_phase_offset:
+            self.phase = random.random()*24
+        else:
+            self.phase = 0
         self.current_OD_temp = self.compute_OD_temp(date_time)
 
         # Compute the Initial cluster_hvac_power
@@ -739,6 +789,9 @@ class ClusterHouses(object):
         nb_comm = np.minimum(self.cluster_prop["nb_agents_comm"], self.cluster_prop["nb_agents"] - 1)
 
         if self.cluster_prop["agents_comm_mode"] == "neighbours":
+            # This is to get the neighbours of each agent in a circular fashion, 
+            # if agent_id is 5, the half before will be [0, 1, 2, 3, 4] and half after will be [6, 7, 8, 9, 10]
+            # if agent_id is 1, the half before will be [7, 8, 9, 10, 0] and half after will be [2, 3, 4, 5, 6]
             for agent_id in self.agent_ids:
                 possible_ids = deepcopy(self.agent_ids)
                 # Give neighbours (in a circular manner when reaching extremes of the .
@@ -876,7 +929,6 @@ class ClusterHouses(object):
         cluster_obs_dict = self.make_cluster_obs_dict(date_time)
 
         ## Temperature penalties and total cluster power consumption
-        temp_penalty_dict = {}
         self.cluster_hvac_power = 0
 
         for house_id in self.houses.keys():
@@ -884,18 +936,13 @@ class ClusterHouses(object):
             house = self.houses[house_id]
             hvac = house.hvac
 
-            # Temperature penalties
-            temp_penalty_dict[house_id] = compute_temp_penalty(
-                house.target_temp, house.deadband, house.current_temp
-            )
-
             # Cluster hvac power consumption
             self.cluster_hvac_power += hvac.power_consumption()
 
         # Info
         info_dict = {}  # Not necessary for the moment
 
-        return cluster_obs_dict, temp_penalty_dict, self.cluster_hvac_power, info_dict
+        return cluster_obs_dict, self.cluster_hvac_power, info_dict
 
     def compute_OD_temp(self, date_time) -> float:
         """
@@ -913,8 +960,8 @@ class ClusterHouses(object):
         # Sinusoidal model
         amplitude = (self.day_temp - self.night_temp) / 2
         bias = (self.day_temp + self.night_temp) / 2
-        delay = -6  # Temperature is coldest at 6am
-        time_day = date_time.hour + date_time.minute / 60.0
+        delay = -6 + self.phase  # Temperature is coldest at 6am
+        time_day = date_time.hour + date_time.minute / 60.0 
 
         temperature = amplitude * np.sin(2 * np.pi * (time_day + delay) / 24) + bias
 
@@ -953,7 +1000,6 @@ class PowerGrid(object):
 
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
-
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
 
         ## Constant base power
@@ -974,21 +1020,23 @@ class PowerGrid(object):
 
             self.interp_update_period = power_grid_prop["base_power_parameters"]["interpolation"]["interp_update_period"]
             self.time_since_last_interp = self.interp_update_period + 1 
+            self.interp_nb_agents = power_grid_prop["base_power_parameters"]["interpolation"]["interp_nb_agents"]
 
             if cluster_houses:
                 self.cluster_houses = cluster_houses
             else:
                 raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
         ## Error
-        elif power_grid_prop["signal_mode"] == "perlin":
+
+        else:
+            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+
+        if power_grid_prop["signal_mode"] == "perlin":
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["nb_octaves"]
             period = self.signal_params["period"]
-            self.perlin = Perlin(1, nb_octaves, octaves_step, period)
-        
-        else:
-            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+            self.perlin = Perlin(1, nb_octaves, octaves_step, period, random.random())   # Random seed (will be the same given a seeded random function)
 
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
@@ -1002,8 +1050,17 @@ class PowerGrid(object):
             "date": date_time.timetuple().tm_yday,
             "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
         }
+
+        all_ids = list(self.cluster_houses.houses.keys())
+        if len(all_ids) <= self.interp_nb_agents:
+            interp_house_ids = all_ids
+            multi_factor = 1
+        else:
+            interp_house_ids = random.choices(all_ids, k=self.interp_nb_agents)
+            multi_factor = float(len(all_ids))/self.interp_nb_agents
+
         # Adding the interpolated power for each house
-        for house_id in self.cluster_houses.houses.keys():
+        for house_id in interp_house_ids:
             house = self.cluster_houses.houses[house_id]
             point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
             point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
@@ -1013,9 +1070,10 @@ class PowerGrid(object):
             point["mass_temp"] = house.current_mass_temp - house.target_temp                
             point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
             point["HVAC_power"] = house.hvac.cooling_capacity
-            point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
+            point = clipInterpolationPoint(point, self.interp_parameters_dict)
             point = sortDictKeys(point, self.interp_dict_keys)
             base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
+        base_power *= multi_factor
         return base_power        
 
     def step(self, date_time, time_step) -> float:

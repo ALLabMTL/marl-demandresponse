@@ -63,9 +63,9 @@ def adjust_config_train(opt, config_dict):
     if opt.no_solar_gain:
         config_dict["default_house_prop"]["shading_coeff"] = 0
     if opt.alpha_temp != -1:
-        config_dict["default_env_prop"]["alpha_temp"] = opt.alpha_temp
+        config_dict["default_env_prop"]["reward_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
-        config_dict["default_env_prop"]["alpha_sig"] = opt.alpha_sig
+        config_dict["default_env_prop"]["reward_prop"]["alpha_sig"] = opt.alpha_sig
     if opt.nb_agents_comm != -1:
         config_dict["default_env_prop"]["cluster_prop"][
             "nb_agents_comm"
@@ -74,6 +74,7 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["cluster_prop"][
             "agents_comm_mode"
         ] = opt.agents_comm_mode
+<<<<<<< HEAD
     if opt.layers_actor != [100]:
         config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
     if opt.layers_critic != [100]:
@@ -81,6 +82,18 @@ def adjust_config_train(opt, config_dict):
 
 
 
+=======
+    if opt.temp_penalty_mode != "config":
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_mode"] = opt.temp_penalty_mode
+    if opt.alpha_ind_L2 != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_ind_L2"] = opt.alpha_ind_L2
+    if opt.alpha_common_L2 != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_L2"] = opt.alpha_common_L2
+    if opt.alpha_common_max != -1:
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_max"] = opt.alpha_common_max
+
+        
+>>>>>>> f67e04f93dd51aba15eef75d566b0b8cac1b312c
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
@@ -213,6 +226,9 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     noise_hvac_mode = noise_hvac_prop["noise_mode"]
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
 
+    hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"])[0]
+
+"""
     # Gaussian noise: latent_cooling_fraction
     hvac_prop["latent_cooling_fraction"] += random.gauss(
         0, noise_hvac_params["std_latent_cooling_fraction"]
@@ -231,7 +247,7 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
         1,
     )  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
-
+"""
 
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
@@ -312,10 +328,10 @@ def normStateDict(sDict, config_dict, returnDict=False):
     )
 
     result["reg_signal"] = sDict["reg_signal"] / (
-        default_env_prop["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
     )
     result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (
-        default_env_prop["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
     )
 
     temp_messages = []
@@ -327,8 +343,11 @@ def normStateDict(sDict, config_dict, returnDict=False):
         r_message["hvac_seconds_since_off"] = (
             message["hvac_seconds_since_off"] / sDict["hvac_lockout_duration"]
         )
-        r_message["hvac_consumption"] = (
-            message["hvac_consumption"] / default_env_prop["norm_reg_sig"]
+        r_message["hvac_curr_consumption"] = (
+            message["hvac_curr_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
+        )
+        r_message["hvac_max_consumption"] = (
+            message["hvac_max_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
         temp_messages.append(r_message)
 
@@ -495,3 +514,13 @@ class Perlin:
 
         plt.plot(l)
         plt.show()
+
+def deadbandL2(target, deadband, value):
+    if target + deadband / 2 < value:
+        deadband_L2 = (value - (target + deadband / 2)) ** 2
+    elif target - deadband / 2 > value:
+        deadband_L2 = ((target - deadband / 2) - value) ** 2
+    else:
+        deadband_L2 = 0.0
+
+    return deadband_L2

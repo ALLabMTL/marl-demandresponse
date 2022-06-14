@@ -6,6 +6,7 @@ import copy
 import datetime
 import itertools as it
 import time
+from copy import deepcopy
 
 import pandas as pd
 from scipy.interpolate import LinearNDInterpolator, interpn
@@ -116,14 +117,27 @@ class PowerInterpolator(object):
 		point_coordinates = list(point_dict.values())[4:]		# Remove the house thermal parameters
 		points = self.points[4:]								# Remove the house thermal parameters
 
+		# Thermal parameters
 		closest_id = []
 		for i in range(4):
-			value = list(point_dict.values())[i]
+			value = point_coordinates[i]
 			distances = np.abs(np.array(self.points[i]) - value)
 			index = np.argmin(distances)
 			closest_id.append(index)
 
-		result = interpn(points, self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]], point_coordinates)
+		values_therm = self.values[closest_id[0]][closest_id[1]][closest_id[2]][closest_id[3]]
+
+		# HVAC power
+		hvac_power = point_dict["HVAC_power"]
+		hvac_power_points = self.parameters_dict["HVAC_power"]
+		index_hvac = np.argmin(np.abs(np.array(hvac_power_points) - hvac_power))
+
+		values_cut = values_therm[:,:,:,index_hvac,:,:]				# air_temp, mass_temp, OD_temp, HVAC_power, hour, date
+		points_cut = deepcopy(points)
+		del points_cut[3]
+		del point_coordinates[3]
+
+		result = interpn(points_cut, values_cut, point_coordinates)
 		#print(result)
 		return result
 
@@ -135,44 +149,11 @@ class PowerInterpolator(object):
 		return array[indices_two_closest]
 
 if __name__ == "__main__":
-	parameters_dict = {
-		"Ua_ratio": [0.9, 1, 1.1],
-		"Cm_ratio": [0.9, 1, 1.1],
-		"Ca_ratio": [0.9, 1, 1.1],
-		"Hm_ratio": [0.9, 1, 1.1],
-		"air_temp": [-4, -2, -1, 0, 1, 2, 4],  # Setter au debut
-		"mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
-		"OD_temp": [3, 5, 7, 9, 11],  # fixer en permanence
-		"HVAC_power": [10000, 15000, 20000],
-		"hour": [
-			0.0,
-			3.0,
-			6.0,
-			7.0,
-			7.50,
-			11.0,
-			13.0,
-			16.0,
-			17.0,
-			17.5,
-			21.0,
-			24 - 1.0 / 3600,
-		],
-		"date": [
-			(2021, 1, 1),
-			(2021, 3, 21),
-			(2021, 6, 21),
-			(2021, 9, 21),
-			(2021, 12, 21),
-			(2021, 12, 31),
-		],
-	}
-	d0 = datetime.date(2021, 1, 1)
-	parameters_dict["date"] = [(datetime.date(x[0], x[1], x[2]) - d0).days for x in parameters_dict["date"]]
-	parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
+
+	parameters_dict = {"Ua_ratio": [0.9, 1, 1.1], "Cm_ratio": [0.9, 1, 1.1], "Ca_ratio": [0.9, 1, 1.1], "Hm_ratio": [0.9, 1, 1.1], "air_temp": [-6, -4, -2, -1, 0, 1, 2, 4, 6], "mass_temp": [-6, -4, -2, 0, 2, 4, 6], "OD_temp": [1, 3, 5, 7, 9, 11], "HVAC_power": [10000, 15000, 20000], "hour": [0.0, 10800.0, 21600.0, 25200.0, 27000.0, 39600.0, 46800.0, 57600.0, 61200.0, 63000.0, 75600.0, 86399.0], "date": [0, 79, 171, 263, 354, 364]}
 
 	dict_keys = ["Ua_ratio", "Cm_ratio", "Ca_ratio", "Hm_ratio", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
-	power_inter = PowerInterpolator('./mergedGridSearchResultFinal_from_0_to_3061800.npy', parameters_dict, dict_keys)
+	power_inter = PowerInterpolator('./mergedGridSearchResultFinal.npy', parameters_dict, dict_keys)
 
 	try_0 = {
 	"Ua_ratio": 1,

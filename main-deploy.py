@@ -8,6 +8,7 @@ from copy import deepcopy
 import warnings
 import os
 import random
+import time
 import numpy as np
 
 import argparse
@@ -68,38 +69,53 @@ for house_id in houses.keys():
 
 obs_dict = env.reset()
 
-total_cluster_hvac_power = 0
-on_off_ratio = 0
 
 cumul_temp_offset = 0
 cumul_temp_error = 0
+max_temp_error = 0
 cumul_signal_offset = 0
 cumul_signal_error = 0
+cumul_OD_temp = 0
+cumul_signal = 0
+cumul_cons = 0
+
+cumul_squared_error_sig = 0
+cumul_squared_error_temp = 0
+cumul_squared_max_error_temp = 0
+
 actions = get_actions(actors, obs_dict)
+t1_start = time.process_time() 
+
+
 for i in range(nb_time_steps):
     obs_dict, _, _, info = env.step(actions)
     actions = get_actions(actors, obs_dict)
-    if opt.render:
+    if opt.render and i >= opt.render_after:
         renderer.render(obs_dict)
-    total_cluster_hvac_power += info["cluster_hvac_power"]
-    for k in actions.keys():
-        if actions[k]:
-            on_off_ratio += 1.0 / len(actions.keys())
-
+    max_temp_error_houses = 0
     for k in obs_dict.keys():
-        cumul_temp_offset += (
-            obs_dict[k]["house_temp"] - obs_dict[k]["house_target_temp"]
-        ) / env.nb_agents
-        cumul_temp_error += (
-            np.abs(obs_dict[k]["house_temp"] - obs_dict[k]["house_target_temp"])
-            / env.nb_agents
-        )
-    cumul_signal_offset += (
-        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
-    )
-    cumul_signal_error += np.abs(
-        obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
-    )
+        temp_error = obs_dict[k]["house_temp"] - obs_dict[k]["house_target_temp"]
+        cumul_temp_offset += temp_error / env.nb_agents
+        cumul_temp_error += np.abs(temp_error) / env.nb_agents
+        if np.abs(temp_error) > max_temp_error:
+            max_temp_error = np.abs(temp_error)
+        if np.abs(temp_error) > max_temp_error_houses:
+            max_temp_error_houses = np.abs(temp_error)
+
+        if i >= opt.start_stats_from:
+            cumul_squared_error_temp += temp_error**2
+            
+    if i>= opt.start_stats_from:
+        cumul_squared_max_error_temp += max_temp_error_houses**2
+    cumul_OD_temp += obs_dict[0]["OD_temp"]
+    cumul_signal += obs_dict[0]["reg_signal"]
+    cumul_cons += obs_dict[0]["cluster_hvac_power"]
+    
+    signal_error = obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
+    cumul_signal_offset += signal_error
+    cumul_signal_error += np.abs(signal_error)
+    if i >= opt.start_stats_from:
+        cumul_squared_error_sig += signal_error**2
 
     if i % time_steps_log == time_steps_log - 1:  # Log train statistics
         # print("Logging stats at time {}".format(t))
@@ -108,28 +124,48 @@ for i in range(nb_time_steps):
         mean_temp_error = cumul_temp_error / time_steps_log
         mean_signal_offset = cumul_signal_offset / time_steps_log
         mean_signal_error = cumul_signal_error / time_steps_log
+        mean_OD_temp = cumul_OD_temp / time_steps_log
+        mean_signal = cumul_signal / time_steps_log
+        mean_consumption = cumul_cons / time_steps_log
 
         if log_wandb:
             wandb_run.log(
                 {
                     "Mean temperature offset": mean_temp_offset,
                     "Mean temperature error": mean_temp_error,
+                    "Max temperature error": max_temp_error,
                     "Mean signal offset": mean_signal_offset,
                     "Mean signal error": mean_signal_error,
+                    "Mean outside temperature": mean_OD_temp,
+                    "Mean signal" : mean_signal,
+                    "Mean consumption": mean_consumption,
+                    "Time (hour)": obs_dict[0]["datetime"].hour,
                     "Time step": i,
                 }
             )
 
         cumul_temp_offset = 0
         cumul_temp_error = 0
+        max_temp_error = 0
         cumul_signal_offset = 0
         cumul_signal_error = 0
-average_cluster_hvac_power = total_cluster_hvac_power / nb_time_steps
-average_hvac_power = average_cluster_hvac_power / nb_agents
-on_off_timeratio = on_off_ratio / nb_time_steps
-print(
-    "Average cluster hvac power: {:f} W, per hvac: {:f} W".format(
-        average_cluster_hvac_power, average_hvac_power
+        cumul_OD_temp = 0
+        cumul_signal = 0
+        cumul_cons = 0
+        print("Time step: {}".format(i))
+        t1_stop = time.process_time()
+        print("Elapsed time for {}% of steps: {} seconds.".format(int(np.round(float(i)/nb_time_steps*100)), int(t1_stop - t1_start))) 
+
+rmse_sig_per_ag = np.sqrt(cumul_squared_error_sig/(nb_time_steps-opt.start_stats_from))/env.nb_agents
+rmse_temp = np.sqrt(cumul_squared_error_temp/((nb_time_steps-opt.start_stats_from)*env.nb_agents))
+rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/(nb_time_steps-opt.start_stats_from))
+print("RMSE Signal per agent: {} W".format(int(rmse_sig_per_ag)))
+print("RMSE Temperature: {} C".format(rmse_temp))
+print("RMS Max Error Temperature: {} C".format(rms_max_error_temp))
+if log_wandb:
+    wandb_run.log({
+        "RMSE signal per agent": rmse_sig_per_ag,
+        "RMSE temperature": rmse_temp,
+        "RMS Max Error temperature": rms_max_error_temp,
+        }
     )
-)
-print("On_off time ratio: {}".format(on_off_timeratio))

@@ -24,6 +24,7 @@ class Renderer(object):
         self.screen_height = HEIGHT
         self.nb_house = nb_agents
         self.temp_diff = np.array([])
+        self.temp_err = np.array([])
         self.air_temp = np.array([])
         self.mass_temp = np.array([])
         self.target_temp = np.array([])
@@ -178,6 +179,7 @@ class Renderer(object):
     def draw_graph(self):
         fig = graph_renderer.make_graph(
             self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
+            self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :],
             self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
             self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
             self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
@@ -253,7 +255,9 @@ class Renderer(object):
 
         df = pd.DataFrame(obs).transpose()
         df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
+        df["temperature_error"] = np.abs(df["house_temp"] - df["house_target_temp"])
         self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean() )
+        self.temp_err = np.append(self.temp_err, df["temperature_error"].mean() )
         self.air_temp = np.append(self.air_temp, df["house_temp"].mean() )
         self.mass_temp = np.append(self.mass_temp, df["house_mass_temp"].mean() )
         self.target_temp = np.append(self.target_temp, df["house_target_temp"].mean() )
