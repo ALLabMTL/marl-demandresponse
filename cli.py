@@ -479,6 +479,10 @@ def cli_deploy(agents_dict):
         choices = ['True','False'],
         help="Include solar gain in the state")
 
+    parser.add_argument(
+        "--start_datetime_mode",
+        default='config',
+        help="Decide if start date time is 'fixed' or uniformly 'random'.")
 
 
     opt = parser.parse_args()

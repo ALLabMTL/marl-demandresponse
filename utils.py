@@ -126,6 +126,9 @@ def adjust_config_deploy(opt, config_dict):
         config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
     if opt.layers_critic != "config":
         config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
+        
+    if opt.start_datetime_mode != "config":
+        config_dict["default_env_prop"]["start_datetime_mode"] = opt.start_datetime_mode
 
     config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
     config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
