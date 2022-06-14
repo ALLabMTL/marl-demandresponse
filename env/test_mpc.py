@@ -39,25 +39,22 @@ Qa = cp.Variable((rolling_horizon, nb_agent))
 
 
 # Variables and time constants
-a = (Cm[i] * Ca[i] / Hm[i] for i in range(15))
-b = (Cm[i] * (Ua[i] + Hm[i]) / Hm[i] + Ca[i] for i in range(15))
-c = (Ua[i] for i in range(15))
-d = (Qa[i] + Ua[i] * od_temp_K[i] for i in range(15))
+a = [Cm[i] * Ca[i] / Hm[i] for i in range(15)]
+b = [Cm[i] * (Ua[i] + Hm[i]) / Hm[i] + Ca[i] for i in range(15)]
+
+c = [Ua[i] for i in range(15)]
+d = [Qa[i] + Ua[i] * od_temp_K for i in range(15)]
 
 
-r1 = ((-b[i] + np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15))
-r2 = ((-b[i] - np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15))
+r1 = [(-b[i] + np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15)]
+r2 = [(-b[i] - np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15)]
 
 dTA0dt = cp.Variable((rolling_horizon, nb_agent))
 A1 = cp.Variable((rolling_horizon, nb_agent))
 A2 = cp.Variable((rolling_horizon, nb_agent))
-A3 = (r1[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15))
-A4 = (r2[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15))
+A3 = [r1[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15)]
+A4 = [r2[i] * Ca[i] / Hm[i] + (Ua[i] + Hm[i]) / Hm[i] for i in range(15)]
 
-# Updating the temperature
-
-new_current_temp_K = cp.Variable((rolling_horizon, nb_agent))
-new_current_mass_temp_K = cp.Variable((rolling_horizon, nb_agent))
 
 past = np.zeros((nb_agent, lockout_duration))
 
@@ -81,10 +78,53 @@ constraints = [
     for i in range(rolling_horizon)
 ]
 constraints += [
-    Qa[t][i] == HVAC_state[t][i] * hvac_power[t][i] + other_Qa[t]
+    Qa[t][i] == HVAC_state[t][i] * hvac_power[i] + other_Qa[t]
     for t in range(rolling_horizon)
     for i in range(nb_agent)
 ]
+constraints += [
+    dTA0dt[t][i]
+    == Hm[i] * mass_temperature[t][i] / Ca[i]
+    - (Ua[i] + Hm[i]) * air_temperature[t][i] / Ca[i]
+    + Ua[i] * od_temp_K / Ca[i]
+    + Qa[i] / Ca[i]
+    for t in range(rolling_horizon)
+    for i in range(nb_agent)
+]
+
+constraints += [
+    A1[t][i]
+    == (r2[i] * air_temperature[t][i] - dTA0dt[t][i] - r2[i] * d[i] / c[i])
+    / (r2[i] - r1[i])
+    for t in range(rolling_horizon)
+    for i in range(nb_agent)
+]
+
+constraints += [
+    A2[t][i] == air_temperature[t][i] - d[i] / c[i] - A1[i]
+    for t in range(rolling_horizon)
+    for i in range(nb_agent)
+]
+
+constraints += [
+    air_temperature[t + 1][i]
+    == A1[t][i] * np.exp(r1[i] * time_step_sec)
+    + A2[t][i] * np.exp(r2[i] * time_step_sec)
+    + d[i] / c[i]
+    for t in range(rolling_horizon - 1)
+    for i in range(nb_agent)
+]
+
+constraints += [
+    mass_temperature[t + 1][i]
+    == A1[t][i] * A3[i] * cp.exp(r1[i] * time_step_sec)
+    + A2[t][i] * A4[i] * cp.exp(r2[i] * time_step_sec)
+    + d[i] / c[i]
+    for t in range(rolling_horizon - 1)
+    for i in range(nb_agent)
+]
+
+
 constraints += [HVAC_state[:lockout_duration] == past]
 constraints += [air_temperature[0] == initial_air_temperature[:nb_agent]]
 constraints += [air_temperature[0] == initial_mass_temperature[:nb_agent]]
@@ -108,13 +148,6 @@ constraints += [
     for i in range(1, rolling_horizon)
 ]
 
-print(np.size(temperature_difference))
-constraints += [
-    air_temperature[i][j]
-    == air_temperature[i - 1][j] - hvac_power[j] * HVAC_state[i + lockout_duration][j]
-    for i in range(1, rolling_horizon)
-    for j in range(nb_agent)
-]
 problem = cp.Problem(
     cp.Minimize(
         cp.sum_squares(consumption - signal)
