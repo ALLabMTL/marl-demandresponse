@@ -37,13 +37,12 @@ class Critic(nn.Module):
         self.layers = layers
         self.fc = [nn.Linear(num_state, layers[0])]
         for i in range(0, len(layers)-1):
-            print("B")
             self.fc.append(nn.Linear(layers[i], layers[i+1]))
         self.state_value = nn.Linear(layers[-1], 1)
 
     def forward(self, x):
         x = F.relu(self.fc[0](x))
-        for i in range(1, len(layers)):
+        for i in range(1, len(self.layers)):
             x = F.relu(self.fc[i](x))
         value = self.state_value(x)
         return value

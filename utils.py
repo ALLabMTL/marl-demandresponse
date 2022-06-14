@@ -88,6 +88,10 @@ def adjust_config_train(opt, config_dict):
     if opt.alpha_common_max != -1:
         config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_max"] = opt.alpha_common_max
 
+    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
+    config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
+    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
+
         
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
@@ -123,6 +127,9 @@ def adjust_config_deploy(opt, config_dict):
     if opt.layers_critic != "config":
         config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
 
+    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
+    config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
+    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
 
 # Applying noise on environment properties
 def applyPropertyNoise(
@@ -284,6 +291,7 @@ def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
     default_hvac_prop = config_dict["default_hvac_prop"]
     default_env_prop = config_dict["default_env_prop"]
+    state_prop = default_env_prop["state_properties"]
 
     result = {}
     k_temp = ["OD_temp", "house_temp", "house_mass_temp", "house_target_temp"]
@@ -301,12 +309,19 @@ def normStateDict(sDict, config_dict, returnDict=False):
         # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
         result[k] = (sDict[k] - 20) / 5
     result["house_deadband"] = sDict["house_deadband"]
-    day = sDict["datetime"].timetuple().tm_yday
-    hour = sDict["datetime"].hour
-    result["sin_day"] = np.sin(day * 2 * np.pi / 365)
-    result["cos_day"] = np.cos(day * 2 * np.pi / 365)
-    result["sin_hr"] = np.sin(hour * 2 * np.pi / 24)
-    result["cos_hr"] = np.cos(hour * 2 * np.pi / 24)
+
+    if state_prop["day"]:
+        day = sDict["datetime"].timetuple().tm_yday
+        result["sin_day"] = np.sin(day * 2 * np.pi / 365)
+        result["cos_day"] = np.cos(day * 2 * np.pi / 365)
+    if state_prop["hour"]:
+        hour = sDict["datetime"].hour
+        result["sin_hr"] = np.sin(hour * 2 * np.pi / 24)
+        result["cos_hr"] = np.cos(hour * 2 * np.pi / 24)
+
+    if state_prop["solar_gain"]:
+        result["house_solar_gain"] = sDict["house_solar_gain"]/1000
+
     for k in k_div:
         k1 = "_".join(k.split("_")[1:])
         if k1 in list(default_house_prop.keys()):
@@ -456,11 +471,14 @@ def get_agent_test(agent, state, config_dict, reg_signal, low_temp=10, high_temp
     return actions
 
 
-def saveActorNetDict(agent, path):
+def saveActorNetDict(agent, path, t=None):
     if not os.path.exists(path):
         os.makedirs(path)
     actor_net = agent.actor_net
-    torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))
+    if t:
+        torch.save(actor_net.state_dict(), os.path.join(path, "actor" + str(t) + ".pth"))
+    else:
+        torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))
 
 
 def clipInterpolationPoint(point, parameter_dict):

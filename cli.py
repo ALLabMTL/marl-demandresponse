@@ -148,6 +148,13 @@ def cli_train():
     )
 
     parser.add_argument(
+        "--nb_inter_saving_actor",
+        type = int,
+        default = 0,
+        help="Number of intermediate times the actor is saved during training."
+        )
+
+    parser.add_argument(
         "--exploration_temp",
         type=float,
         default=1.0,
@@ -246,14 +253,33 @@ def cli_train():
     parser.add_argument(
         "--alpha_common_L2",
         type=float,
-        default=1,
+        default=-1,
         help="Coefficient of common L2 in mixture temperature loss")
 
     parser.add_argument(
         "--alpha_common_max",
         type=float,
-        default=1,
-        help="Coefficient of common_max in mixture temperature loss")        
+        default=-1,
+        help="Coefficient of common_max in mixture temperature loss") 
+
+    parser.add_argument(
+        "--state_day",
+        choices = ['True','False'],
+        default='True',
+        help="Include day in the state")
+
+    parser.add_argument(
+        "--state_hour",
+        choices = ['True','False'],
+        default='True',
+        help="Include hour in the state")
+
+    parser.add_argument(
+        "--state_solar_gain",
+        choices = ['True','False'],
+        default='False',
+        help="Include solar gain in the state")
+
 
     opt = parser.parse_args()
     
@@ -434,6 +460,25 @@ def cli_deploy(agents_dict):
         type=int,
         default=0,
         help="Number of time steps from which the stats are calculated.")
+
+    parser.add_argument(
+        "--state_day",
+        default='True',
+        choices = ['True','False'],
+        help="Include day in the state")
+
+    parser.add_argument(
+        "--state_hour",
+        default='True',
+        choices = ['True','False'],
+        help="Include hour in the state")
+
+    parser.add_argument(
+        "--state_solar_gain",
+        default='False',
+        choices = ['True','False'],
+        help="Include solar gain in the state")
+
 
 
     opt = parser.parse_args()

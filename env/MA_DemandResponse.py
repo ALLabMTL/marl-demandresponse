@@ -863,6 +863,7 @@ class ClusterHouses(object):
             cluster_obs_dict[house_id]["house_Cm"] = house.Cm
             cluster_obs_dict[house_id]["house_Ca"] = house.Ca
             cluster_obs_dict[house_id]["house_Hm"] = house.Hm
+            cluster_obs_dict[house_id]["house_solar_gain"] = house.house_solar_gain(date_time)
 
             # Supposedly constant values from hvac
             cluster_obs_dict[house_id]["hvac_COP"] = hvac.COP

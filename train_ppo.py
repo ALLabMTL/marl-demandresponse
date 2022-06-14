@@ -36,6 +36,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
     time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
+    time_steps_per_saving_actor = int(opt.nb_time_steps/(opt.nb_inter_saving_actor+1))
     prob_on_test_on = np.empty(100)
     prob_on_test_off = np.empty(100)
     metrics = Metrics()
@@ -96,7 +97,13 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             if log_wandb:
                 wandb_run.log(metrics_test)
             else:
-                print("Training step - {t} - Mean test return: {mean_test_return}")
+                print("Training step - {}".format(t))
+
+        if opt.save_actor_name and t % time_steps_per_saving_actor == 0 and t != 0:
+            path = os.path.join(".", "actors", opt.save_actor_name)
+            saveActorNetDict(agent, path, t)
+            if log_wandb:
+                wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
 
     if render:
         renderer.__del__(obs_dict)
