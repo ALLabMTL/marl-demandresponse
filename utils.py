@@ -74,6 +74,11 @@ def adjust_config_train(opt, config_dict):
         config_dict["default_env_prop"]["cluster_prop"][
             "agents_comm_mode"
         ] = opt.agents_comm_mode
+    if opt.layers_actor != "config":
+        config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
+    if opt.layers_critic != "config":
+        config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
+
     if opt.temp_penalty_mode != "config":
         config_dict["default_env_prop"]["reward_prop"]["temp_penalty_mode"] = opt.temp_penalty_mode
     if opt.alpha_ind_L2 != -1:
@@ -113,6 +118,10 @@ def adjust_config_deploy(opt, config_dict):
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
     if opt.agents_comm_mode != "config":
         config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
+    if opt.layers_actor != "config":
+        config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
+    if opt.layers_critic != "config":
+        config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
 
 
 # Applying noise on environment properties
