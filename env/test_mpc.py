@@ -7,19 +7,17 @@ import cvxpy as cp
 
 
 hvac_power = np.array([10000] * 15)
-initial_air_temperature = np.array([10 + 273] * 15)
-initial_mass_temperature = np.array([10 + 273] * 15)
+initial_air_temperature = np.array([16 + 273] * 15)
+initial_mass_temperature = np.array([16 + 273] * 15)
 target_temperature = np.array([20 + 273] * 15)
 remaining_lockout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-temperature_extérieur = 20
 
 rolling_horizon = 15
 nb_agent = 10
 lockout_duration = 10
 signal = np.array([50000] * rolling_horizon)
-
-
-# ____________
+od_temp_K = 33 + 273
+other_Qa = np.array([1] * 15)  # Solar gain
 
 time_step_sec = 4
 Hm, Ca, Ua, Cm = (
@@ -29,24 +27,15 @@ Hm, Ca, Ua, Cm = (
     np.array([3.45e06] * 15),
 )
 
-# Convert Celsius temperatures in Kelvin
-od_temp_K = 30 + 273
+# ____________
 
 
-# Total heat addition to air
-other_Qa = np.array([1] * 15)  # Solar gain
 Qa = cp.Variable((rolling_horizon, nb_agent))
-# Heat from inside devices (oven, windows, etc)
 
-
-# Variables and time constants
 a = [Cm[i] * Ca[i] / Hm[i] for i in range(15)]
 b = [Cm[i] * (Ua[i] + Hm[i]) / Hm[i] + Ca[i] for i in range(15)]
 c = [Ua[i] for i in range(15)]
 d = cp.Variable((rolling_horizon, nb_agent))
-
-print(c)
-print(d)
 
 r1 = [(-b[i] + np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15)]
 r2 = [(-b[i] - np.sqrt(b[i] ** 2 - 4 * a[i] * c[i])) / (2 * a[i]) for i in range(15)]
@@ -168,31 +157,8 @@ problem = cp.Problem(
 )
 
 
-# print(cp.installed_solvers())
-start = time.time()
+# start = time.time()
 problem.solve(solver=cp.GUROBI, NodefileStart=0.5)
+# end = time.time()
 
-end = time.time()
-print(problem.status)
-print(air_temperature.value - 273)
-print(HVAC_state.value)
-# print(temperature.value)
-
-print(end - start)
-
-
-print(
-    lockout_duration
-    * (
-        HVAC_state.value[0 + lockout_duration, 2]
-        - HVAC_state.value[0 + lockout_duration - 1, 2]
-    )
-)
-print(
-    cp.sum(
-        [
-            1 - HVAC_state.value[8 + lockout_duration - j, 2]
-            for j in range(lockout_duration)
-        ]
-    )
-)
+print(HVAC_state.value > 0.5)
