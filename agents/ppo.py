@@ -7,7 +7,7 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import os
 import time
 import wandb
-from agents.network import Actor, Critic
+from agents.network import Actor, Critic, OldActor, OldCritic
 
 
 class PPO():
@@ -17,8 +17,12 @@ class PPO():
         torch.manual_seed(self.seed)
 
         self.batch_size = opt.batch_size
-        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers=config_dict["nn_prop"]["actor_layers"])
-        self.critic_net = Critic(num_state=num_state, layers=config_dict["nn_prop"]["critic_layers"])
+
+        if True:
+            self.actor_net = OldActor(num_state=num_state, num_action=num_action)
+            self.critic_net = OldCritic(num_state=num_state)            
+        #self.actor_net = Actor(num_state=num_state, num_action=num_action, layers=config_dict["nn_prop"]["actor_layers"])
+        #self.critic_net = Critic(num_state=num_state, layers=config_dict["nn_prop"]["critic_layers"])
         self.buffer = []
         self.buffer_capacity = buffer_capacity
         self.ppo_update_time = ppo_update_time
