@@ -100,6 +100,8 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.noise_hvac_prop,
         )
 
+
+
         self.start_datetime = self.env_properties[
             "start_datetime"
         ]  # Start date and time
@@ -113,6 +115,9 @@ class MADemandResponseEnv(MultiAgentEnv):
         self.cluster = ClusterHouses(
             self.env_properties["cluster_prop"], self.agent_ids, self.datetime, self.time_step
         )
+
+        self.env_properties["power_grid_prop"]["max_power"] = self.cluster.max_power
+
         self.power_grid = PowerGrid(
             self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
         )
@@ -777,10 +782,12 @@ class ClusterHouses(object):
 
         # Compute the Initial cluster_hvac_power
         self.cluster_hvac_power = 0
+        self.max_power = 0
         for house_id in self.houses.keys():
             house = self.houses[house_id]
             hvac = house.hvac
             self.cluster_hvac_power += hvac.power_consumption()
+            self.max_power += hvac.max_consumption
 
         self.build_agent_comm_links()
 
@@ -1032,6 +1039,8 @@ class PowerGrid(object):
         else:
             raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
 
+        self.max_power = power_grid_prop["max_power"]
+
         if power_grid_prop["signal_mode"] == "perlin":
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
@@ -1149,4 +1158,7 @@ class PowerGrid(object):
             raise ValueError(
                 "Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode)
             )
+
+        self.current_signal = np.minimum(self.current_signal, self.max_power)
+
         return self.current_signal

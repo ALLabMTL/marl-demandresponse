@@ -25,6 +25,10 @@ import wandb
 
 def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
+    id_rng = np.random.default_rng()
+    unique_ID = str(int(id_rng.random() * 1000000))
+
+
     # Initialize render, if applicable
     if render:
         from env.renderer import Renderer
@@ -100,7 +104,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
                 print("Training step - {}".format(t))
 
         if opt.save_actor_name and t % time_steps_per_saving_actor == 0 and t != 0:
-            path = os.path.join(".", "actors", opt.save_actor_name)
+            path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
             saveActorNetDict(agent, path, t)
             if log_wandb:
                 wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
@@ -110,7 +114,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
 
     if opt.save_actor_name:
-        path = os.path.join(".", "actors", opt.save_actor_name)
+        path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
         saveActorNetDict(agent, path)
         if log_wandb:
             wandb.save(os.path.join(path, "actor.pth"))
