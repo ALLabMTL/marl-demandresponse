@@ -520,6 +520,7 @@ class SingleHouse(object):
         self.current_mass_temp = self.init_mass_temp
         self.window_area = house_properties["window_area"]
         self.shading_coeff = house_properties["shading_coeff"]
+        self.solar_gain_bool = house_properties["solar_gain_bool"]
 
         # Thermal constraints
         self.target_temp = house_properties["target_temp"]
@@ -679,54 +680,57 @@ class SingleHouse(object):
         - There are no horizontal windows, for example on the roof.
         """
 
-        x = date_time.hour + date_time.minute / 60 - 7.5
-        if x < 0 or x > 10:
-            solar_cooling_load = 0
+        if self.solar_gain_bool:
+            x = date_time.hour + date_time.minute / 60 - 7.5
+            if x < 0 or x > 10:
+                solar_cooling_load = 0
+            else:
+                y = date_time.month + date_time.day / 30 - 1
+                coeff = [
+                    4.36579418e01,
+                    1.58055357e02,
+                    8.76635241e01,
+                    -4.55944821e01,
+                    3.24275366e00,
+                    -4.56096472e-01,
+                    -1.47795612e01,
+                    4.68950855e00,
+                    -3.73313090e01,
+                    5.78827663e00,
+                    1.04354810e00,
+                    2.12969604e-02,
+                    2.58881400e-03,
+                    -5.11397219e-04,
+                    1.56398008e-02,
+                    -1.18302764e-01,
+                    -2.71446436e-01,
+                    -3.97855577e-02,
+                ]
+
+                solar_cooling_load = (
+                    coeff[0]
+                    + x * coeff[1]
+                    + y * coeff[2]
+                    + x**2 * coeff[3]
+                    + x**2 * y * coeff[4]
+                    + x**2 * y**2 * coeff[5]
+                    + y**2 * coeff[6]
+                    + x * y**2 * coeff[7]
+                    + x * y * coeff[8]
+                    + x**3 * coeff[9]
+                    + y**3 * coeff[10]
+                    + x**3 * y * coeff[11]
+                    + x**3 * y**2 * coeff[12]
+                    + x**3 * y**3 * coeff[13]
+                    + x**2 * y**3 * coeff[14]
+                    + x * y**3 * coeff[15]
+                    + x**4 * coeff[16]
+                    + y**4 * coeff[17]
+                )
+
+            solar_gain = self.window_area * self.shading_coeff * solar_cooling_load
         else:
-            y = date_time.month + date_time.day / 30 - 1
-            coeff = [
-                4.36579418e01,
-                1.58055357e02,
-                8.76635241e01,
-                -4.55944821e01,
-                3.24275366e00,
-                -4.56096472e-01,
-                -1.47795612e01,
-                4.68950855e00,
-                -3.73313090e01,
-                5.78827663e00,
-                1.04354810e00,
-                2.12969604e-02,
-                2.58881400e-03,
-                -5.11397219e-04,
-                1.56398008e-02,
-                -1.18302764e-01,
-                -2.71446436e-01,
-                -3.97855577e-02,
-            ]
-
-            solar_cooling_load = (
-                coeff[0]
-                + x * coeff[1]
-                + y * coeff[2]
-                + x**2 * coeff[3]
-                + x**2 * y * coeff[4]
-                + x**2 * y**2 * coeff[5]
-                + y**2 * coeff[6]
-                + x * y**2 * coeff[7]
-                + x * y * coeff[8]
-                + x**3 * coeff[9]
-                + y**3 * coeff[10]
-                + x**3 * y * coeff[11]
-                + x**3 * y**2 * coeff[12]
-                + x**3 * y**3 * coeff[13]
-                + x**2 * y**3 * coeff[14]
-                + x * y**3 * coeff[15]
-                + x**4 * coeff[16]
-                + y**4 * coeff[17]
-            )
-
-        solar_gain = self.window_area * self.shading_coeff * solar_cooling_load
+            solar_gain = 0.0
         return solar_gain
 
 
@@ -1056,10 +1060,17 @@ class PowerGrid(object):
 
     def interpolatePower(self, date_time):
         base_power = 0
-        point = {
-            "date": date_time.timetuple().tm_yday,
-            "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
-        }
+
+        if self.default_house_prop["solar_gain_bool"]:
+            point = {
+                "date": date_time.timetuple().tm_yday,
+                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+            }
+        else:       # No solar gain - make it think it is midnight
+            point = {
+                "date": 0.0,
+                "hour": 0.0,
+            }            
 
         all_ids = list(self.cluster_houses.houses.keys())
         if len(all_ids) <= self.interp_nb_agents:

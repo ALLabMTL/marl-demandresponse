@@ -16,7 +16,8 @@ config_dict = {
 	"Ca" : 9.08e05,						# Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
 	"Hm" : 2.84e03,							# House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.14 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))
 	"window_area" : 7.175, 						# Gross window area, in m^2  
-	"shading_coeff": 0.67 					# Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
+	"shading_coeff": 0.67, 					# Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
+	"solar_gain_bool": True,						# Boolean to model the solar gain
 },
 
 "noise_house_prop" : {

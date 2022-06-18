@@ -60,8 +60,7 @@ def adjust_config_train(opt, config_dict):
         config_dict["noise_hvac_prop_test"]["noise_mode"] = opt.hvac_noise_mode_test
     if opt.OD_temp_mode != "config":
         config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
-    if opt.no_solar_gain:
-        config_dict["default_house_prop"]["shading_coeff"] = 0
+    config_dict["default_house_prop"]["solar_gain_bool"] = not opt.no_solar_gain
     if opt.alpha_temp != -1:
         config_dict["default_env_prop"]["reward_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
@@ -112,8 +111,7 @@ def adjust_config_deploy(opt, config_dict):
         config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
     if opt.OD_temp_mode != "config":
         config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
-    if opt.no_solar_gain:
-        config_dict["default_house_prop"]["shading_coeff"] = 0
+    config_dict["default_house_prop"]["solar_gain_bool"] = not opt.no_solar_gain
     if opt.base_power_mode != "config":
         config_dict["default_env_prop"]["power_grid_prop"][
             "base_power_mode"
