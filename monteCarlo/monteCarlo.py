@@ -48,7 +48,7 @@ parameters_dict = {
     "air_temp": [-6, -4, -2, -1, 0, 1, 2, 4, 6],  # Setter au debut
     "mass_temp": [-6, -4, -2, 0, 2, 4, 6],  # Setter au debut, ajouter au conf dict
     "OD_temp": [1, 3, 5, 7, 9, 11],  # fixé
-    "HVAC_power": [10000, 15000, 20000],
+    "HVAC_power": [7500, 10000, 12500],
     "hour": [
         0.0,
         3.0,
