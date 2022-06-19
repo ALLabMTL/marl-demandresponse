@@ -139,10 +139,10 @@ def eval_parameters_bangbang_average_consumption(
 
     env = MADemandResponseEnv(config)
 
-    hvacs_id_registry = env.cluster.hvacs_id_registry
+    houses = env.cluster.houses
 
     actors = {}
-    for hvac_id in hvacs_id_registry.keys():
+    for hvac_id in houses.keys():
         agent_prop = {"id": hvac_id}
         actors[hvac_id] = BangBangController(agent_prop, config)
 
