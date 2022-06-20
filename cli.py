@@ -1,5 +1,5 @@
-
 import argparse
+
 
 def cli_train():
     parser = argparse.ArgumentParser(description="Training options")
@@ -22,7 +22,8 @@ def cli_train():
         "--nb_agents_comm",
         type=int,
         default=-1,
-        help="Maximal number of agents each agent can communicate with.")
+        help="Maximal number of agents each agent can communicate with.",
+    )
 
     parser.add_argument(
         "--agents_comm_mode",
@@ -117,7 +118,8 @@ def cli_train():
         "--render_after",
         type=int,
         default=-1,
-        help="Delay in time steps before rendering")
+        help="Delay in time steps before rendering",
+    )
 
     parser.add_argument(
         "--cooling_capacity",
@@ -151,123 +153,133 @@ def cli_train():
         "--exploration_temp",
         type=float,
         default=1.0,
-        help="Temperature of the policy softmax. Higher temp -> more exploration."
+        help="Temperature of the policy softmax. Higher temp -> more exploration.",
     )
 
     parser.add_argument(
         "--signal_mode",
         type=str,
         default="config",
-        help="Mode of the noise on the power grid regulation signal simulation. Choices: [none, regular_steps, sinusoidals, config]"
+        help="Mode of the noise on the power grid regulation signal simulation. Choices: [none, regular_steps, sinusoidals, config]",
     )
 
     parser.add_argument(
         "--base_power_mode",
         type=str,
         default="config",
-        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
+        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]",
     )
 
     parser.add_argument(
         "--alpha_temp",
         type=float,
         default=-1,
-         help="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
+        help="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.",
     )
 
     parser.add_argument(
         "--alpha_sig",
         type=float,
         default=-1,
-        help="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty."
+        help="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.",
     )
 
     parser.add_argument(
         "--house_noise_mode",
         type=str,
         default="config",
-        help="Mode of noise over house parameters.")
+        help="Mode of noise over house parameters.",
+    )
 
     parser.add_argument(
         "--house_noise_mode_test",
         type=str,
         default="train",
-        help="Mode of noise over house parameters for test environment.")
+        help="Mode of noise over house parameters for test environment.",
+    )
 
     parser.add_argument(
         "--hvac_noise_mode",
         type=str,
         default="config",
-        help="Mode of noise over HVAC parameters.")
+        help="Mode of noise over HVAC parameters.",
+    )
 
     parser.add_argument(
         "--hvac_noise_mode_test",
         type=str,
         default="train",
-        help="Mode of noise over HVAC parameters for test environment.")
+        help="Mode of noise over HVAC parameters for test environment.",
+    )
 
     parser.add_argument(
         "--OD_temp_mode",
         type=str,
         default="config",
-        help="Mode of outdoors temperature.")
+        help="Mode of outdoors temperature.",
+    )
 
     parser.add_argument(
         "--no_solar_gain",
         action="store_true",
-        help="Removes the solar gain from the simulation.")
+        help="Removes the solar gain from the simulation.",
+    )
 
     parser.add_argument(
         "--layers_critic",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
 
     parser.add_argument(
         "--layers_actor",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
-    
+
     parser.add_argument(
         "--temp_penalty_mode",
         type=str,
         default="config",
-        help="Mode of temperature reward.")
+        help="Mode of temperature reward.",
+    )
 
     parser.add_argument(
         "--alpha_ind_L2",
         type=float,
         default=-1,
-        help="Coefficient of independant L2 in mixture temperature loss")    
+        help="Coefficient of independant L2 in mixture temperature loss",
+    )
 
     parser.add_argument(
         "--alpha_common_L2",
         type=float,
         default=1,
-        help="Coefficient of common L2 in mixture temperature loss")
+        help="Coefficient of common L2 in mixture temperature loss",
+    )
 
     parser.add_argument(
         "--alpha_common_max",
         type=float,
         default=1,
-        help="Coefficient of common_max in mixture temperature loss")        
+        help="Coefficient of common_max in mixture temperature loss",
+    )
 
     opt = parser.parse_args()
-    
+
     return opt
 
 
 def cli_deploy(agents_dict):
     parser = argparse.ArgumentParser(description="Deployment options")
-    
+
     parser.add_argument(
         "--base_power_mode",
         type=str,
         default="config",
-        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]"
+        help="Mode for the base (low frequency) regulation signal simulation. Choices: [constant, interpolation, config]",
     )
 
     parser.add_argument(
@@ -393,7 +405,10 @@ def cli_deploy(agents_dict):
     )
 
     parser.add_argument(
-        "--OD_temp_mode", type=str, default="config", help="Mode of outdoors temperature."
+        "--OD_temp_mode",
+        type=str,
+        default="config",
+        help="Mode of outdoors temperature.",
     )
 
     parser.add_argument(
@@ -406,7 +421,8 @@ def cli_deploy(agents_dict):
         "--nb_agents_comm",
         type=int,
         default=-1,
-        help="Maximal number of agents each agent can communicate with.")
+        help="Maximal number of agents each agent can communicate with.",
+    )
 
     parser.add_argument(
         "--agents_comm_mode",
@@ -419,23 +435,30 @@ def cli_deploy(agents_dict):
         "--layers_critic",
         type=str,
         default=[100],
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
 
     parser.add_argument(
         "--layers_actor",
         type=str,
         default=[100],
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
-    
+
     parser.add_argument(
         "--start_stats_from",
         type=int,
         default=0,
-        help="Number of time steps from which the stats are calculated.")
+        help="Number of time steps from which the stats are calculated.",
+    )
 
+    parser.add_argument(
+        "--MPC_rolling_horizon",
+        type=int,
+        default=-1,
+        help="Duration of the MPC rooling horizon in time step",
+    )
 
     opt = parser.parse_args()
-    
+
     return opt
