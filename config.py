@@ -230,5 +230,8 @@ config_dict = {
     "buffer_capacity": 10000,
     "lr": 1e-3,
     },
+"MPC_prop" : {
+    "rolling_horizon": 15,
+    },
 
 }

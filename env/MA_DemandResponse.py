@@ -16,7 +16,7 @@ import sys
 
 sys.path.append("..")
 sys.path.append("./monteCarlo")
-from utils import applyPropertyNoise, clipInterpolationPoint, sortDictKeys
+from utils import applyPropertyNoise, clipInterpolationPoint, sortDictKeys, house_solar_gain
 from interpolation import PowerInterpolator
 
 
@@ -138,7 +138,10 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.env_properties["cluster_prop"], self.datetime, self.time_step
         )
         self.power_grid = PowerGrid(
-            self.env_properties["power_grid_prop"], self.default_house_prop, self.env_properties["nb_hvac"], self.cluster
+            self.env_properties["power_grid_prop"],
+            self.default_house_prop,
+            self.env_properties["nb_hvac"],
+            self.cluster,
         )
         self.power_grid.step(self.start_datetime, self.time_step)
 
@@ -198,7 +201,6 @@ class MADemandResponseEnv(MultiAgentEnv):
         obs_dict = self.merge_cluster_powergrid_obs(
             cluster_obs_dict, power_grid_reg_signal, cluster_hvac_power
         )
-
 
         dones_dict = self.make_dones_dict()
         info_dict = {"cluster_hvac_power": cluster_hvac_power}
@@ -562,7 +564,7 @@ class SingleHouse(object):
             total_Qhvac += hvac.get_Q()
 
         # Total heat addition to air
-        other_Qa = self.house_solar_gain(date_time)  # windows, ...
+        other_Qa = house_solar_gain(date_time, self.window_area, self.shading_coeff)  # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
@@ -604,80 +606,7 @@ class SingleHouse(object):
         self.current_temp = new_current_temp_K - 273
         self.current_mass_temp = new_current_mass_temp_K - 273
 
-    def house_solar_gain(self, date_time):
-        """
-        Computes the solar gain, i.e. the heat transfer received from the sun through the windows.
-
-        Return:
-        solar_gain: float, direct solar radiation passing through the windows at a given moment in Watts
-
-        Parameters
-        date_time: datetime, current date and time
-
-        ---
-        Source and assumptions:
-        CIBSE. (2015). Environmental Design - CIBSE Guide A (8th Edition) - 5.9.7 Solar Cooling Load Tables. CIBSE.
-        Retrieved from https://app.knovel.com/hotlink/pdf/id:kt0114THK9/environmental-design/solar-cooling-load-tables
-        Table available: https://www.cibse.org/Knowledge/Guide-A-2015-Supplementary-Files/Chapter-5
-
-        Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
-
-        Based on the following assumptions.
-        - Latitude is 30. (The latitude of Austin in Texas is 30.266666)
-        - The SCL before 7:30 and after 17:30 is negligible for latitude 30.
-        - The windows are distributed perfectly evenly around the building.
-        - There are no horizontal windows, for example on the roof.
-        """
-
-        x = date_time.hour + date_time.minute / 60 - 7.5
-        if x < 0 or x > 10:
-            solar_cooling_load = 0
-        else:
-            y = date_time.month + date_time.day / 30 - 1
-            coeff = [
-                4.36579418e01,
-                1.58055357e02,
-                8.76635241e01,
-                -4.55944821e01,
-                3.24275366e00,
-                -4.56096472e-01,
-                -1.47795612e01,
-                4.68950855e00,
-                -3.73313090e01,
-                5.78827663e00,
-                1.04354810e00,
-                2.12969604e-02,
-                2.58881400e-03,
-                -5.11397219e-04,
-                1.56398008e-02,
-                -1.18302764e-01,
-                -2.71446436e-01,
-                -3.97855577e-02,
-            ]
-
-            solar_cooling_load = (
-                coeff[0]
-                + x * coeff[1]
-                + y * coeff[2]
-                + x**2 * coeff[3]
-                + x**2 * y * coeff[4]
-                + x**2 * y**2 * coeff[5]
-                + y**2 * coeff[6]
-                + x * y**2 * coeff[7]
-                + x * y * coeff[8]
-                + x**3 * coeff[9]
-                + y**3 * coeff[10]
-                + x**3 * y * coeff[11]
-                + x**3 * y**2 * coeff[12]
-                + x**3 * y**3 * coeff[13]
-                + x**2 * y**3 * coeff[14]
-                + x * y**3 * coeff[15]
-                + x**4 * coeff[16]
-                + y**4 * coeff[17]
-            )
-
-        solar_gain = self.window_area * self.shading_coeff * solar_cooling_load
-        return solar_gain
+    
 
 
 class ClusterHouses(object):
@@ -875,7 +804,7 @@ class ClusterHouses(object):
         temperature = amplitude * np.sin(2 * np.pi * (time_day + delay) / 24) + bias
 
         # Adding noise
-        temperature += random.gauss(0, self.temp_std)
+        temperature += 0 * random.gauss(0, self.temp_std)
 
         return temperature
 
@@ -892,11 +821,13 @@ class PowerGrid(object):
     init_signal: float, initial signal value per HVAC, in Watts
     current_signal: float, current signal in Watts
 
-    Functions:
+    Functions:baharerajabi2015@gmail.combaharerajabi2015@gmail.com
     step(self, date_time): Computes the regulation signal at given date and time
     """
 
-    def __init__(self, power_grid_prop, default_house_prop, nb_hvacs, cluster_houses = None):
+    def __init__(
+        self, power_grid_prop, default_house_prop, nb_hvacs, cluster_houses=None
+    ):
         """
         Initialize PowerGrid.
 
@@ -910,34 +841,60 @@ class PowerGrid(object):
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
 
-        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"][
+            "constant"
+        ]["init_signal_per_hvac"]
 
         ## Constant base power
         if self.base_power_mode == "constant":
-            self.avg_power_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["avg_power_per_hvac"]
-            self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+            self.avg_power_per_hvac = power_grid_prop["base_power_parameters"][
+                "constant"
+            ]["avg_power_per_hvac"]
+            self.init_signal_per_hvac = power_grid_prop["base_power_parameters"][
+                "constant"
+            ]["init_signal_per_hvac"]
 
         ## Interpolated base power
         elif self.base_power_mode == "interpolation":
-            interp_data_path = power_grid_prop["base_power_parameters"]["interpolation"]["path_datafile"]
-            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_parameter_dict"]) as json_file:
+            interp_data_path = power_grid_prop["base_power_parameters"][
+                "interpolation"
+            ]["path_datafile"]
+            with open(
+                power_grid_prop["base_power_parameters"]["interpolation"][
+                    "path_parameter_dict"
+                ]
+            ) as json_file:
                 self.interp_parameters_dict = json.load(json_file)
-            with open(power_grid_prop["base_power_parameters"]["interpolation"]["path_dict_keys"]) as f:
+            with open(
+                power_grid_prop["base_power_parameters"]["interpolation"][
+                    "path_dict_keys"
+                ]
+            ) as f:
                 reader = csv.reader(f)
                 self.interp_dict_keys = list(reader)[0]
 
-            self.power_interpolator = PowerInterpolator(interp_data_path, self.interp_parameters_dict, self.interp_dict_keys)
+            self.power_interpolator = PowerInterpolator(
+                interp_data_path, self.interp_parameters_dict, self.interp_dict_keys
+            )
 
-            self.interp_update_period = power_grid_prop["base_power_parameters"]["interpolation"]["interp_update_period"]
-            self.time_since_last_interp = self.interp_update_period + 1 
+            self.interp_update_period = power_grid_prop["base_power_parameters"][
+                "interpolation"
+            ]["interp_update_period"]
+            self.time_since_last_interp = self.interp_update_period + 1
 
             if cluster_houses:
                 self.cluster_houses = cluster_houses
             else:
-                raise ValueError("The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument.")
+                raise ValueError(
+                    "The PowerGrid object in interpolation mode needs a ClusterHouses object as a cluster_houses argument."
+                )
         ## Error
         else:
-            raise ValueError("The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(self.base_power_mode))
+            raise ValueError(
+                "The base_power_mode parameter in the config file can only be 'constant' or 'interpolation'. It is currently: {}".format(
+                    self.base_power_mode
+                )
+            )
 
         self.signal_mode = power_grid_prop["signal_mode"]
         self.signal_params = power_grid_prop["signal_parameters"][self.signal_mode]
@@ -949,23 +906,29 @@ class PowerGrid(object):
         base_power = 0
         point = {
             "date": date_time.timetuple().tm_yday,
-            "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+            "hour": (
+                date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)
+            ).total_seconds(),
         }
         # Adding the interpolated power for each house
         for house_id in self.cluster_houses.houses.keys():
             house = self.cluster_houses.houses[house_id]
-            point["Ua_ratio"] = house.Ua / self.default_house_prop["Ua"] # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
+            point["Ua_ratio"] = (
+                house.Ua / self.default_house_prop["Ua"]
+            )  # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
             point["Cm_ratio"] = house.Cm / self.default_house_prop["Cm"]
             point["Ca_ratio"] = house.Ca / self.default_house_prop["Ca"]
             point["Hm_ratio"] = house.Hm / self.default_house_prop["Hm"]
             point["air_temp"] = house.current_temp - house.target_temp
-            point["mass_temp"] = house.current_mass_temp - house.target_temp                
-            point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp 
+            point["mass_temp"] = house.current_mass_temp - house.target_temp
+            point["OD_temp"] = self.cluster_houses.current_OD_temp - house.target_temp
             point["HVAC_power"] = house.hvacs[house.id + "_1"].cooling_capacity
-            point = clipInterpolationPoint(point, self.interp_parameters_dict) # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
+            point = clipInterpolationPoint(
+                point, self.interp_parameters_dict
+            )  # TODO: Maybe we want to run another MonteCarlo with bigger air_temp and mass_temp ranges?
             point = sortDictKeys(point, self.interp_dict_keys)
             base_power += self.power_interpolator.interpolateGridFast(point)[0][0]
-        return base_power        
+        return base_power
 
     def step(self, date_time, time_step) -> float:
         """
@@ -982,12 +945,11 @@ class PowerGrid(object):
         if self.base_power_mode == "constant":
             self.base_power = self.avg_power_per_hvac * self.nb_hvac
         elif self.base_power_mode == "interpolation":
-            self.time_since_last_interp += time_step.seconds   
+            self.time_since_last_interp += time_step.seconds
 
             if self.time_since_last_interp >= self.interp_update_period:
                 self.base_power = self.interpolatePower(date_time)
                 self.time_since_last_interp = 0
-
 
         if self.signal_mode == "flat":
             self.current_signal = self.base_power
@@ -1013,21 +975,26 @@ class PowerGrid(object):
                 signal += amplitudes[i] * np.sin(2 * np.pi * time_sec / periods[i])
             self.current_signal = signal
 
-        elif self.signal_mode == "regular_steps": 
+        elif self.signal_mode == "regular_steps":
             """Compute the outdoors temperature based on the time using pulse width modulation"""
             amplitude = self.signal_params["amplitude"]
-            ratio = self.base_power/amplitude
+            ratio = self.base_power / amplitude
 
             period = self.signal_params["period"]
 
             signal = 0
             time_sec = date_time.hour * 3600 + date_time.minute * 60 + date_time.second
 
-            signal = amplitude * np.heaviside((time_sec % period) - (1 - ratio) * period, 1)
+            signal = amplitude * np.heaviside(
+                (time_sec % period) - (1 - ratio) * period, 1
+            )
             self.current_signal = signal
 
         else:
             raise ValueError(
-                "Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode)
+                "Invalid power grid signal mode: {}. Change value in the config file.".format(
+                    self.signal_mode
+                )
             )
         return self.current_signal
+

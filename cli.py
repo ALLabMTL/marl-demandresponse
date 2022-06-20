@@ -344,6 +344,13 @@ def cli_deploy(agents_dict):
         help="Removes the solar gain from the simulation.",
     )
 
+    parser.add_argument(
+        "--MPC_rolling_horizon",
+        type=int,
+        default=-1,
+        help="Duration of the MPC rooling horizon in time step",
+    )
+
     opt = parser.parse_args()
     
     return opt
