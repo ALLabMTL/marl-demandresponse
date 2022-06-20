@@ -108,7 +108,10 @@ config_dict = {
 	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
 	"noise_parameters": {
 		"no_noise": {
-			"cooling_capacity_list": [15000]
+			"cooling_capacity_list": {
+				10000: [10000],
+				15000: [15000]
+			}
 			#"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 1,   # Lowest random factor for COP
 			#"factor_COP_high": 1,   # Highest random factor for COP
@@ -116,7 +119,10 @@ config_dict = {
 			#"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
 		},
 		"small_noise": {
-			"cooling_capacity_list": [10000, 15000]
+			"cooling_capacity_list": {
+				10000: [7500, 10000],
+				15000: [10000, 15000]
+			}
 
 			#"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 0.95,   # Lowest random factor for COP
@@ -125,7 +131,10 @@ config_dict = {
 			#"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
-			"cooling_capacity_list": [10000, 15000, 20000]
+			"cooling_capacity_list": {
+				10000: [7500, 10000, 12500],
+				15000: [10000, 15000, 20000]
+			}
 			#"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 0.85,   # Lowest random factor for COP
 			#"factor_COP_high": 1.15,   # Highest random factor for COP
