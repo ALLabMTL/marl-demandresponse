@@ -280,6 +280,12 @@ def cli_train():
         default='False',
         help="Include solar gain in the state")
 
+    parser.add_argument(
+        "--state_thermal",
+        choices = ['True','False'],
+        default = 'True',
+        help="Include outdoors temperature, and house thermal parameters, in the state.")
+
 
     opt = parser.parse_args()
     
@@ -483,6 +489,12 @@ def cli_deploy(agents_dict):
         "--start_datetime_mode",
         default='config',
         help="Decide if start date time is 'fixed' or uniformly 'random'.")
+
+    parser.add_argument(
+        "--state_thermal",
+        choices = ['True','False'],
+        default = 'True',
+        help="Include outdoors temperature, and house thermal parameters, in the state.")
 
 
     opt = parser.parse_args()

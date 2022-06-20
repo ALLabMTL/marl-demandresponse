@@ -90,6 +90,7 @@ def adjust_config_train(opt, config_dict):
     config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
     config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
     config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
+    config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal == 'True'
 
         
 def adjust_config_deploy(opt, config_dict):
@@ -231,9 +232,10 @@ def apply_house_noise(house_prop, noise_house_prop):
 
 def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     noise_hvac_mode = noise_hvac_prop["noise_mode"]
+    hvac_capacity = hvac_prop["cooling_capacity"]
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
 
-    hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"])[0]
+    hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"][hvac_capacity])[0]
 
 """
     # Gaussian noise: latent_cooling_fraction
@@ -295,16 +297,21 @@ def normStateDict(sDict, config_dict, returnDict=False):
     state_prop = default_env_prop["state_properties"]
 
     result = {}
-    k_temp = ["OD_temp", "house_temp", "house_mass_temp", "house_target_temp"]
-    k_div = [
-        "house_Ua",
-        "house_Cm",
-        "house_Ca",
-        "house_Hm",
-        "hvac_COP",
-        "hvac_cooling_capacity",
-        "hvac_latent_cooling_fraction",
-    ]
+    if state_prop["thermal"]:
+        k_temp = ["OD_temp", "house_temp", "house_mass_temp", "house_target_temp"]
+        k_div = [
+            "house_Ua",
+            "house_Cm",
+            "house_Ca",
+            "house_Hm",
+            "hvac_COP",
+            "hvac_cooling_capacity",
+            "hvac_latent_cooling_fraction",
+        ]
+    else:
+        k_temp = ["house_temp", "house_mass_temp", "house_target_temp"]    
+        k_div = ["hvac_cooling_capacity"]    
+
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
         # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
