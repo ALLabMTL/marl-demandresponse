@@ -286,6 +286,12 @@ def cli_train():
         default = 'True',
         help="Include outdoors temperature, and house thermal parameters, in the state.")
 
+    parser.add_argument(
+        "--artificial_signal_ratio",
+        type=float,
+        default=1.0,
+        help="Artificially multiply the base signal for experimental purposes.")
+
 
     opt = parser.parse_args()
     
@@ -495,6 +501,13 @@ def cli_deploy(agents_dict):
         choices = ['True','False'],
         default = 'True',
         help="Include outdoors temperature, and house thermal parameters, in the state.")
+
+    parser.add_argument(
+        "--artificial_signal_ratio",
+        type=float,
+        default=1.0,
+        help="Artificially multiply the base signal for experimental purposes."
+        )
 
 
     opt = parser.parse_args()

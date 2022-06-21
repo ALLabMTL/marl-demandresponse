@@ -1013,6 +1013,7 @@ class PowerGrid(object):
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+        self.artificial_ratio = power_grid_prop["artificial_ratio"]
 
         ## Constant base power
         if self.base_power_mode == "constant":
@@ -1157,6 +1158,7 @@ class PowerGrid(object):
             self.current_signal = signal
         elif self.signal_mode == "perlin":
             amplitude = self.signal_params["amplitude_ratios"]
+
             unix_time_stamp = time.mktime(date_time.timetuple())%86400 
             signal = self.base_power
             perlin = self.perlin.calculate_noise(unix_time_stamp)
@@ -1169,6 +1171,8 @@ class PowerGrid(object):
             raise ValueError(
                 "Invalid power grid signal mode: {}. Change value in the config file.".format(self.signal_mode)
             )
+
+        self.current_signal = self.current_signal * self.artificial_ratio    #Artificial_ration should be 1. Only change for experimental purposes.
 
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 

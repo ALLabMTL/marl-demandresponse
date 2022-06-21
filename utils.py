@@ -92,6 +92,8 @@ def adjust_config_train(opt, config_dict):
     config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
     config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal == 'True'
 
+    config_dict["default_env_prop"]["power_grid_prop"]["artificial_ratio"] = opt.artificial_signal_ratio
+
         
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
@@ -132,6 +134,10 @@ def adjust_config_deploy(opt, config_dict):
     config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
     config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
     config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
+    config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal == 'True'
+
+    config_dict["default_env_prop"]["power_grid_prop"]["artificial_ratio"] = opt.artificial_signal_ratio
+
 
 # Applying noise on environment properties
 def applyPropertyNoise(
