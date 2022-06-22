@@ -247,6 +247,13 @@ def cli_train():
     )
 
     parser.add_argument(
+        "--layers_both",
+        type=str,
+        default="config",
+        help="List containing the number of neurons on each layers of the critic NN model"
+    )
+
+    parser.add_argument(
         "--temp_penalty_mode",
         type=str,
         default="config",
@@ -470,17 +477,26 @@ def cli_deploy(agents_dict):
     parser.add_argument(
         "--layers_critic",
         type=str,
-        default=[100],
-        help="List containing the number of neurons on each layers of the critic NN model",
+        default="config",
+        help="List containing the number of neurons on each layers of the critic NN model"
     )
 
     parser.add_argument(
         "--layers_actor",
         type=str,
-        default=[100],
-        help="List containing the number of neurons on each layers of the critic NN model",
+        default="config",
+        help="List containing the number of neurons on each layers of the critic NN model"
     )
 
+
+    parser.add_argument(
+        "--layers_both",
+        type=str,
+        default="config",
+        help="List containing the number of neurons on each layers of the critic NN model"
+    )
+
+    
     parser.add_argument(
         "--start_stats_from",
         type=int,
