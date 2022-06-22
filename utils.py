@@ -79,13 +79,21 @@ def adjust_config_train(opt, config_dict):
         config_dict["nn_prop"]["critic_layers"] = opt.layers_critic
 
     if opt.temp_penalty_mode != "config":
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_mode"] = opt.temp_penalty_mode
+        config_dict["default_env_prop"]["reward_prop"][
+            "temp_penalty_mode"
+        ] = opt.temp_penalty_mode
     if opt.alpha_ind_L2 != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_ind_L2"] = opt.alpha_ind_L2
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_ind_L2"] = opt.alpha_ind_L2
     if opt.alpha_common_L2 != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_L2"] = opt.alpha_common_L2
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_common_L2"] = opt.alpha_common_L2
     if opt.alpha_common_max != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_max"] = opt.alpha_common_max
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_common_max"] = opt.alpha_common_max
 
     config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
     config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
@@ -104,6 +112,8 @@ def adjust_config_deploy(opt, config_dict):
         config_dict["default_hvac_prop"]["cooling_capacity"] = opt.cooling_capacity
     if opt.lockout_duration != -1:
         config_dict["default_hvac_prop"]["lockout_duration"] = opt.lockout_duration
+    if opt.MPC_rolling_horizon != -1:
+        config_dict["MPC_prop"]["rolling_horizon"] = opt.MPC_rolling_horizon
     if opt.signal_mode != "config":
         config_dict["default_env_prop"]["power_grid_prop"][
             "signal_mode"
@@ -120,9 +130,13 @@ def adjust_config_deploy(opt, config_dict):
             "base_power_mode"
         ] = opt.base_power_mode
     if opt.nb_agents_comm != -1:
-        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+        config_dict["default_env_prop"]["cluster_prop"][
+            "nb_agents_comm"
+        ] = opt.nb_agents_comm
     if opt.agents_comm_mode != "config":
-        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode  
+        config_dict["default_env_prop"]["cluster_prop"][
+            "agents_comm_mode"
+        ] = opt.agents_comm_mode
     if opt.layers_actor != "config":
         config_dict["nn_prop"]["actor_layers"] = opt.layers_actor
     if opt.layers_critic != "config":
@@ -243,6 +257,7 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
 
     hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"][hvac_capacity])[0]
 
+
 """
     # Gaussian noise: latent_cooling_fraction
     hvac_prop["latent_cooling_fraction"] += random.gauss(
@@ -263,6 +278,7 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     )  # low, high, mode ->  low <= N <= high, with max prob at mode.
     hvac_prop["cooling_capacity"] *= factor_cooling_capacity
 """
+
 
 def get_random_date_time(start_date_time):
     # Gets a uniformly sampled random date and time within a year from the start_date_time
@@ -356,10 +372,12 @@ def normStateDict(sDict, config_dict, returnDict=False):
     )
 
     result["reg_signal"] = sDict["reg_signal"] / (
-        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"]
+        * default_env_prop["cluster_prop"]["nb_agents"]
     )
     result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (
-        default_env_prop["reward_prop"]["norm_reg_sig"] * default_env_prop["cluster_prop"]["nb_agents"]
+        default_env_prop["reward_prop"]["norm_reg_sig"]
+        * default_env_prop["cluster_prop"]["nb_agents"]
     )
 
     temp_messages = []
@@ -372,10 +390,12 @@ def normStateDict(sDict, config_dict, returnDict=False):
             message["hvac_seconds_since_off"] / sDict["hvac_lockout_duration"]
         )
         r_message["hvac_curr_consumption"] = (
-            message["hvac_curr_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
+            message["hvac_curr_consumption"]
+            / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
         r_message["hvac_max_consumption"] = (
-            message["hvac_max_consumption"] / default_env_prop["reward_prop"]["norm_reg_sig"]
+            message["hvac_max_consumption"]
+            / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
         temp_messages.append(r_message)
 
@@ -440,19 +460,32 @@ def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
             obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
             for i in range(env.nb_agents):
                 cumul_avg_reward += rewards_dict[i] / env.nb_agents
-                cumul_temp_error += np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"]) / env.nb_agents
-                cumul_signal_error += np.abs(obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]) / (env.nb_agents**2)
-    mean_avg_return = cumul_avg_reward/opt.nb_time_steps_test
-    mean_temp_error = cumul_temp_error/opt.nb_time_steps_test
-    mean_signal_error = cumul_signal_error/opt.nb_time_steps_test
+                cumul_temp_error += (
+                    np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"])
+                    / env.nb_agents
+                )
+                cumul_signal_error += np.abs(
+                    obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]
+                ) / (env.nb_agents**2)
+    mean_avg_return = cumul_avg_reward / opt.nb_time_steps_test
+    mean_temp_error = cumul_temp_error / opt.nb_time_steps_test
+    mean_signal_error = cumul_signal_error / opt.nb_time_steps_test
 
-    return {'Mean test return': mean_avg_return, 'Test mean temperature error':mean_temp_error, 'Test mean signal error': mean_signal_error, "Training steps": tr_time_steps} 
+    return {
+        "Mean test return": mean_avg_return,
+        "Test mean temperature error": mean_temp_error,
+        "Test mean signal error": mean_signal_error,
+        "Training steps": tr_time_steps,
+    }
 
-def testAgentHouseTemperature(agent, state, low_temp, high_temp, config_dict, reg_signal):
-    '''
+
+def testAgentHouseTemperature(
+    agent, state, low_temp, high_temp, config_dict, reg_signal
+):
+    """
     Receives an agent and a given state. Tests the agent probability output for 100 points
     given range of indoors temperature, returning a vector for the probability of True (on).
-    '''
+    """
     temp_range = np.linspace(low_temp, high_temp, num=100)
     prob_on = np.zeros(100)
     for i in range(100):
@@ -546,6 +579,7 @@ class Perlin:
         plt.plot(l)
         plt.show()
 
+
 def deadbandL2(target, deadband, value):
     if target + deadband / 2 < value:
         deadband_L2 = (value - (target + deadband / 2)) ** 2
@@ -555,3 +589,79 @@ def deadbandL2(target, deadband, value):
         deadband_L2 = 0.0
 
     return deadband_L2
+
+
+def house_solar_gain(date_time, window_area, shading_coeff):
+    """
+    Computes the solar gain, i.e. the heat transfer received from the sun through the windows.
+
+    Return:
+    solar_gain: float, direct solar radiation passing through the windows at a given moment in Watts
+
+    Par¸ameters
+    date_time: datetime, current date and time
+
+    ---
+    Source and assumptions:
+    CIBSE. (2015). Environmental Design - CIBSE Guide A (8th Edition) - 5.9.7 Solar Cooling Load Tables. CIBSE.
+    Retrieved from https://app.knovel.com/hotlink/pdf/id:kt0114THK9/environmental-design/solar-cooling-load-tables
+    Table available: https://www.cibse.org/Knowledge/Guide-A-2015-Supplementary-Files/Chapter-5
+
+    Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
+
+    Based on the following assumptions.
+    - Latitude is 30. (The latitude of Austin in Texas is 30.266666)
+    - The SCL before 7:30 and after 17:30 is negligible for latitude 30.
+    - The windows are distributed perfectly evenly around the building.
+    - There are no horizontal windows, for example on the roof.
+    """
+
+    x = date_time.hour + date_time.minute / 60 - 7.5
+    if x < 0 or x > 10:
+        solar_cooling_load = 0
+    else:
+        y = date_time.month + date_time.day / 30 - 1
+        coeff = [
+            4.36579418e01,
+            1.58055357e02,
+            8.76635241e01,
+            -4.55944821e01,
+            3.24275366e00,
+            -4.56096472e-01,
+            -1.47795612e01,
+            4.68950855e00,
+            -3.73313090e01,
+            5.78827663e00,
+            1.04354810e00,
+            2.12969604e-02,
+            2.58881400e-03,
+            -5.11397219e-04,
+            1.56398008e-02,
+            -1.18302764e-01,
+            -2.71446436e-01,
+            -3.97855577e-02,
+        ]
+
+        solar_cooling_load = (
+            coeff[0]
+            + x * coeff[1]
+            + y * coeff[2]
+            + x**2 * coeff[3]
+            + x**2 * y * coeff[4]
+            + x**2 * y**2 * coeff[5]
+            + y**2 * coeff[6]
+            + x * y**2 * coeff[7]
+            + x * y * coeff[8]
+            + x**3 * coeff[9]
+            + y**3 * coeff[10]
+            + x**3 * y * coeff[11]
+            + x**3 * y**2 * coeff[12]
+            + x**3 * y**3 * coeff[13]
+            + x**2 * y**3 * coeff[14]
+            + x * y**3 * coeff[15]
+            + x**4 * coeff[16]
+            + y**4 * coeff[17]
+        )
+
+    solar_gain = window_area * shading_coeff * solar_cooling_load
+    return solar_gain

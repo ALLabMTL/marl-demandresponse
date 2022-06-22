@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import json
+
 #%% Classes
 
 
@@ -14,19 +15,16 @@ class Actor(nn.Module):
             layers = json.loads(layers)
             layers = [int(x) for x in layers]
         self.layers = layers
-        self.fc = [nn.Linear(num_state, layers[0])]
-        for i in range(0, len(layers)-1):
-            print("Actor: {}".format(i))
-            self.fc.append(nn.Linear(layers[i], layers[i+1]))
-        print("Actor fc:", self.fc)    
-        self.action_head = nn.Linear(layers[-1], num_action)
-        print(self)
+
+        self.fc = nn.ModuleList([nn.Linear(num_state, layers[0])])
+        self.fc.extend(
+            [nn.Linear(layers[i], layers[i + 1]) for i in range(0, len(layers) - 1)]
+        )
+        self.fc.append(nn.Linear(layers[-1], num_action))
 
     def forward(self, x, temp=1):
-        x = F.relu(self.fc[0](x))
-        for i in range(1, len(self.layers)):
+        for i in range(0, len(self.layers)):
             x = F.relu(self.fc[i](x))
-        x = self.action_head(x)
         action_prob = F.softmax(x / temp, dim=1)
         return action_prob
 
@@ -37,15 +35,14 @@ class Critic(nn.Module):
         if isinstance(layers, str):
             layers = json.loads(layers)
             layers = [int(x) for x in layers]
-        self.layers = layers
-        self.fc = [nn.Linear(num_state, layers[0])]
-        for i in range(0, len(layers)-1):
-            self.fc.append(nn.Linear(layers[i], layers[i+1]))
-        self.state_value = nn.Linear(layers[-1], 1)
+        self.fc = nn.ModuleList([nn.Linear(num_state, layers[0])])
+        self.fc.extend(
+            [nn.Linear(layers[i], layers[i + 1]) for i in range(0, len(layers) - 1)]
+        )
+        self.fc.append(nn.Linear(layers[-1], 1))
 
     def forward(self, x):
-        x = F.relu(self.fc[0](x))
-        for i in range(1, len(self.layers)):
+        for i in range(0, len(layers)):
             x = F.relu(self.fc[i](x))
         value = self.state_value(x)
         return value
