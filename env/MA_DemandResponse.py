@@ -552,6 +552,8 @@ class SingleHouse(object):
         self.window_area = house_properties["window_area"]
         self.shading_coeff = house_properties["shading_coeff"]
         self.solar_gain_bool = house_properties["solar_gain_bool"]
+        self.current_solar_gain = 0
+
 
         # Thermal constraints
         self.target_temp = house_properties["target_temp"]
@@ -643,9 +645,12 @@ class SingleHouse(object):
         total_Qhvac = self.hvac.get_Q()
 
         # Total heat addition to air
-        other_Qa = house_solar_gain(
-            date_time, self.window_area, self.shading_coeff
-        )  # windows, ...
+        if self.solar_gain_bool:
+            self.solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
+        else:
+            self.solar_gain = 0
+
+        other_Qa = self.solar_gain # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
@@ -847,7 +852,7 @@ class ClusterHouses(object):
             cluster_obs_dict[house_id]["house_Cm"] = house.Cm
             cluster_obs_dict[house_id]["house_Ca"] = house.Ca
             cluster_obs_dict[house_id]["house_Hm"] = house.Hm
-            cluster_obs_dict[house_id]["house_solar_gain"] = house.house_solar_gain(date_time)
+            cluster_obs_dict[house_id]["house_solar_gain"] = house.current_solar_gain
 
             # Supposedly constant values from hvac
             cluster_obs_dict[house_id]["hvac_COP"] = hvac.COP
