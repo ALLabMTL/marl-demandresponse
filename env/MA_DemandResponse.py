@@ -646,11 +646,11 @@ class SingleHouse(object):
 
         # Total heat addition to air
         if self.solar_gain_bool:
-            self.solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
+            self.current_solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
         else:
-            self.solar_gain = 0
+            self.current_solar_gain = 0
 
-        other_Qa = self.solar_gain # windows, ...
+        other_Qa = self.current_solar_gain # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
