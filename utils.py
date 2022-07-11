@@ -105,6 +105,9 @@ def adjust_config_train(opt, config_dict):
 
     config_dict["default_env_prop"]["power_grid_prop"]["artificial_ratio"] = opt.artificial_signal_ratio
 
+    if opt.artificial_signal_ratio_range != -1:
+        config_dict["default_env_prop"]["power_grid_prop"]["artificial_signal_ratio_range"] = opt.artificial_signal_ratio_range
+
         
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:

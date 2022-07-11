@@ -803,7 +803,6 @@ class ClusterHouses(object):
                 possible_ids.remove(agent_id)
                 ids_houses_messages = random.sample(possible_ids, k=nb_comm)
                 self.agent_communicators[agent_id] = ids_houses_messages
-
         else:
             raise ValueError(
                 "Cluster property: unknown agents_comm_mode '{}'.".format(
@@ -994,7 +993,7 @@ class PowerGrid(object):
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
-        self.artificial_ratio = power_grid_prop["artificial_ratio"]
+        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
 
         ## Constant base power
         if self.base_power_mode == "constant":
@@ -1067,6 +1066,9 @@ class PowerGrid(object):
         self.nb_hvacs = nb_hvacs
         self.default_house_prop = default_house_prop
         self.base_power = 0
+
+
+
 
     def interpolatePower(self, date_time):
         base_power = 0

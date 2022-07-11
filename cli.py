@@ -309,6 +309,12 @@ def cli_train():
         default=1.0,
         help="Artificially multiply the base signal for experimental purposes.")
 
+    parser.add_argument(
+        "--artificial_signal_ratio_range",
+        type=float,
+        default=-1,
+        help="Range from which the base signal is artificially multiplied or divided at every episode during training. Ex: 1 will not modify the signal. 3 will have signal modified between 1/3 and 3 times the base signal.")
+
 
     opt = parser.parse_args()
 

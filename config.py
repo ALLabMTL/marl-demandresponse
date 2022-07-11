@@ -255,6 +255,8 @@ config_dict = {
 				"interp_nb_agents": 100 					# Max number of agents over which the interpolation is run
 			},		
 		},
+		"artificial_signal_ratio_range": 1, 			# Scale of artificial multiplicative factor randomly multiplied (or divided) at each episode during training. Ex: 1 will not modify signal. 3 will have signal between 33% and 300% of what is computed.
+
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: flat, sinusoidal, regular_steps
 		"signal_parameters": {
 			"flat": {
