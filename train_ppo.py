@@ -55,7 +55,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             renderer.render(obs_dict)
             
         # Select action with probabilities
-        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict)) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         

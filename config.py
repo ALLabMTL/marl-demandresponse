@@ -298,15 +298,20 @@ config_dict = {
 
 },
 
-# NN properties
+# Agent properties
 
-"nn_prop": {
+"PPO_prop": {
     "actor_layers": [100],
 	"critic_layers": [100],
     "gamma": 0.99,
-    "tau": 0.01,
-    "buffer_capacity": 10000,
-    "lr": 1e-3,
+    #"tau": 0.01,
+    "buffer_capacity": 524288,
+    "lr_critic": 3e-3,
+    "lr_actor": 1e-3,
+    "clip_param": 0.2,
+    "max_grad_norm": 0.5,
+    "ppo_update_time": 10,
+    "batch_size": 256,
     },
 "MPC_prop" : {
     "rolling_horizon": 15,

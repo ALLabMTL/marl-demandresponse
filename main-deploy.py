@@ -63,7 +63,6 @@ for house_id in houses.keys():
     if opt.actor_name:
         agent_prop["actor_name"] = opt.actor_name
         agent_prop["net_seed"] = opt.net_seed
-        agent_prop["exploration_temp"] = opt.exploration_temp
 
     actors[house_id] = agents_dict[opt.agent](agent_prop, config_dict, num_state=num_state)
 

@@ -11,34 +11,39 @@ from agents.network import Actor, Critic, OldActor, OldCritic
 
 
 class PPO():
-    def __init__(self, config_dict, opt, gamma=0.99, buffer_capacity=524288, ppo_update_time=10, max_grad_norm=0.5, clip_param=0.2, num_state=22, num_action=2):
+    def __init__(self, config_dict, opt, num_state=22, num_action=2):
         super(PPO, self).__init__()
         self.seed = opt.net_seed
         torch.manual_seed(self.seed)
 
-        self.batch_size = opt.batch_size
 
         #if True:
         #    self.actor_net = OldActor(num_state=num_state, num_action=num_action)
         #    self.critic_net = OldCritic(num_state=num_state)            
-        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers=config_dict["nn_prop"]["actor_layers"])
-        self.critic_net = Critic(num_state=num_state, layers=config_dict["nn_prop"]["critic_layers"])
+        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers=config_dict["PPO_prop"]["actor_layers"])
+        self.critic_net = Critic(num_state=num_state, layers=config_dict["PPO_prop"]["critic_layers"])
         self.buffer = []
-        self.buffer_capacity = buffer_capacity
-        self.ppo_update_time = ppo_update_time
-        self.max_grad_norm = max_grad_norm
-        self.clip_param = clip_param
-        self.gamma = gamma
+        self.buffer_capacity = config_dict["PPO_prop"]["buffer_capacity"]
+        self.batch_size = config_dict["PPO_prop"]["batch_size"]
+        self.ppo_update_time = config_dict["PPO_prop"]["ppo_update_time"]
+        self.max_grad_norm = config_dict["PPO_prop"]["max_grad_norm"]
+        self.clip_param = config_dict["PPO_prop"]["clip_param"]
+        self.gamma = config_dict["PPO_prop"]["gamma"]
+        self.lr_actor = config_dict["PPO_prop"]["lr_actor"]
+        self.lr_critic = config_dict["PPO_prop"]["lr_critic"]
+
+        print("buffer_capacity: {}, ppo_update_time: {}, max_grad_norm: {}, clip_param: {}, gamma: {}, batch_size: {}, lr_actor: {}, lr_critic: {}".format(
+            self.buffer_capacity, self.ppo_update_time, self. max_grad_norm, self.clip_param, self.gamma, self.batch_size, self.lr_actor, self.lr_critic))
         self.counter = 0
         self.training_step = 0
 
-        self.actor_optimizer = optim.Adam(self.actor_net.parameters(), 1e-3)
-        self.critic_net_optimizer = optim.Adam(self.critic_net.parameters(), 3e-3)
+        self.actor_optimizer = optim.Adam(self.actor_net.parameters(), self.lr_actor)
+        self.critic_net_optimizer = optim.Adam(self.critic_net.parameters(), self.lr_critic)
 
-    def select_action(self, state, temp=1):
+    def select_action(self, state):
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
-            action_prob = self.actor_net(state, temp)
+            action_prob = self.actor_net(state)
         #print(action_prob)
         c = Categorical(action_prob)
         action = c.sample()

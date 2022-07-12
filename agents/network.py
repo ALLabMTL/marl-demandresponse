@@ -23,10 +23,10 @@ class Actor(nn.Module):
         self.fc.append(nn.Linear(layers[-1], num_action))
         print(self)
 
-    def forward(self, x, temp=1):
+    def forward(self, x):
         for i in range(0, len(self.layers)):
             x = F.relu(self.fc[i](x))
-        action_prob = F.softmax(self.fc[len(self.layers)](x) / temp, dim=1)
+        action_prob = F.softmax(self.fc[len(self.layers)](x), dim=1)
         return action_prob
 
 
@@ -59,10 +59,10 @@ class OldActor(nn.Module):
         self.action_head = nn.Linear(100, num_action)
         print(self)
 
-    def forward(self, x, temp = 1):
+    def forward(self, x):
         x = F.relu(self.fc1(x))
         x = self.action_head(x)
-        action_prob = F.softmax(x/temp, dim=1)
+        action_prob = F.softmax(x, dim=1)
         return action_prob
 
 
