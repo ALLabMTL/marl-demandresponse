@@ -122,35 +122,56 @@ class PPO():
 
         if self.log_wandb:
 
-            print(ratios.shape)
-            print(clipped_ratios.shape)
-            print(gradient_norms.shape)
             max_ratio = np.max(ratios)
             mean_ratio = np.mean(ratios)
             median_ratio = np.median(ratios)
-            min_ration = np.min(ratios)
+            min_ratio = np.min(ratios)
+            per95_ratio = np.percentile(ratios, 95)
+            per75_ratio = np.percentile(ratios, 75)
+            per25_ratio = np.percentile(ratios, 25)
+            per5_ratio = np.percentile(ratios, 5)
             max_cl_ratio = np.max(clipped_ratios)
             mean_cl_ratio = np.mean(clipped_ratios)
             median_cl_ratio = np.median(clipped_ratios)
             min_cl_ratio = np.min(clipped_ratios)
+            per95_cl_ratio = np.percentile(clipped_ratios, 95)
+            per75_cl_ratio = np.percentile(clipped_ratios, 75)
+            per25_cl_ratio = np.percentile(clipped_ratios, 25)
+            per5_cl_ratio = np.percentile(clipped_ratios, 5)
             max_gradient_norm = np.max(gradient_norms)
             mean_gradient_norm = np.mean(gradient_norms)
             median_gradient_norm = np.median(gradient_norms)
             min_gradient_norm = np.min(gradient_norms)
+            per95_gradient_norm = np.percentile(gradient_norms, 95)
+            per75_gradient_norm = np.percentile(gradient_norms, 75)
+            per25_gradient_norm = np.percentile(gradient_norms, 25)
+            per5_gradient_norm = np.percentile(gradient_norms, 5)
 
             self.wandb_run.log({
                 "PPO max ratio": max_ratio,
                 "PPO mean ratio": mean_ratio,
                 "PPO median ratio": median_ratio,
-                "PPO min ration": min_ration,
+                "PPO min ratio": min_ratio,
+                "PPO ratio 95 percentile": per95_ratio,
+                "PPO ratio 5 percentile": per5_ratio,
+                "PPO ratio 75 percentile": per75_ratio,
+                "PPO ratio 25 percentile": per25_ratio,
                 "PPO max clipped ratio": max_cl_ratio,
                 "PPO mean clipped ratio": mean_cl_ratio,
                 "PPO median clipped ratio": median_cl_ratio,
                 "PPO min clipped ratio": min_cl_ratio,
+                "PPO clipped ratio 95 percentile": per95_cl_ratio,
+                "PPO clipped ratio 5 percentile": per5_cl_ratio,
+                "PPO clipped ratio 75 percentile": per75_cl_ratio,
+                "PPO clipped ratio 25 percentile": per25_cl_ratio,
                 "PPO max gradient norm": max_gradient_norm,
                 "PPO mean gradient norm": mean_gradient_norm,
                 "PPO median gradient norm": median_gradient_norm,
                 "PPO min gradient norm": min_gradient_norm,
+                "PPO gradient norm 95 percentile": per95_gradient_norm,
+                "PPO gradient norm 5 percentile": per5_gradient_norm,
+                "PPO gradient norm 75 percentile": per75_gradient_norm,
+                "PPO gradient norm 25 percentile": per25_gradient_norm,
                 "Training steps": t})
 
         del self.buffer[:] # clear experience

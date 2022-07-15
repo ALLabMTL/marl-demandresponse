@@ -112,7 +112,13 @@ def adjust_config_train(opt, config_dict):
     if opt.lr_critic != -1:
         config_dict["PPO_prop"]["lr_critic"] = opt.lr_critic
     if opt.lr_actor != -1:
-        config_dict["PPO_prop"]["lr_actor"] = opt.lr_actor        
+        config_dict["PPO_prop"]["lr_actor"] = opt.lr_actor
+    if opt.lr_both != -1:
+        config_dict["PPO_prop"]["lr_critic"] = opt.lr_both
+        config_dict["PPO_prop"]["lr_actor"] = opt.lr_both
+        if opt.lr_actor != -1 or opt.lr_critic != -1:
+            raise ValueError("Potential conflict: both lr_both and lr_actor or lr_critic were set in the CLI")
+
 # RL optimization
     if opt.gamma != -1:
         config_dict["PPO_prop"]["gamma"] = opt.gamma

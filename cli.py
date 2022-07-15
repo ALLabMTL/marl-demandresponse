@@ -318,6 +318,12 @@ def cli_train():
         help="Learning rate of actor network"
         )
 
+    parser.add_argument(
+        "--lr_both",
+        type=float,
+        default=-1,
+        help="Equal learning rate of actor and critic networks")
+
 # RL optimization
 
     parser.add_argument(
