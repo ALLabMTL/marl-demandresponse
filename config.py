@@ -200,6 +200,12 @@ config_dict = {
 				"temp_std": 0,
 				"random_phase_offset": False,
 			},
+			"sinusoidal_heatwave": {
+				"day_temp": 34,
+				"night_temp": 28,
+				"temp_std": 0,			
+				"random_phase_offset": False,
+			},
 			"sinusoidal_cold": {
 				"day_temp": 24,
 				"night_temp": 22,
@@ -214,6 +220,12 @@ config_dict = {
 			},
 			"noisy_sinusoidal_hot": {
 				"day_temp": 30,
+				"night_temp": 28,
+				"temp_std": 0.5,			
+				"random_phase_offset": False,
+			},
+			"noisy_sinusoidal_heatwave": {
+				"day_temp": 34,
 				"night_temp": 28,
 				"temp_std": 0.5,			
 				"random_phase_offset": False,

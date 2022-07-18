@@ -41,8 +41,6 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
     time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
     time_steps_per_saving_actor = int(opt.nb_time_steps/(opt.nb_inter_saving_actor+1))
-    prob_on_test_on = np.empty(100)
-    prob_on_test_off = np.empty(100)
     metrics = Metrics()
 
     # Get first observation
