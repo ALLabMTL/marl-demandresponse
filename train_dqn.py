@@ -32,7 +32,6 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     
     # Variables
     time_steps_per_episode = int(opt.nb_time_steps/opt.nb_tr_episodes)
-    time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
     time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
     time_steps_per_saving_actor = int(opt.nb_time_steps/(opt.nb_inter_saving_actor+1))
@@ -72,9 +71,8 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         # Store transition in replay buffer
         for k in obs_dict.keys():
             agent.store_transition(normStateDict(obs_dict[k], config_dict), action[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict))
-            
-        # Update metrics
-        metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
+            # Update metrics
+            metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
         
         # Set next_state as current state
         obs_dict = next_obs_dict
