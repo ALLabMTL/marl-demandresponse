@@ -374,7 +374,7 @@ def cli_train():
     )
        
     parser.add_argument(
-        "--espilon_decay",
+        "--epsilon_decay",
         type=float,
         default=-1,
         help="Decay rate of epsilon-greedy exploration parameter."

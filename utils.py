@@ -146,8 +146,8 @@ def adjust_config_train(opt, config_dict):
         config_dict["DQN_prop"]["tau"] = opt.tau
     if opt.buffer_capacity != -1:
         config_dict["DQN_prop"]["buffer_capacity"] = opt.buffer_capacity    
-    if opt.espilon_decay != -1:
-        config_dict["DQN_prop"]["espilon_decay"] = opt.espilon_decay    
+    if opt.epsilon_decay != -1:
+        config_dict["DQN_prop"]["epsilon_decay"] = opt.epsilon_decay    
     if opt.min_epsilon != -1:
         config_dict["DQN_prop"]["min_epsilon"] = opt.min_epsilon    
         

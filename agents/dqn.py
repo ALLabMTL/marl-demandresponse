@@ -82,8 +82,6 @@ class DQN:
         self.target_net.load_state_dict(params)
 
     def update(self):
-        print(len(self.buffer))
-        print(self.batch_size)
         if len(self.buffer) < self.batch_size:
             return # exit if there are not enough transitions in buffer
         

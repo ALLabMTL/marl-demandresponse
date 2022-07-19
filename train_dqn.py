@@ -18,7 +18,6 @@ import wandb
 def decrease(epsilon, opt):
     epsilon *= config_dict["DQN_prop"]["epsilon_decay"]
     epsilon = np.maximum(epsilon, config_dict["DQN_prop"]["min_epsilon"])
-
     return epsilon
     
 def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
