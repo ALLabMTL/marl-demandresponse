@@ -355,13 +355,53 @@ def cli_train():
         help="Number of update rounds at each epoch"
         )    
 
+
+
+## DQN agent (only those which were not already added in PPO agent)
+
+    parser.add_argument(
+        "--DQNnetwork_layers",
+        type=str,
+        default="config",
+        help="List containing the number of neurons on each layers of the DQN neural network model"
+    )
+
+    parser.add_argument(
+        "--tau",
+        type=float,
+        default=-1,
+        help="Rate of update of the target network following the policy network."
+    )
+       
+    parser.add_argument(
+        "--espilon_decay",
+        type=float,
+        default=-1,
+        help="Decay rate of epsilon-greedy exploration parameter."
+    )
+        
+    parser.add_argument(
+        "--min_epsilon",
+        type=float,
+        default=-1,
+        help="Minimal value of epsilon-greedy exploration parameter."
+    )
+
     parser.add_argument(
         "--buffer_capacity",
         type=int,
         default=-1,
         help="Replay buffer capacity"
-        )
-# Training parameters
+    )
+        
+    parser.add_argument(
+        "--DQN_lr",
+        type=int,
+        default=-1,
+        help="Learning rate"
+    )
+
+### Training parameters
 
     parser.add_argument(
         "--nb_tr_episodes",
@@ -404,6 +444,7 @@ def cli_train():
         default=50000,
         help="Total number of time steps in an episode at test time",
     )
+
 
     opt = parser.parse_args()
 

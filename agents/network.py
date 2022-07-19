@@ -77,10 +77,28 @@ class OldCritic(nn.Module):
         value = self.state_value(x)
         return value
 
-class NN(nn.Module):
-    def __init__(self, layers):
-        super(NN, self).__init__()
+class DQN_network(nn.Module):
+    def __init__(self, num_state, num_action, layers):
+        super(DQN_network, self).__init__()
+        if isinstance(layers, str):
+            layers = json.loads(layers)
+            layers = [int(x) for x in layers]
+        self.layers = layers
 
+        self.fc = nn.ModuleList([nn.Linear(num_state, layers[0])])
+        self.fc.extend(
+            [nn.Linear(layers[i], layers[i + 1]) for i in range(0, len(layers) - 1)]
+        )
+        self.fc.append(nn.Linear(layers[-1], num_action))
+        print(self)        
+
+    def forward(self, x):
+        for i in range(0, len(self.layers)):
+            x = F.relu(self.fc[i](x))
+        value = self.fc[len(self.layers)](x)
+        return value
+
+"""
         # Min. 1 layer == 3-item list, e.g. [10,100,2]
         depth = len(layers) - 1
         assert depth > 1, "NN must have at least one hidden layer"
@@ -95,7 +113,7 @@ class NN(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-
+"""
 #%% Testing
 
 if __name__ == "__main__":

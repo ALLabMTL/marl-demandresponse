@@ -118,7 +118,6 @@ def adjust_config_train(opt, config_dict):
         config_dict["PPO_prop"]["lr_actor"] = opt.lr_both
         if opt.lr_actor != -1 or opt.lr_critic != -1:
             raise ValueError("Potential conflict: both lr_both and lr_actor or lr_critic were set in the CLI")
-
 # RL optimization
     if opt.gamma != -1:
         config_dict["PPO_prop"]["gamma"] = opt.gamma
@@ -128,10 +127,29 @@ def adjust_config_train(opt, config_dict):
         config_dict["PPO_prop"]["max_grad_norm"] = opt.max_grad_norm
     if opt.ppo_update_time != -1:
         config_dict["PPO_prop"]["ppo_update_time"] = opt.ppo_update_time
+
+## DQN agent
+# NN architecture
+    if opt.DQNnetwork_layers != "config":
+        config_dict["DQN_prop"]["network_layers"] = opt.DQNnetwork_layers
+
+# NN optimization
+    if opt.batch_size != -1:
+        config_dict["DQN_prop"]["batch_size"] = opt.batch_size
+    if opt.DQN_lr != -1:
+        config_dict["DQN_prop"]["lr"] = opt.DQN_lr       
+
+# RL optimization
+    if opt.gamma != -1:
+        config_dict["DQN_prop"]["gamma"] = opt.gamma
+    if opt.tau != -1:
+        config_dict["DQN_prop"]["tau"] = opt.tau
     if opt.buffer_capacity != -1:
-        config_dict["PPO_prop"]["buffer_capacity"] = opt.buffer_capacity
-
-
+        config_dict["DQN_prop"]["buffer_capacity"] = opt.buffer_capacity    
+    if opt.espilon_decay != -1:
+        config_dict["DQN_prop"]["espilon_decay"] = opt.espilon_decay    
+    if opt.min_epsilon != -1:
+        config_dict["DQN_prop"]["min_epsilon"] = opt.min_epsilon    
         
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
@@ -174,6 +192,8 @@ def adjust_config_deploy(opt, config_dict):
     if opt.layers_both != "config":
         config_dict["PPO_prop"]["actor_layers"] = opt.layers_both
         config_dict["PPO_prop"]["critic_layers"] = opt.layers_both
+    if opt.DQNnetwork_layers != "config":
+        config_dict["DQN_prop"]["network_layers"] = opt.DQNnetwork_layers
     if opt.start_datetime_mode != "config":
         config_dict["default_env_prop"]["start_datetime_mode"] = opt.start_datetime_mode
 
@@ -447,28 +467,43 @@ def normStateDict(sDict, config_dict, returnDict=False):
 #%% Testing
 
 
-def test_dqn_agent(agent, env, nb_time_steps_test, config_dict, time_steps_per_episode):
+def test_dqn_agent(agent, env, config_dict, opt, tr_time_steps):
     """
     Test dqn agent on an episode of nb_test_timesteps
     """
     env = deepcopy(env)
     cumul_avg_reward = 0
+    cumul_temp_error = 0
+    cumul_signal_error = 0
+
     obs_dict = env.reset()
-    for t in range(nb_time_steps_test):
-        action = {
-            k: agent.select_action(normStateDict(obs_dict[k], config_dict))
-            for k in obs_dict.keys()
-        }
-        obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-        # TODO remove fixed 0_1
-        cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
+    with torch.no_grad():
+        for t in range(opt.nb_time_steps_test):
+            action = {
+                k: agent.select_action(normStateDict(obs_dict[k], config_dict))
+                for k in obs_dict.keys()
+            }
+            obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+            for i in range(env.nb_agents):
+                cumul_avg_reward += rewards_dict[i] / env.nb_agents
+                cumul_temp_error += (
+                    np.abs(obs_dict[i]["house_temp"] - obs_dict[i]["house_target_temp"])
+                    / env.nb_agents
+                )
+                cumul_signal_error += np.abs(
+                    obs_dict[i]["reg_signal"] - obs_dict[i]["cluster_hvac_power"]
+                ) / (env.nb_agents**2)
 
-        if t % time_steps_per_episode == time_steps_per_episode - 1:
-            obs_dict = env.reset()
-
-    mean_avg_return = cumul_avg_reward / nb_time_steps_test
-
-    return mean_avg_return
+    mean_avg_return = cumul_avg_reward / opt.nb_time_steps_test
+    mean_temp_error = cumul_temp_error / opt.nb_time_steps_test
+    mean_signal_error = cumul_signal_error / opt.nb_time_steps_test
+    
+    return {
+        "Mean test return": mean_avg_return,
+        "Test mean temperature error": mean_temp_error,
+        "Test mean signal error": mean_signal_error,
+        "Training steps": tr_time_steps,
+    }
 
 
 def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
@@ -556,6 +591,15 @@ def saveActorNetDict(agent, path, t=None):
         torch.save(actor_net.state_dict(), os.path.join(path, "actor" + str(t) + ".pth"))
     else:
         torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))
+
+def saveDQNNetDict(agent, path, t=None):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    policy_net = agent.policy_net
+    if t:
+        torch.save(policy_net.state_dict(), os.path.join(path, "DQN" + str(t) + ".pth"))
+    else:
+        torch.save(policy_net.state_dict(), os.path.join(path, "DQN.pth"))
 
 
 def clipInterpolationPoint(point, parameter_dict):
