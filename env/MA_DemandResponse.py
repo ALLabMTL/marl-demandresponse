@@ -103,6 +103,8 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.noise_hvac_prop,
         )
 
+
+
         self.start_datetime = self.env_properties[
             "start_datetime"
         ]  # Start date and time
@@ -119,6 +121,9 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.datetime,
             self.time_step,
         )
+
+        self.env_properties["power_grid_prop"]["max_power"] = self.cluster.max_power
+
         self.power_grid = PowerGrid(
             self.env_properties["power_grid_prop"],
             self.default_house_prop,
@@ -546,6 +551,9 @@ class SingleHouse(object):
         self.current_mass_temp = self.init_mass_temp
         self.window_area = house_properties["window_area"]
         self.shading_coeff = house_properties["shading_coeff"]
+        self.solar_gain_bool = house_properties["solar_gain_bool"]
+        self.current_solar_gain = 0
+
 
         # Thermal constraints
         self.target_temp = house_properties["target_temp"]
@@ -637,9 +645,12 @@ class SingleHouse(object):
         total_Qhvac = self.hvac.get_Q()
 
         # Total heat addition to air
-        other_Qa = house_solar_gain(
-            date_time, self.window_area, self.shading_coeff
-        )  # windows, ...
+        if self.solar_gain_bool:
+            self.current_solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
+        else:
+            self.current_solar_gain = 0
+
+        other_Qa = self.current_solar_gain # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
@@ -734,10 +745,12 @@ class ClusterHouses(object):
 
         # Compute the Initial cluster_hvac_power
         self.cluster_hvac_power = 0
+        self.max_power = 0
         for house_id in self.houses.keys():
             house = self.houses[house_id]
             hvac = house.hvac
             self.cluster_hvac_power += hvac.power_consumption()
+            self.max_power += hvac.max_consumption
 
         self.build_agent_comm_links()
 
@@ -790,7 +803,6 @@ class ClusterHouses(object):
                 possible_ids.remove(agent_id)
                 ids_houses_messages = random.sample(possible_ids, k=nb_comm)
                 self.agent_communicators[agent_id] = ids_houses_messages
-
         else:
             raise ValueError(
                 "Cluster property: unknown agents_comm_mode '{}'.".format(
@@ -839,6 +851,7 @@ class ClusterHouses(object):
             cluster_obs_dict[house_id]["house_Cm"] = house.Cm
             cluster_obs_dict[house_id]["house_Ca"] = house.Ca
             cluster_obs_dict[house_id]["house_Hm"] = house.Hm
+            cluster_obs_dict[house_id]["house_solar_gain"] = house.current_solar_gain
 
             # Supposedly constant values from hvac
             cluster_obs_dict[house_id]["hvac_COP"] = hvac.COP
@@ -979,9 +992,8 @@ class PowerGrid(object):
 
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
-        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"][
-            "constant"
-        ]["init_signal_per_hvac"]
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
+        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
 
         ## Constant base power
         if self.base_power_mode == "constant":
@@ -1038,6 +1050,8 @@ class PowerGrid(object):
                 )
             )
 
+        self.max_power = power_grid_prop["max_power"]
+
         if power_grid_prop["signal_mode"] == "perlin":
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
@@ -1053,14 +1067,22 @@ class PowerGrid(object):
         self.default_house_prop = default_house_prop
         self.base_power = 0
 
+
+
+
     def interpolatePower(self, date_time):
         base_power = 0
-        point = {
-            "date": date_time.timetuple().tm_yday,
-            "hour": (
-                date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)
-            ).total_seconds(),
-        }
+
+        if self.default_house_prop["solar_gain_bool"]:
+            point = {
+                "date": date_time.timetuple().tm_yday,
+                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+            }
+        else:       # No solar gain - make it think it is midnight
+            point = {
+                "date": 0.0,
+                "hour": 0.0,
+            }            
 
         all_ids = list(self.cluster_houses.houses.keys())
         if len(all_ids) <= self.interp_nb_agents:
@@ -1160,4 +1182,9 @@ class PowerGrid(object):
                     self.signal_mode
                 )
             )
+
+        self.current_signal = self.current_signal * self.artificial_ratio    #Artificial_ration should be 1. Only change for experimental purposes.
+
+        self.current_signal = np.minimum(self.current_signal, self.max_power)
+
         return self.current_signal

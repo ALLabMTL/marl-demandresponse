@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 import os
-from agents.network import Actor
+from agents.network import Actor, OldActor
 import sys
 sys.path.append("..")
 
@@ -19,20 +19,17 @@ class PPOAgent():
 
         self.seed = agent_properties["net_seed"]
         torch.manual_seed(self.seed)
-
-        self.actor_net = Actor(num_state=num_state, num_action=num_action)
-        self.actor_net.load_state_dict(torch.load(
-            os.path.join(self.actor_path, 'actor.pth')))
+        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers = config_dict["PPO_prop"]["actor_layers"])
+        self.actor_net.load_state_dict(torch.load(os.path.join(self.actor_path, 'actor.pth')))
         self.actor_net.eval()
 
-        self.temp = agent_properties["exploration_temp"]
 
     def act(self, obs_dict):
         obs_dict = obs_dict[self.id]
         state = normStateDict(obs_dict, self.config_dict)
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
-            action_prob = self.actor_net(state, self.temp)
+            action_prob = self.actor_net(state)
         c = Categorical(action_prob)
         action = c.sample()
         return action.item()

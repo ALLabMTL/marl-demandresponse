@@ -25,6 +25,10 @@ import wandb
 
 def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
+    id_rng = np.random.default_rng()
+    unique_ID = str(int(id_rng.random() * 1000000))
+
+
     # Initialize render, if applicable
     if render:
         from env.renderer import Renderer
@@ -36,8 +40,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
     time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
-    prob_on_test_on = np.empty(100)
-    prob_on_test_off = np.empty(100)
+    time_steps_per_saving_actor = int(opt.nb_time_steps/(opt.nb_inter_saving_actor+1))
     metrics = Metrics()
 
     # Get first observation
@@ -50,7 +53,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             renderer.render(obs_dict)
             
         # Select action with probabilities
-        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict), temp=opt.exploration_temp) for k in obs_dict.keys()}
+        action_and_prob = {k: agent.select_action(normStateDict(obs_dict[k], config_dict)) for k in obs_dict.keys()}
         action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
         action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
         
@@ -96,14 +99,20 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             if log_wandb:
                 wandb_run.log(metrics_test)
             else:
-                print("Training step - {t} - Mean test return: {mean_test_return}")
+                print("Training step - {}".format(t))
+
+        if opt.save_actor_name and t % time_steps_per_saving_actor == 0 and t != 0:
+            path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
+            saveActorNetDict(agent, path, t)
+            if log_wandb:
+                wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
 
     if render:
         renderer.__del__(obs_dict)
 
 
     if opt.save_actor_name:
-        path = os.path.join(".", "actors", opt.save_actor_name)
+        path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
         saveActorNetDict(agent, path)
         if log_wandb:
             wandb.save(os.path.join(path, "actor.pth"))

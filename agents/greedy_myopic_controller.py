@@ -9,14 +9,14 @@ class GreedyMyopic(object):
 
     actions_df = []
 
-    def __init__(self, agent_properties, config_dict):
+    def __init__(self, agent_properties, config_dict, num_state = None):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
         self.last_obs = pd.DataFrame(columns=(
             "temperature_difference", "power_consumption", "hvac_lockout",  "reg_signal"))
 
     def act(self, obs):
-        if (self.id == "0_1"):
+        if True:
             self.last_obs = obs
             self.get_action(obs)
 

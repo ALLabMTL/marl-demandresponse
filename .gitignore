@@ -63,3 +63,5 @@ monteCarlo/gridSearchResultFinal_merged.csv
 
 .vs
 actors/
+
+slurm*

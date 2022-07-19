@@ -16,7 +16,8 @@ config_dict = {
 	"Ca" : 9.08e05,						# Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
 	"Hm" : 2.84e03,							# House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.14 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))
 	"window_area" : 7.175, 						# Gross window area, in m^2  
-	"shading_coeff": 0.67 					# Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
+	"shading_coeff": 0.67, 					# Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
+	"solar_gain_bool": True,						# Boolean to model the solar gain
 },
 
 "noise_house_prop" : {
@@ -107,7 +108,10 @@ config_dict = {
 	"noise_mode": "small_noise",	#Can be: no_noise, small_noise, big_noise
 	"noise_parameters": {
 		"no_noise": {
-			"cooling_capacity_list": [15000]
+			"cooling_capacity_list": {
+				10000: [10000],
+				15000: [15000]
+			}
 			#"std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 1,   # Lowest random factor for COP
 			#"factor_COP_high": 1,   # Highest random factor for COP
@@ -115,7 +119,10 @@ config_dict = {
 			#"factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
 		},
 		"small_noise": {
-			"cooling_capacity_list": [10000, 15000]
+			"cooling_capacity_list": {
+				10000: [7500, 10000],
+				15000: [10000, 15000]
+			}
 
 			#"std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 0.95,   # Lowest random factor for COP
@@ -124,7 +131,10 @@ config_dict = {
 			#"factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
 		},
 		"big_noise": {
-			"cooling_capacity_list": [10000, 15000, 20000]
+			"cooling_capacity_list": {
+				10000: [7500, 10000, 12500],
+				15000: [10000, 15000, 20000]
+			}
 			#"std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
 			#"factor_COP_low": 0.85,   # Lowest random factor for COP
 			#"factor_COP_high": 1.15,   # Highest random factor for COP
@@ -190,6 +200,12 @@ config_dict = {
 				"temp_std": 0,
 				"random_phase_offset": False,
 			},
+			"sinusoidal_heatwave": {
+				"day_temp": 34,
+				"night_temp": 28,
+				"temp_std": 0,			
+				"random_phase_offset": False,
+			},
 			"sinusoidal_cold": {
 				"day_temp": 24,
 				"night_temp": 22,
@@ -204,6 +220,12 @@ config_dict = {
 			},
 			"noisy_sinusoidal_hot": {
 				"day_temp": 30,
+				"night_temp": 28,
+				"temp_std": 0.5,			
+				"random_phase_offset": False,
+			},
+			"noisy_sinusoidal_heatwave": {
+				"day_temp": 34,
 				"night_temp": 28,
 				"temp_std": 0.5,			
 				"random_phase_offset": False,
@@ -225,6 +247,11 @@ config_dict = {
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
 		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
 	},
+	"state_properties": {
+		"hour": True,
+		"day": True,
+		"solar_gain": True,
+	},
 	"power_grid_prop": {
 		"base_power_mode" : "interpolation", # Interpolation (based on deadband bang-bang controller) or constant
 		"base_power_parameters": {
@@ -240,6 +267,8 @@ config_dict = {
 				"interp_nb_agents": 100 					# Max number of agents over which the interpolation is run
 			},		
 		},
+		"artificial_signal_ratio_range": 1, 			# Scale of artificial multiplicative factor randomly multiplied (or divided) at each episode during training. Ex: 1 will not modify signal. 3 will have signal between 33% and 300% of what is computed.
+
 		"signal_mode": "regular_steps",					# Mode of the signal. Currently available: flat, sinusoidal, regular_steps
 		"signal_parameters": {
 			"flat": {
@@ -281,16 +310,31 @@ config_dict = {
 
 },
 
-# NN properties
+# Agent properties
 
-"nn_prop": {
-    "actor_layers": [100],
-	"critic_layers": [100],
+"PPO_prop": {
+    "actor_layers": [100, 100],
+	"critic_layers": [100, 100],
+    "gamma": 0.99,
+    "lr_critic": 3e-3,
+    "lr_actor": 1e-3,
+    "clip_param": 0.2,
+    "max_grad_norm": 0.5,
+    "ppo_update_time": 10,
+    "batch_size": 256,
+    },
+
+"DQN_prop": {
+    "network_layers": [100, 100],
     "gamma": 0.99,
     "tau": 0.01,
-    "buffer_capacity": 10000,
+    "buffer_capacity": 524288,
     "lr": 1e-3,
+    "batch_size": 256,
+    "epsilon_decay": 0.99998,
+    "min_epsilon": 0.01,
     },
+
 "MPC_prop" : {
     "rolling_horizon": 15,
     },
