@@ -313,11 +313,9 @@ config_dict = {
 # Agent properties
 
 "PPO_prop": {
-    "actor_layers": [100],
-	"critic_layers": [100],
+    "actor_layers": [100, 100],
+	"critic_layers": [100, 100],
     "gamma": 0.99,
-    #"tau": 0.01,
-    "buffer_capacity": 524288,
     "lr_critic": 3e-3,
     "lr_actor": 1e-3,
     "clip_param": 0.2,
@@ -325,6 +323,18 @@ config_dict = {
     "ppo_update_time": 10,
     "batch_size": 256,
     },
+
+"DQN_prop": {
+    "network_layers": [100, 100],
+    "gamma": 0.99,
+    "tau": 0.01,
+    "buffer_capacity": 524288,
+    "lr": 1e-3,
+    "batch_size": 256,
+    "epsilon_decay": 0.99998,
+    "min_epsilon": 0.01,
+    },
+
 "MPC_prop" : {
     "rolling_horizon": 15,
     },

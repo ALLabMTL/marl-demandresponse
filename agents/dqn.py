@@ -7,38 +7,39 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from agents.network import NN
+from agents.network import DQN_network
 from agents.buffer import ReplayBuffer, Transition
 
 #%% Classes
 
 class DQN:
-    def __init__(self, config_dict, opt, num_state=22, num_action=2):
+    def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run = None):
         super().__init__()
         self.seed = opt.net_seed
         torch.manual_seed(self.seed)
         if opt.save_actor_name:
             self.path = os.path.join(".", "actors", opt.save_actor_name)
-        self.batch_size = opt.batch_size
         
-        self.agent_prop = config_dict['nn_prop']
-        self.inner_layers = self.agent_prop['layers']
+        self.agent_prop = config_dict['DQN_prop']
+        self.inner_layers = self.agent_prop['network_layers']
         self.gamma = self.agent_prop['gamma']
         self.tau = self.agent_prop['tau']
         self.buffer_cap = self.agent_prop['buffer_capacity']
         self.lr = self.agent_prop['lr']
+        self.batch_size = self.agent_prop['batch_size']
+
+
         
-        self.layers = [num_state] + self.inner_layers + [num_action]
-        self.policy_net = NN(self.layers)
-        self.target_net = NN(self.layers)
+        self.policy_net = DQN_network(num_state=num_state, num_action=num_action, layers=config_dict["DQN_prop"]["network_layers"])
+        self.target_net = DQN_network(num_state=num_state, num_action=num_action, layers=config_dict["DQN_prop"]["network_layers"])
         self.target_net.load_state_dict(self.policy_net.state_dict()) # same weights
         
         self.buffer = ReplayBuffer(self.buffer_cap)
         
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        if self.device.type == 'cuda':
-            self.policy_net.to(self.device)
-            self.target_net.to(self.device)
+        #self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        #if self.device.type == 'cuda':
+        #    self.policy_net.to(self.device)
+        #    self.target_net.to(self.device)
         
         # TODO weight decay?
         self.policy_optimizer = optim.Adam(self.policy_net.parameters(), self.lr)
@@ -66,17 +67,23 @@ class DQN:
         a = torch.cat(batch.action)
         r = torch.cat(batch.reward)
         s_next = torch.cat(batch.next_state)
-        if self.device.type == 'cuda':
-            s.to(self.device)
-            a.to(self.device)
-            r.to(self.device)
-            s_next.to(self.device)
+        #if self.device.type == 'cuda':
+        #    s.to(self.device)
+        #    a.to(self.device)
+        #    r.to(self.device)
+        #    s_next.to(self.device)
         return s, a, r, s_next
     
-    def update_params(self):
-        self.target_net.load_state_dict(self.policy_net.state_dict())
+    def update_target_network(self):
+        new_params = self.policy_net.state_dict()
+        params = self.target_net.state_dict()
+        for k in params.keys():
+            params[k] = (1-self.tau) * params[k] + self.tau * new_params[k]
+        self.target_net.load_state_dict(params)
 
     def update(self):
+        print(len(self.buffer))
+        print(self.batch_size)
         if len(self.buffer) < self.batch_size:
             return # exit if there are not enough transitions in buffer
         
@@ -104,17 +111,13 @@ class DQN:
             param.grad.data.clamp_(-1, 1) # clamp gradients
         self.policy_optimizer.step()
 
+        self.update_target_network()
+
+
 class DDQN(DQN):
     def __init__(self, config_dict, opt, num_state=20, num_action=2):
         super().__init__(config_dict, opt, num_state, num_action)
         
-    def update_params(self):
-        new_params = self.policy_net.state_dict()
-        params = self.target_net.state_dict()
-        for k in params.keys():
-            params[k] = (1-self.tau) * params[k] + self.tau * new_params[k]
-        self.target_net.load_state_dict(params)
-
     def update(self):
         if len(self.buffer) < self.batch_size:
             return # exit if there are not enough transitions in buffer

@@ -6,18 +6,26 @@ from cli import cli_train
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
 from plotting import colorPlotTestAgentHouseTemp
-from utils import normStateDict, adjust_config_train, render_and_wandb_init, get_agent_test, test_dqn_agent
+from utils import normStateDict, adjust_config_train, render_and_wandb_init, get_agent_test, test_dqn_agent, saveDQNNetDict
 
 import random
+import os
 import numpy as np
+import wandb
 
 #%% Functions
 
-def decrease(epsilon, opt, t):
-    epsilon *= opt.nb_time_steps/(t/(opt.nb_time_steps/20) + opt.nb_time_steps)
+def decrease(epsilon, opt):
+    epsilon *= config_dict["DQN_prop"]["epsilon_decay"]
+    epsilon = np.maximum(epsilon, config_dict["DQN_prop"]["min_epsilon"])
+
     return epsilon
     
 def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
+    id_rng = np.random.default_rng()
+    unique_ID = str(int(id_rng.random() * 1000000))
+
+
     # Initialize render, if applicable
     if render:
         from env.renderer import Renderer
@@ -28,8 +36,8 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
     time_steps_test_log = int(opt.nb_time_steps/opt.nb_test_logs)
-    action_on_test_on = np.empty(100)
-    action_on_test_off = np.empty(100)
+    time_steps_per_saving_actor = int(opt.nb_time_steps/(opt.nb_inter_saving_actor+1))
+
     metrics = Metrics()
     epsilon = 1.0
         
@@ -43,6 +51,13 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             renderer.render(obs_dict)
             
         # Select action with epsilon-greedy strategy
+        action = {}
+        for k in obs_dict.keys():
+            if random.random() < epsilon:
+                action[k] = random.randint(0,1)
+            else:
+                action[k] = agent.select_action(normStateDict(obs_dict[k], config_dict))
+
         if random.random() < epsilon:
             action = {k: random.randint(0,1) for k in obs_dict.keys()}
         else:
@@ -60,27 +75,23 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             agent.store_transition(normStateDict(obs_dict[k], config_dict), action[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict))
             
         # Update metrics
-        metrics.update("0_1", next_obs_dict, rewards_dict, env)
+        metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
         
         # Set next_state as current state
         obs_dict = next_obs_dict
         
-        agent.update() # update agent
-        epsilon = decrease(epsilon, opt, t)
+        agent.update() # update policy network
+
+        epsilon = decrease(epsilon, config_dict)
         
         # New episode, reset environment
         if t % time_steps_per_episode == time_steps_per_episode - 1:
-            print(f"New episode at time {t+1}")
+            print(f"New episode at time {t}")
             obs_dict = env.reset()
-
-        # Update target network parameters
-        if t % time_steps_per_epoch == time_steps_per_epoch - 1:
-            print(f"Updating agent at time {t+1}")
-            agent.update_params()
 
         # Log train statistics
         if t % time_steps_train_log == time_steps_train_log - 1:
-            print(f"Logging stats at time {t+1}")
+            print(f"Logging stats at time {t}")
             logged_metrics = metrics.log(t, time_steps_train_log)
             if log_wandb:
                 wandb_run.log(logged_metrics)
@@ -88,25 +99,29 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
         # Test policy
         if t % time_steps_test_log == time_steps_test_log - 1:
-            print(f"Testing at time {t+1}")
-            action_on_test_on = np.vstack((action_on_test_on, get_agent_test(agent, obs_dict["0_1"], config_dict, obs_dict["0_1"]["hvac_cooling_capacity"]/obs_dict["0_1"]["hvac_COP"])))
-            action_on_test_off = np.vstack((action_on_test_off, get_agent_test(agent, obs_dict["0_1"], config_dict, 0.0)))
-            mean_test_return = test_dqn_agent(agent, env, opt.nb_time_steps_test, config_dict, time_steps_per_episode)
+            print(f"Testing at time {t}")
+            metrics_test = test_dqn_agent(agent, env, config_dict, opt, t)
             if log_wandb:
-                wandb_run.log({"Mean test return": mean_test_return, "Training steps": t})
+                wandb_run.log(metrics_test)
             else:
-                print(f"Training step - {t+1} - Mean test return: {mean_test_return}")
+                print("Training step - {} - Mean test return: {}".format(t, metrics_test["Mean test return"]))
+
+
+        if opt.save_actor_name and t % time_steps_per_saving_actor == 0 and t != 0:
+            path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
+            saveDQNNetDict(agent, path, t)
+            if log_wandb:
+                wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
 
     if render:
         renderer.__del__(obs_dict)
         
-    # Plot
-    colorPlotTestAgentHouseTemp(action_on_test_on, action_on_test_off, 10, 30, time_steps_test_log, log_wandb)
-
     # Save agent
     if opt.save_actor_name:
-        agent.save()
-
+        path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
+        saveDQNNetDict(agent, path)
+        if log_wandb:
+            wandb.save(os.path.join(path, "actor.pth"))
 #%% Train
 
 if __name__ == "__main__":
