@@ -108,7 +108,7 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
             saveDQNNetDict(agent, path, t)
             if log_wandb:
-                wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
+                wandb.save(os.path.join(path, "DQN" + str(t) + ".pth"))
 
     if render:
         renderer.__del__(obs_dict)
@@ -118,7 +118,7 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
         saveDQNNetDict(agent, path)
         if log_wandb:
-            wandb.save(os.path.join(path, "actor.pth"))
+            wandb.save(os.path.join(path, "DQN.pth"))
 #%% Train
 
 if __name__ == "__main__":

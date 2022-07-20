@@ -676,6 +676,14 @@ def cli_deploy(agents_dict):
         )
 
 
+    parser.add_argument(
+        "--DQNnetwork_layers",
+        type=str,
+        default="config",
+        help="List containing the number of neurons on each layers of the DQN neural network model"
+    )
+
+
     opt = parser.parse_args()
 
     return opt
