@@ -66,14 +66,15 @@ class PPO():
         action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view(-1, 1)
         reward = [t.reward for t in self.buffer]
         old_action_log_prob = torch.tensor([t.a_log_prob for t in self.buffer], dtype=torch.float).view(-1, 1)
-
+        done = [t.done for t in self.buffer]
         R = 0
         Gt = []
-        for r in reward[::-1]:
-            R = r + self.gamma * R
+        for i in reversed(range(len(reward))):
+            if done[i]:
+                R = 0
+            R = reward[i] + self.gamma * R
             Gt.insert(0, R)
         Gt = torch.tensor(Gt, dtype=torch.float)
-
         ratios = np.array([])
         clipped_ratios = np.array([])
         gradient_norms = np.array([])

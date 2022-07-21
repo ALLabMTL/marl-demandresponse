@@ -35,7 +35,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         renderer = Renderer(env.nb_agents)
 
     # Initialize variables
-    Transition = namedtuple("Transition", ["state", "action", "a_log_prob", "reward", "next_state"])  
+    Transition = namedtuple("Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"])  
     time_steps_per_episode = int(opt.nb_time_steps/opt.nb_tr_episodes)
     time_steps_per_epoch = int(opt.nb_time_steps/opt.nb_tr_epochs)
     time_steps_train_log = int(opt.nb_time_steps/opt.nb_tr_logs)
@@ -64,9 +64,12 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         if render and t >= opt.render_after:
             renderer.render(next_obs_dict)
 
+        # Episode is done
+        done = t % time_steps_per_episode == time_steps_per_episode - 1
+
         # Storing in replay buffer
         for k in obs_dict.keys():
-            agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict)))
+            agent.store_transition(Transition(normStateDict(obs_dict[k], config_dict), action[k], action_prob[k], rewards_dict[k], normStateDict(next_obs_dict[k], config_dict), done))
             # Update metrics
             metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
 
@@ -75,7 +78,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         obs_dict = next_obs_dict
 
         # New episode, reset environment
-        if t % time_steps_per_episode == time_steps_per_episode - 1:     # Episode: reset environment
+        if done:     
             print(f"New episode at time {t}")
             obs_dict = env.reset()
 
