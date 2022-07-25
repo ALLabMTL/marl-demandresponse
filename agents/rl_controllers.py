@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 import os
-from agents.network import Actor, OldActor
+from agents.network import Actor, OldActor, DQN_network
 import sys
 sys.path.append("..")
 
@@ -33,3 +33,27 @@ class PPOAgent():
         c = Categorical(action_prob)
         action = c.sample()
         return action.item()
+
+class DQNAgent():
+    def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
+        super(DQNAgent, self).__init__()
+        self.id = agent_properties["id"]
+        self.agent_name = agent_properties["actor_name"]
+        self.agent_path = os.path.join(".", "actors", self.agent_name)
+        self.config_dict = config_dict
+
+        self.seed = agent_properties["net_seed"]
+        torch.manual_seed(self.seed)
+        self.DQN_net = DQN_network(num_state=num_state, num_action=num_action, layers = config_dict["DQN_prop"]["network_layers"])
+        self.DQN_net.load_state_dict(torch.load(os.path.join(self.agent_path, 'DQN.pth')))
+        self.DQN_net.eval()
+
+
+    def act(self, obs_dict):
+        obs_dict = obs_dict[self.id]
+        state = normStateDict(obs_dict, self.config_dict)
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        with torch.no_grad():
+            qs = self.DQN_net(state)
+        action = torch.argmax(qs).item()
+        return action
