@@ -1,3 +1,4 @@
+import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,6 +8,9 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import os
 import time
 import wandb
+from agents.buffer import ReplayBuffer as Buffer
+from typing import List
+from torch import nn, Tensor
 import numpy as np
 from agents.network import DDPG_Actor, DDPG_Critic
 
@@ -20,13 +24,12 @@ def copy_model(src, dst):
 class DDPG:
     def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None):
         super(DDPG, self).__init__()
+
         self.seed = opt.net_seed
         torch.manual_seed(self.seed)
 
-        # if True:
-        #    self.actor_net = OldActor(num_state=num_state, num_action=num_action)
-        #    self.critic_net = OldCritic(num_state=num_state)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         # initilize the actor and critic network
         self.actor_net = DDPG_Actor(
             num_state=num_state,
@@ -38,6 +41,7 @@ class DDPG:
             num_action=num_action,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
+
         # initialize the target actor and critic network
         self.tgt_actor_net = DDPG_Actor(
             num_state=num_state,
@@ -49,6 +53,7 @@ class DDPG:
             num_action=num_action,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
+
         # copy the target network from the actor and critic network
         copy_model(self.actor_net, self.tgt_actor_net)
         copy_model(self.critic_net, self.tgt_critic_net)
@@ -91,157 +96,177 @@ class DDPG:
         self.counter = 0
         self.training_step = 0
 
-    def select_action(self, state):
-        # state = torch.from_numpy(state).float().unsqueeze(0)
-        # with torch.no_grad():
-        #     action_prob = self.actor_net(state)
-        # # print(action_prob)
-        # c = Categorical(action_prob)
-        # action = c.sample()
-        # return action.item(), action_prob[:, action.item()].item()
-        state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-        action = self.actor(state)
-        return action.detach().cpu().numpy()[0, 0]
+    @staticmethod
+    def gumbel_softmax(logits, tau=1.0, eps=1e-20):
+        # NOTE that there is a function like this implemented in PyTorch(torch.nn.functional.gumbel_softmax),
+        # but as mention in the doc, it may be removed in the future, so i implement it myself
+        epsilon = torch.rand_like(logits)
+        logits += -torch.log(-torch.log(epsilon + eps) + eps)
+        return F.softmax(logits / tau, dim=-1)
 
-    def get_value(self, state):
-        state = torch.from_numpy(state)
-        with torch.no_grad():
-            value = self.critic_net(state)
-        return value.item()
+    def select_action(self, state, output_logits=False, is_target=False):
+        if not is_target:
+            logits = self.actor(state)  # torch.Size([batch_size, action_size])
+        else:
+            logits = self.tgt_actor(state)  # torch.Size([batch_size, action_size])
+        # action = self.gumbel_softmax(logits)
+        action = F.gumbel_softmax(logits, hard=True)
+        action = action.squeeze(0).detach() if is_target else action
+        if output_logits:
+            return action, logits
+        return action
 
-    def store_transition(self, transition):
-        self.buffer.append(transition)
-        self.counter += 1
+    def get_value(
+        self, state_list: List[Tensor], act_list: List[Tensor], is_target=False
+    ):
+        x = torch.cat(state_list + act_list, 1)
+        return (
+            self.tgt_critic_net(x).squeeze(1)
+            if is_target
+            else self.critic_net(x).squeeze(1)
+        )  # tensor with a given length
 
-    def update(self, t):
-        state = torch.tensor([t.state for t in self.buffer], dtype=torch.float)
-        action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view(
-            -1, 1
+    def update_actor(self, loss):
+        self.actor_optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 0.5)
+        self.actor_optimizer.step()
+
+    def update_critic(self, loss):
+        self.critic_optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 0.5)
+        self.critic_optimizer.step()
+
+    @staticmethod
+    def soft_update(from_network, to_network, soft_tau):
+        """copy the parameters of `from_network` to `to_network` with a proportion of tau"""
+        for from_p, to_p in zip(from_network.parameters(), to_network.parameters()):
+            to_p.data.copy_(soft_tau * from_p.data + (1.0 - soft_tau) * to_p.data)
+
+    def update_target(self):
+        self.soft_update(self.actor_net, self.tgt_actor_net, self.soft_tau)
+        self.soft_update(self.critic_net, self.tgt_critic_net, self.soft_tau)
+
+
+class MADDPG:
+    def __init__(self, dim_info, capacity, batch_size, actor_lr, critic_lr, res_dir):
+        # sum all the dims of each agent to get input dim for critic
+        global_obs_act_dim = sum(sum(val) for val in dim_info.values())
+        # create Agent(actor-critic) and replay buffer for each agent
+        self.agents = {}
+        self.buffers = {}
+        for agent_id, (obs_dim, act_dim) in dim_info.items():
+            self.agents[agent_id] = DDPG(
+                obs_dim, act_dim, global_obs_act_dim, actor_lr, critic_lr
+            )
+            self.buffers[agent_id] = Buffer(capacity)
+
+        self.dim_info = dim_info
+
+        self.batch_size = batch_size
+        self.res_dir = res_dir  # directory to save the training result
+        self.logger = self.setup_logger(os.path.join(res_dir, "maddpg.log"))
+
+    def setup_logger(self, filename):
+        """set up logger with filename."""
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+
+        handler = logging.FileHandler(filename, mode="w")
+        handler.setLevel(logging.INFO)
+
+        formatter = logging.Formatter(
+            "%(asctime)s--%(levelname)s--%(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
-        reward = [t.reward for t in self.buffer]
-        old_action_log_prob = torch.tensor(
-            [t.a_log_prob for t in self.buffer], dtype=torch.float
-        ).view(-1, 1)
-        done = [t.done for t in self.buffer]
-        R = 0
-        Gt = []
-        for i in reversed(range(len(reward))):
-            if done[i]:
-                R = 0
-            R = reward[i] + self.gamma * R
-            Gt.insert(0, R)
-        Gt = torch.tensor(Gt, dtype=torch.float)
-        ratios = np.array([])
-        clipped_ratios = np.array([])
-        gradient_norms = np.array([])
-        # print("The agent is updateing....")
-        for i in range(self.ddpg_update_time):
-            for index in BatchSampler(
-                SubsetRandomSampler(range(len(self.buffer))), self.batch_size, False
-            ):
-                if self.training_step % 1000 == 0:
-                    print("Time step: {} ，train {} times".format(t, self.training_step))
-                # with torch.no_grad():
-                Gt_index = Gt[index].view(-1, 1)
+        handler.setFormatter(formatter)
 
-                V = self.critic_net(state[index])
-                delta = Gt_index - V
-                advantage = delta.detach()
+        logger.addHandler(handler)
+        return logger
 
-                # epoch iteration, ddpg core
-                action_prob = self.actor_net(state[index]).gather(
-                    1, action[index]
-                )  # new policy
-                ratio = action_prob / old_action_log_prob[index]
-                clipped_ratio = torch.clamp(
-                    ratio, 1 - self.clip_param, 1 + self.clip_param
-                )
+    def push(self, state, action, reward, next_state, done):
+        # NOTE that the experience is a dict with agent name as its key
+        for agent_id in state.keys():
+            s = state[agent_id]
+            a = action[agent_id]
+            if isinstance(a, int):
+                # the action from env.action_space.sample() is int, we have to convert it to onehot
+                a = np.eye(self.dim_info[agent_id][1])[a]
 
-                ratios = np.append(ratios, ratio.detach().numpy())
-                clipped_ratios = np.append(
-                    clipped_ratios, clipped_ratio.detach().numpy()
-                )
+            r = reward[agent_id]
+            next_s = next_state[agent_id]
+            # d = done[agent_id]
+            self.buffers[agent_id].push(s, a, r, next_s)
 
-                surr1 = ratio * advantage
-                surr2 = clipped_ratio * advantage
+    def sample(self, batch_size):
+        """sample experience from all the agents' buffers, and collect data for network input"""
+        # get the total num of transitions, these buffers should have same number of transitions
+        total_num = len(self.buffers["agent_0"])
+        indices = np.random.choice(total_num, size=batch_size, replace=False)
 
-                # update actor network
-                action_loss = -torch.min(surr1, surr2).mean()  # MAX->MIN desent
-                # self.writer.add_scalar('loss/action_loss', action_loss, global_step=self.training_step)
-                self.actor_optimizer.zero_grad()
-                action_loss.backward()
-                gradient_norm = nn.utils.clip_grad_norm_(
-                    self.actor_net.parameters(), self.max_grad_norm
-                )
-                gradient_norms = np.append(gradient_norms, gradient_norm.detach())
-                self.actor_optimizer.step()
+        # NOTE that in MADDPG, we need the obs and actions of all agents
+        # but only the reward and done of the current agent is needed in the calculation
+        # obs, act, reward, next_obs, done, next_act = {}, {}, {}, {}, {}, {}
+        state, action, reward, next_state, next_action = {}, {}, {}, {}, {}
+        for agent_id, buffer in self.buffers.items():
+            s, a, r, n_s = buffer.sample(indices)
+            state[agent_id] = s
+            action[agent_id] = a
+            reward[agent_id] = r
+            next_state[agent_id] = n_s
+            # done[agent_id] = d
+            # calculate next_action using target_network and next_state
+            next_action[agent_id] = self.agents[agent_id].target_action(n_s)
 
-                # update critic network
-                value_loss = F.mse_loss(Gt_index, V)
-                # self.writer.add_scalar('loss/value_loss', value_loss, global_step=self.training_step)
-                self.critic_net_optimizer.zero_grad()
-                value_loss.backward()
-                nn.utils.clip_grad_norm_(
-                    self.critic_net.parameters(), self.max_grad_norm
-                )
-                self.critic_net_optimizer.step()
-                self.training_step += 1
+        # return obs, act, reward, next_obs, done, next_act
+        return state, action, reward, next_state, next_action
 
-        if self.log_wandb:
+    def select_action(self, state):
+        # select action for each agent
+        actions = {}
+        for agent, s in state.items():
+            s = torch.from_numpy(s).unsqueeze(0).float()
+            a = self.agents[agent].action(s)  # torch.Size([1, action_size])
+            # NOTE that the output is a tensor, convert it to int before input to the environment
+            actions[agent] = a.squeeze(0).argmax().item()
+            self.logger.info(f"{agent} action: {actions[agent]}")
+        return actions
 
-            max_ratio = np.max(ratios)
-            mean_ratio = np.mean(ratios)
-            median_ratio = np.median(ratios)
-            min_ratio = np.min(ratios)
-            per95_ratio = np.percentile(ratios, 95)
-            per75_ratio = np.percentile(ratios, 75)
-            per25_ratio = np.percentile(ratios, 25)
-            per5_ratio = np.percentile(ratios, 5)
-            max_cl_ratio = np.max(clipped_ratios)
-            mean_cl_ratio = np.mean(clipped_ratios)
-            median_cl_ratio = np.median(clipped_ratios)
-            min_cl_ratio = np.min(clipped_ratios)
-            per95_cl_ratio = np.percentile(clipped_ratios, 95)
-            per75_cl_ratio = np.percentile(clipped_ratios, 75)
-            per25_cl_ratio = np.percentile(clipped_ratios, 25)
-            per5_cl_ratio = np.percentile(clipped_ratios, 5)
-            max_gradient_norm = np.max(gradient_norms)
-            mean_gradient_norm = np.mean(gradient_norms)
-            median_gradient_norm = np.median(gradient_norms)
-            min_gradient_norm = np.min(gradient_norms)
-            per95_gradient_norm = np.percentile(gradient_norms, 95)
-            per75_gradient_norm = np.percentile(gradient_norms, 75)
-            per25_gradient_norm = np.percentile(gradient_norms, 25)
-            per5_gradient_norm = np.percentile(gradient_norms, 5)
+    def update_target(self):
+        # update target network for all the agents
+        for agent in self.agents.values():
+            agent.update_target()
 
-            self.wandb_run.log(
-                {
-                    "ddpg max ratio": max_ratio,
-                    "ddpg mean ratio": mean_ratio,
-                    "ddpg median ratio": median_ratio,
-                    "ddpg min ratio": min_ratio,
-                    "ddpg ratio 95 percentile": per95_ratio,
-                    "ddpg ratio 5 percentile": per5_ratio,
-                    "ddpg ratio 75 percentile": per75_ratio,
-                    "ddpg ratio 25 percentile": per25_ratio,
-                    "ddpg max clipped ratio": max_cl_ratio,
-                    "ddpg mean clipped ratio": mean_cl_ratio,
-                    "ddpg median clipped ratio": median_cl_ratio,
-                    "ddpg min clipped ratio": min_cl_ratio,
-                    "ddpg clipped ratio 95 percentile": per95_cl_ratio,
-                    "ddpg clipped ratio 5 percentile": per5_cl_ratio,
-                    "ddpg clipped ratio 75 percentile": per75_cl_ratio,
-                    "ddpg clipped ratio 25 percentile": per25_cl_ratio,
-                    "ddpg max gradient norm": max_gradient_norm,
-                    "ddpg mean gradient norm": mean_gradient_norm,
-                    "ddpg median gradient norm": median_gradient_norm,
-                    "ddpg min gradient norm": min_gradient_norm,
-                    "ddpg gradient norm 95 percentile": per95_gradient_norm,
-                    "ddpg gradient norm 5 percentile": per5_gradient_norm,
-                    "ddpg gradient norm 75 percentile": per75_gradient_norm,
-                    "ddpg gradient norm 25 percentile": per25_gradient_norm,
-                    "Training steps": t,
-                }
+    def update(self):
+        for agent_id, agent in self.agents.items():
+            obs, act, reward, next_obs, next_act = self.sample(self.batch_size)
+            done = [t.done for t in self.buffer]
+
+            # update critic
+            critic_value = agent.get_value(
+                list(obs.values()), list(act.values()), is_target=False
             )
 
-        del self.buffer[:]  # clear experience
+            # calculate target critic value
+            next_target_critic_value = agent.get_value(
+                list(next_obs.values()), list(next_act.values()), is_target=True
+            )
+            target_value = reward[agent_id] + self.agents[
+                agent_id
+            ].gamma * next_target_critic_value * (1 - done[agent_id])
+
+            critic_loss = F.mse_loss(
+                critic_value, target_value.detach(), reduction="mean"
+            )
+            agent.update_critic(critic_loss)
+
+            # update actor
+            # action of the current agent is calculated using its actor
+            action, logits = agent.action(obs[agent_id], model_out=True)
+            act[agent_id] = action
+            actor_loss = -agent.critic_value(
+                list(obs.values()), list(act.values())
+            ).mean()
+            actor_loss_pse = torch.pow(logits, 2).mean()
+            agent.update_actor(actor_loss + 1e-3 * actor_loss_pse)
+        del self.buffer[:]  # clear experience buffer

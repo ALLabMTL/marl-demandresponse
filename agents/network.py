@@ -118,41 +118,95 @@ class DQN_network(nn.Module):
 """
 
 
+# class DDPG_Actor(nn.Module):
+#     def __init__(self, num_state, num_actions, hidden_dim, init_w=3e-3):
+#         super(DDPG_Actor, self).__init__()
+#         self.linear1 = nn.Linear(num_state, hidden_dim)
+#         self.linear2 = nn.Linear(hidden_dim, hidden_dim)
+#         self.linear3 = nn.Linear(hidden_dim, num_actions)
+#         # init weights using small numbers
+#         self.linear3.weight.data.uniform_(-init_w, init_w)
+#         self.linear3.bias.data.uniform_(-init_w, init_w)
+
+#     def forward(self, x):
+#         x = F.relu(self.linear1(x))
+#         x = F.relu(self.linear2(x))
+#         x = torch.tanh(self.linear3(x))
+#         return x
 class DDPG_Actor(nn.Module):
-    def __init__(self, num_state, num_actions, hidden_dim, init_w=3e-3):
+    def __init__(
+        self,
+        num_state,
+        num_action,
+        hidden_dim=64,
+        non_linear=nn.ReLU(),
+    ):
         super(DDPG_Actor, self).__init__()
-        self.linear1 = nn.Linear(num_state, hidden_dim)
-        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.linear3 = nn.Linear(hidden_dim, num_actions)
-        # init weights using small numbers
-        self.linear3.weight.data.uniform_(-init_w, init_w)
-        self.linear3.bias.data.uniform_(-init_w, init_w)
+        in_dim = num_state
+        out_dim = num_action
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            non_linear,
+            nn.Linear(hidden_dim, hidden_dim),
+            non_linear,
+            nn.Linear(hidden_dim, out_dim),
+        ).apply(self.init)
+
+    @staticmethod
+    def init(m):
+        """init parameter of the module"""
+        gain = nn.init.calculate_gain("relu")
+        if isinstance(m, nn.Linear):
+            torch.nn.init.xavier_uniform_(m.weight, gain=gain)
+            m.bias.data.fill_(0.01)
 
     def forward(self, x):
-        x = F.relu(self.linear1(x))
-        x = F.relu(self.linear2(x))
-        x = torch.tanh(self.linear3(x))
-        return x
+        return self.net(x)
+
+
+# class DDPG_Critic(nn.Module):
+# def __init__(self, num_state, num_actions, hidden_dim, init_w=3e-3):
+#     super(DDPG_Critic, self).__init__()
+
+#     self.linear1 = nn.Linear(num_state + num_actions, hidden_dim)
+#     self.linear2 = nn.Linear(hidden_dim, hidden_dim)
+#     self.linear3 = nn.Linear(hidden_dim, 1)
+#     # init weights using small numbers
+#     self.linear3.weight.data.uniform_(-init_w, init_w)
+#     self.linear3.bias.data.uniform_(-init_w, init_w)
+
+# def forward(self, state, action):
+#     # cat state and action along with axis 1
+#     x = torch.cat([state, action], 1)
+#     x = F.relu(self.linear1(x))
+#     x = F.relu(self.linear2(x))
+#     x = self.linear3(x)
+#     return x
 
 
 class DDPG_Critic(nn.Module):
-    def __init__(self, num_state, num_actions, hidden_dim, init_w=3e-3):
+    def __init__(self, num_state, num_action, hidden_dim=64, non_linear=nn.ReLU()):
         super(DDPG_Critic, self).__init__()
+        in_dim = num_state + num_action
+        out_dim = 1
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden_dim),
+            non_linear,
+            nn.Linear(hidden_dim, hidden_dim),
+            non_linear,
+            nn.Linear(hidden_dim, out_dim),
+        ).apply(self.init)
 
-        self.linear1 = nn.Linear(num_state + num_actions, hidden_dim)
-        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.linear3 = nn.Linear(hidden_dim, 1)
-        # init weights using small numbers
-        self.linear3.weight.data.uniform_(-init_w, init_w)
-        self.linear3.bias.data.uniform_(-init_w, init_w)
+    @staticmethod
+    def init(m):
+        """init parameter of the module"""
+        gain = nn.init.calculate_gain("relu")
+        if isinstance(m, nn.Linear):
+            torch.nn.init.xavier_uniform_(m.weight, gain=gain)
+            m.bias.data.fill_(0.01)
 
-    def forward(self, state, action):
-        # cat state and action along with axis 1
-        x = torch.cat([state, action], 1)
-        x = F.relu(self.linear1(x))
-        x = F.relu(self.linear2(x))
-        x = self.linear3(x)
-        return x
+    def forward(self, x):
+        return self.net(x)
 
 
 #%% Testing
