@@ -24,6 +24,7 @@ agents_dict = {
     "Basic": BasicController,
     "AlwaysOn": AlwaysOnController,
     "PPO": PPOAgent,
+    "MAPPO": MAPPOAgent,
     "DQN": DQNAgent,
     "GreedyMyopic": GreedyMyopic,
     "MPC": MPCController,
