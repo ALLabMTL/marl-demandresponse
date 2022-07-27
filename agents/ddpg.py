@@ -8,7 +8,7 @@ from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 import os
 import time
 import wandb
-from agents.buffer import ReplayBuffer as Buffer
+from agents.buffer import DDPGBuffer as Buffer
 from typing import List
 from torch import nn, Tensor
 import numpy as np
@@ -20,9 +20,27 @@ def copy_model(src, dst):
         dst_param.data.copy_(src_param.data)
     return dst
 
-
+def parameter sharing
 class DDPG:
-    def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None):
+    def __init__(
+        self,
+        config_dict,
+        opt,
+        num_state=22,
+        num_action=2,
+        wandb_run=None,
+        import_nets=None,
+    ):
+        """
+        This is the main class for the DDPG agent.
+        @param config_dict: dictionary of parameters for the agent
+        @param opt: the option class
+        @param num_state: number of state variables
+        @param num_action: number of action variables
+        @param wandb_run: if wandb is used, this is the wandb run
+        @param import_nets: if the agent is imported from a predetermined model,
+                this is a dictionary of the networks. Used for parameter sharing.
+        """
         super(DDPG, self).__init__()
 
         self.seed = opt.net_seed
@@ -53,6 +71,13 @@ class DDPG:
             num_action=num_action,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
+        if import_nets is not None:
+            for key in import_nets:
+                try:
+                    self.__dict__[key] = import_nets[key]
+                except KeyError:
+                    print("KeyError: {}".format(key))
+                
 
         # copy the target network from the actor and critic network
         copy_model(self.actor_net, self.tgt_actor_net)
@@ -207,19 +232,19 @@ class MADDPG:
         # NOTE that in MADDPG, we need the obs and actions of all agents
         # but only the reward and done of the current agent is needed in the calculation
         # obs, act, reward, next_obs, done, next_act = {}, {}, {}, {}, {}, {}
-        state, action, reward, next_state, next_action = {}, {}, {}, {}, {}
+        state, action, reward, next_state, done, next_action = {}, {}, {}, {}, {}, {}
         for agent_id, buffer in self.buffers.items():
-            s, a, r, n_s = buffer.sample(indices)
+            s, a, r, n_s, d = buffer.sample(indices)
             state[agent_id] = s
             action[agent_id] = a
             reward[agent_id] = r
             next_state[agent_id] = n_s
-            # done[agent_id] = d
+            done[agent_id] = d
             # calculate next_action using target_network and next_state
             next_action[agent_id] = self.agents[agent_id].target_action(n_s)
 
         # return obs, act, reward, next_obs, done, next_act
-        return state, action, reward, next_state, next_action
+        return state, action, reward, next_state, done, next_action
 
     def select_action(self, state):
         # select action for each agent
@@ -239,17 +264,16 @@ class MADDPG:
 
     def update(self):
         for agent_id, agent in self.agents.items():
-            obs, act, reward, next_obs, next_act = self.sample(self.batch_size)
-            done = [t.done for t in self.buffer]
+            state, action, reward, next_state, done, next_action = self.sample(self.batch_size)
 
             # update critic
             critic_value = agent.get_value(
-                list(obs.values()), list(act.values()), is_target=False
+                list(state.values()), list(action.values()), is_target=False
             )
 
             # calculate target critic value
             next_target_critic_value = agent.get_value(
-                list(next_obs.values()), list(next_act.values()), is_target=True
+                list(next_state.values()), list(next_action.values()), is_target=True
             )
             target_value = reward[agent_id] + self.agents[
                 agent_id
@@ -262,11 +286,10 @@ class MADDPG:
 
             # update actor
             # action of the current agent is calculated using its actor
-            action, logits = agent.action(obs[agent_id], model_out=True)
-            act[agent_id] = action
+            action, logits = agent.action(state[agent_id], model_out=True)
+            action[agent_id] = action
             actor_loss = -agent.critic_value(
-                list(obs.values()), list(act.values())
+                list(state.values()), list(action.values())
             ).mean()
             actor_loss_pse = torch.pow(logits, 2).mean()
             agent.update_actor(actor_loss + 1e-3 * actor_loss_pse)
-        del self.buffer[:]  # clear experience buffer

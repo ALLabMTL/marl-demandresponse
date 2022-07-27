@@ -24,10 +24,24 @@ import wandb
 #%% Functions
 
 
-def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
+def train_ddpg(env, dim_info, agent, opt, config_dict, render, log_wandb, wandb_run):
+    env_dir = os.path.join("./ddpg_results")
+    if not os.path.exists(env_dir):
+        os.makedirs(env_dir)
+    total_files = len([file for file in os.listdir(env_dir)])
+    result_dir = os.path.join(env_dir, f"{total_files + 1}")
+    os.makedirs(result_dir)
 
     id_rng = np.random.default_rng()
     unique_ID = str(int(id_rng.random() * 1000000))
+    maddpg = MADDPG(
+        dim_info,
+        opt.buffer_capacity,
+        opt.batch_size,
+        opt.actor_lr,
+        opt.critic_lr,
+        result_dir,
+    )
 
     # Initialize render, if applicable
     if render:
@@ -47,43 +61,12 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         opt.nb_time_steps / (opt.nb_inter_saving_actor + 1)
     )
     metrics = Metrics()
-    step = 0  # global step counter
+
     # Get first observation
     obs_dict = env.reset()
-    maddpg = MADDPG(
-        opt.dim_info,
-        opt.buffer_capacity,
-        opt.batch_size,
-        opt.actor_lr,
-        opt.critic_lr,
-        opt.result_dir,
-    )
+
     for t in range(opt.nb_time_steps):
-        agent_reward = {agent_id: 0 for agent_id in env.agents}
-        while env.agents:  # interact with the env for an episode
-            step += 1
-            if step < opt.random_steps:  # random steps before the agent start to learn
-                action = {
-                    agent_id: env.action_space(agent_id).sample()
-                    for agent_id in env.agents
-                }
-            else:
-                action = maddpg.select_action(state)
 
-            next_obs, reward, done, info = env.step(action)
-            # env.render()
-            maddpg.add(obs, action, reward, next_obs, done)
-
-            for agent_id, r in reward.items():  # update reward
-                agent_reward[agent_id] += r
-
-            if (
-                step >= args.random_steps and step % args.learn_interval == 0
-            ):  # learn every few steps
-                maddpg.learn(args.batch_size, args.gamma)
-                maddpg.update_target(args.tau)
-
-            obs = next_obs
         # Render observation
         if render:
             renderer.render(obs_dict)
@@ -181,5 +164,5 @@ if __name__ == "__main__":
     render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
-    agent = MADDPG(config_dict, opt)
+    agent = PPO(config_dict, opt)
     train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run)
