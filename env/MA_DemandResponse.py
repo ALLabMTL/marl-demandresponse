@@ -994,6 +994,8 @@ class PowerGrid(object):
         self.base_power_mode = power_grid_prop["base_power_mode"]
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
         self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
+        self.cumulated_abs_noise = 0
+        self.nb_steps = 0
 
         ## Constant base power
         if self.base_power_mode == "constant":
@@ -1175,7 +1177,11 @@ class PowerGrid(object):
             unix_time_stamp = time.mktime(date_time.timetuple()) % 86400
             signal = self.base_power
             perlin = self.perlin.calculate_noise(unix_time_stamp)
-            self.current_signal = signal + (signal * amplitude * perlin)
+
+            self.cumulated_abs_noise += np.abs(signal * amplitude * perlin)
+            self.nb_steps += 1
+
+            self.current_signal = np.maximum(0, signal + (signal * amplitude * perlin))
         else:
             raise ValueError(
                 "Invalid power grid signal mode: {}. Change value in the config file.".format(
