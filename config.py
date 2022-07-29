@@ -325,6 +325,18 @@ config_dict = {
     "batch_size": 256,
     },
 
+"MAPPO_prop": {
+    "actor_layers": [100, 100],
+	"critic_layers": [100, 100],
+    "gamma": 0.99,
+    "lr_critic": 3e-3,
+    "lr_actor": 1e-3,
+    "clip_param": 0.2,
+    "max_grad_norm": 0.5,
+    "ppo_update_time": 10,
+    "batch_size": 256,
+    },
+
 "DQN_prop": {
     "network_layers": [100, 100],
     "gamma": 0.99,

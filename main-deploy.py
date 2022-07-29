@@ -24,6 +24,7 @@ agents_dict = {
     "Basic": BasicController,
     "AlwaysOn": AlwaysOnController,
     "PPO": PPOAgent,
+    "MAPPO": PPOAgent,
     "DQN": DQNAgent,
     "GreedyMyopic": GreedyMyopic,
     "MPC": MPCController,
@@ -121,6 +122,9 @@ for i in range(nb_time_steps):
     if i % time_steps_log == time_steps_log - 1:  # Log train statistics
         # print("Logging stats at time {}".format(t))
 
+        print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
+
+
         mean_temp_offset = cumul_temp_offset / time_steps_log
         mean_temp_error = cumul_temp_error / time_steps_log
         mean_signal_offset = cumul_signal_offset / time_steps_log
@@ -163,6 +167,9 @@ rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/(nb_time_steps-opt.sta
 print("RMSE Signal per agent: {} W".format(int(rmse_sig_per_ag)))
 print("RMSE Temperature: {} C".format(rmse_temp))
 print("RMS Max Error Temperature: {} C".format(rms_max_error_temp))
+
+
+print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
 if log_wandb:
     wandb_run.log({
         "RMSE signal per agent": rmse_sig_per_ag,
