@@ -20,7 +20,7 @@ from env import *
 from utils import get_actions
 
 SECOND_IN_A_HOUR = 3600
-NB_TIME_STEPS_BY_SIM = 450
+NB_TIME_STEPS_BY_SIM = 75#450
 
 parser = argparse.ArgumentParser(description="Deployment options")
 
