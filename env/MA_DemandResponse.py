@@ -103,8 +103,6 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.noise_hvac_prop,
         )
 
-
-
         self.start_datetime = self.env_properties[
             "start_datetime"
         ]  # Start date and time
@@ -208,7 +206,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
         """
 
-        obs_dict = deepcopy(cluster_obs_dict)
+        obs_dict = cluster_obs_dict
         for agent_id in self.agent_ids:
             obs_dict[agent_id]["reg_signal"] = power_grid_reg_signal
             obs_dict[agent_id]["cluster_hvac_power"] = cluster_hvac_power
@@ -554,7 +552,6 @@ class SingleHouse(object):
         self.solar_gain_bool = house_properties["solar_gain_bool"]
         self.current_solar_gain = 0
 
-
         # Thermal constraints
         self.target_temp = house_properties["target_temp"]
         self.deadband = house_properties["deadband"]
@@ -646,11 +643,13 @@ class SingleHouse(object):
 
         # Total heat addition to air
         if self.solar_gain_bool:
-            self.current_solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
+            self.current_solar_gain = house_solar_gain(
+                date_time, self.window_area, self.shading_coeff
+            )
         else:
             self.current_solar_gain = 0
 
-        other_Qa = self.current_solar_gain # windows, ...
+        other_Qa = self.current_solar_gain  # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
@@ -992,8 +991,14 @@ class PowerGrid(object):
 
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
-        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
-        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"][
+            "constant"
+        ]["init_signal_per_hvac"]
+        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop[
+            "artificial_signal_ratio_range"
+        ] ** (
+            random.random() * 2 - 1
+        )  # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
         self.cumulated_abs_noise = 0
         self.nb_steps = 0
 
@@ -1069,22 +1074,22 @@ class PowerGrid(object):
         self.default_house_prop = default_house_prop
         self.base_power = 0
 
-
-
-
     def interpolatePower(self, date_time):
         base_power = 0
 
         if self.default_house_prop["solar_gain_bool"]:
             point = {
                 "date": date_time.timetuple().tm_yday,
-                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+                "hour": (
+                    date_time
+                    - date_time.replace(hour=0, minute=0, second=0, microsecond=0)
+                ).total_seconds(),
             }
-        else:       # No solar gain - make it think it is midnight
+        else:  # No solar gain - make it think it is midnight
             point = {
                 "date": 0.0,
                 "hour": 0.0,
-            }            
+            }
 
         all_ids = list(self.cluster_houses.houses.keys())
         if len(all_ids) <= self.interp_nb_agents:
@@ -1189,7 +1194,9 @@ class PowerGrid(object):
                 )
             )
 
-        self.current_signal = self.current_signal * self.artificial_ratio    #Artificial_ration should be 1. Only change for experimental purposes.
+        self.current_signal = (
+            self.current_signal * self.artificial_ratio
+        )  # Artificial_ration should be 1. Only change for experimental purposes.
 
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 
