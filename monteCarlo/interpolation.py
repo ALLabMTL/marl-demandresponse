@@ -120,7 +120,7 @@ class PowerInterpolator(object):
 		# Thermal parameters
 		closest_id = []
 		for i in range(4):
-			value = point_coordinates[i]
+			value = list(point_dict.values())[i]
 			distances = np.abs(np.array(self.points[i]) - value)
 			index = np.argmin(distances)
 			closest_id.append(index)
