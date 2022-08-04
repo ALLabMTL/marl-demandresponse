@@ -4,6 +4,8 @@ import time
 import sys
 import os
 
+id_rng = np.random.default_rng()
+unique_ID = str(int(id_rng.random() * 1000000))
 
 def best_MPC_action(
     nb_agent,
@@ -25,7 +27,7 @@ def best_MPC_action(
     lockout_duration,
 ):
 
-    path = "./log_gurobi.txt"
+    path = "./log_gurobi"+ unique_ID +".txt"
     sys.stdout = open(path, "w")
 
     Qa = cp.Variable((rolling_horizon, nb_agent))
