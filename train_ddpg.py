@@ -5,6 +5,7 @@ from cli import cli_train
 from agents.ddpg import MADDPG
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
+
 from plotting import colorPlotTestAgentHouseTemp
 from utils import (
     normStateDict,
@@ -14,7 +15,7 @@ from utils import (
     render_and_wandb_init,
     test_ppo_agent,
 )
-
+import matplotlib.pyplot as plt
 import os
 import random
 import numpy as np
@@ -23,146 +24,136 @@ import wandb
 
 #%% Functions
 
+def get_dim_info(opt, env, n_state, n_action=2):
+    """get the dimension information of the environment"""
+    dim_info = {}
+    for agent_id in range(opt.nb_agents):
+        dim_info[agent_id] = []
+        dim_info[agent_id].append(n_state)
+        dim_info[agent_id].append(n_action)
+    return dim_info
 
-def train_ddpg(env, dim_info, agent, opt, config_dict, render, log_wandb, wandb_run):
+def train_ddpg(env, dim_info, config_dict, opt):
+    # id_rng = np.random.default_rng()
+    # unique_ID = str(int(id_rng.random() * 1000000))
+    maddpg = MADDPG(
+        dim_info,
+        config_dict,
+        opt
+    )
+
+    step = 0  # global step counter
+    # agent_num = env.num_agents
+    # reward of each episode of each agent
+    episode_rewards = {agent_id: np.zeros(opt.episode_num) for agent_id in range(opt.nb_agents)}
+    for episode in range(opt.episode_num):
+        obs = env.reset()
+        agent_reward = {
+            agent_id: 0 for agent_id in range(opt.nb_agents)
+        }  # agent reward of the current episode
+        for s in range(opt.episode_length):  # interact with the env for an episode
+            step += 1
+            if step < opt.random_steps:
+                action = {
+                    agent_id: np.random.randint(0,2) # env.action_space(agent_id).sample()
+                    for agent_id in range(opt.nb_agents)
+                }
+            else:
+                action = maddpg.select_action(obs)
+
+            next_obs, reward, done, info = env.step(action)
+            # env.render()
+            print("action: ", action)
+            maddpg.push(obs, action, reward, next_obs, done)
+
+            for agent_id, r in reward.items():  # update reward
+                agent_reward[agent_id] += r
+
+            if (
+                step >= opt.random_steps and step % opt.learn_interval == 0
+            ):  # learn every few steps
+                maddpg.learn(opt.batch_size, opt.gamma)
+                maddpg.update_target(opt.tau)
+
+            obs = next_obs
+
+        # episode finishes
+        for agent_id, r in agent_reward.items():  # record reward
+            episode_rewards[agent_id][episode] = r
+
+        if (episode + 1) % 100 == 0:  # print info every 100 episodes
+            message = f"episode {episode + 1}, "
+            sum_reward = 0
+            for agent_id, r in agent_reward.items():  # record reward
+                message += f"{agent_id}: {r:>4f}; "
+                sum_reward += r
+            message += f"sum reward: {sum_reward}"
+            print(message)
+
+    maddpg.save(episode_rewards)  # save model
+    return episode_rewards
+
+
+def get_running_reward(arr: np.ndarray, window=100):
+    """calculate the running reward, i.e. average of last `window` elements from rewards"""
+    running_reward = np.zeros_like(arr)
+    for i in range(window - 1):
+        running_reward[i] = np.mean(arr[: i + 1])
+    for i in range(window - 1, len(arr)):
+        running_reward[i] = np.mean(arr[i - window + 1 : i + 1])
+    return running_reward
+
+
+#%% Train
+
+if __name__ == "__main__":
+    # import os
+
+    os.environ["WANDB_SILENT"] = "true"
+    opt = cli_train()
+    adjust_config_train(opt, config_dict)
+    # render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
+    random.seed(opt.env_seed)
+    # env = MADemandResponseEnv(config_dict)
+    # agent = PPO(config_dict, opt)
+    # train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run)
+    from easydict import EasyDict
+
+    opt = EasyDict(vars(opt))
+    opt.env_name = "MA_DemandResponse"
+    opt.episode_num = 10000
+    opt.episode_length = 25
+    opt.random_steps = 100
+    opt.tau = 0.02
+    opt.gamma = 0.95
+    opt.buffer_capacity = int(1e6)
+    opt.batch_size = 1024
+    opt.actor_lr = 1e-2
+    opt.critic_lr = 1e-2
+
     env_dir = os.path.join("./ddpg_results")
     if not os.path.exists(env_dir):
         os.makedirs(env_dir)
     total_files = len([file for file in os.listdir(env_dir)])
     result_dir = os.path.join(env_dir, f"{total_files + 1}")
     os.makedirs(result_dir)
+    opt.result_dir = result_dir
 
-    id_rng = np.random.default_rng()
-    unique_ID = str(int(id_rng.random() * 1000000))
-    maddpg = MADDPG(
-        dim_info,
-        opt.buffer_capacity,
-        opt.batch_size,
-        opt.actor_lr,
-        opt.critic_lr,
-        result_dir,
-    )
-
-    # Initialize render, if applicable
-    if render:
-        from env.renderer import Renderer
-
-        renderer = Renderer(env.nb_agents)
-
-    # Initialize variables
-    Transition = namedtuple(
-        "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
-    )
-    time_steps_per_episode = int(opt.nb_time_steps / opt.nb_tr_episodes)
-    time_steps_per_epoch = int(opt.nb_time_steps / opt.nb_tr_epochs)
-    time_steps_train_log = int(opt.nb_time_steps / opt.nb_tr_logs)
-    time_steps_test_log = int(opt.nb_time_steps / opt.nb_test_logs)
-    time_steps_per_saving_actor = int(
-        opt.nb_time_steps / (opt.nb_inter_saving_actor + 1)
-    )
-    metrics = Metrics()
-
-    # Get first observation
-    obs_dict = env.reset()
-
-    for t in range(opt.nb_time_steps):
-
-        # Render observation
-        if render:
-            renderer.render(obs_dict)
-
-        # Select action with probabilities
-        action_and_prob = {
-            k: agent.select_action(normStateDict(obs_dict[k], config_dict))
-            for k in obs_dict.keys()
-        }
-        action = {k: action_and_prob[k][0] for k in obs_dict.keys()}
-        action_prob = {k: action_and_prob[k][1] for k in obs_dict.keys()}
-
-        # Take action and get new transition
-        next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-
-        # Render next observation
-        if render and t >= opt.render_after:
-            renderer.render(next_obs_dict)
-
-        # Episode is done
-        done = t % time_steps_per_episode == time_steps_per_episode - 1
-
-        # Storing in replay buffer
-        for k in obs_dict.keys():
-            agent.store_transition(
-                Transition(
-                    normStateDict(obs_dict[k], config_dict),
-                    action[k],
-                    action_prob[k],
-                    rewards_dict[k],
-                    normStateDict(next_obs_dict[k], config_dict),
-                    done,
-                )
-            )
-            # Update metrics
-            metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
-
-        # Set next state as current state
-        obs_dict = next_obs_dict
-
-        # New episode, reset environment
-        if done:
-            print(f"New episode at time {t}")
-            obs_dict = env.reset()
-
-        # Epoch: update agent
-        if (
-            t % time_steps_per_epoch == time_steps_per_epoch - 1
-            and len(agent.buffer) >= agent.batch_size
-        ):
-            print(f"Updating agent at time {t}")
-            agent.update(t)
-
-        # Log train statistics
-        if t % time_steps_train_log == time_steps_train_log - 1:  # Log train statistics
-            # print("Logging stats at time {}".format(t))
-            logged_metrics = metrics.log(t, time_steps_train_log)
-            if log_wandb:
-                wandb_run.log(logged_metrics)
-            metrics.reset()
-
-        # Test policy
-        if t % time_steps_test_log == time_steps_test_log - 1:  # Test policy
-            print(f"Testing at time {t}")
-            metrics_test = test_ppo_agent(agent, env, config_dict, opt, t)
-            if log_wandb:
-                wandb_run.log(metrics_test)
-            else:
-                print("Training step - {}".format(t))
-
-        if opt.save_actor_name and t % time_steps_per_saving_actor == 0 and t != 0:
-            path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
-            saveActorNetDict(agent, path, t)
-            if log_wandb:
-                wandb.save(os.path.join(path, "actor" + str(t) + ".pth"))
-
-    if render:
-        renderer.__del__(obs_dict)
-
-    if opt.save_actor_name:
-        path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
-        saveActorNetDict(agent, path)
-        if log_wandb:
-            wandb.save(os.path.join(path, "actor.pth"))
-
-
-#%% Train
-
-if __name__ == "__main__":
-    import os
-
-    os.environ["WANDB_SILENT"] = "true"
-    opt = cli_train()
-    adjust_config(opt, config_dict)
-    render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
-    random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
-    agent = PPO(config_dict, opt)
-    train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run)
+    obs_dict = env.reset()
+    num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
+    dim_info = get_dim_info(opt, env, num_state)
+    episode_rewards = train_ddpg(env, dim_info, config_dict, opt)
+
+    # training finishes, plot reward
+    fig, ax = plt.subplots()
+    x = range(1, opt.episode_num + 1)
+    for agent_id, reward in episode_rewards.items():
+        ax.plot(x, reward, label=agent_id)
+        ax.plot(x, get_running_reward(reward))
+    ax.legend()
+    ax.set_xlabel("episode")
+    ax.set_ylabel("reward")
+    title = f"training result of maddpg solve {opt.env_name}"
+    ax.set_title(title)
+    plt.savefig(os.path.join(result_dir, title))

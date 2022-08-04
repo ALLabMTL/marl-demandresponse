@@ -48,8 +48,10 @@ class DDPGBuffer:
 
         self.device = device
 
-    def add(self, obs, action, reward, next_obs, done):
+    def push(self, obs, action, reward, next_obs, done):
         """add an experience to the memory"""
+        print("obs", obs)
+        print("type(obs)", type(obs))
         self.obs[self._index] = obs
         self.action[self._index] = action
         self.reward[self._index] = reward

@@ -65,3 +65,4 @@ monteCarlo/gridSearchResultFinal_merged.csv
 actors/
 
 slurm*
+ddpg_results/*

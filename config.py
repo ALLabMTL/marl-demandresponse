@@ -304,7 +304,7 @@ config_dict = {
         "soft_tau": 0.01,
         "clip_param": 0.2,
         "max_grad_norm": 0.5,
-        "ppo_update_time": 10,
+        "ddpg_update_time": 10,
         "batch_size": 256,
     },
     "DQN_prop": {

@@ -45,7 +45,6 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
     # Get first observation
     obs_dict = env.reset()
-
     for t in range(opt.nb_time_steps):
         
         # Render observation
@@ -76,7 +75,6 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
         # Set next state as current state
         obs_dict = next_obs_dict
-
         # New episode, reset environment
         if done:     
             print(f"New episode at time {t}")

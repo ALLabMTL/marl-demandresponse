@@ -133,36 +133,6 @@ class DQN_network(nn.Module):
 #         x = F.relu(self.linear2(x))
 #         x = torch.tanh(self.linear3(x))
 #         return x
-class DDPG_Actor(nn.Module):
-    def __init__(
-        self,
-        num_state,
-        num_action,
-        hidden_dim=64,
-        non_linear=nn.ReLU(),
-    ):
-        super(DDPG_Actor, self).__init__()
-        in_dim = num_state
-        out_dim = num_action
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, hidden_dim),
-            non_linear,
-            nn.Linear(hidden_dim, hidden_dim),
-            non_linear,
-            nn.Linear(hidden_dim, out_dim),
-        ).apply(self.init)
-
-    @staticmethod
-    def init(m):
-        """init parameter of the module"""
-        gain = nn.init.calculate_gain("relu")
-        if isinstance(m, nn.Linear):
-            torch.nn.init.xavier_uniform_(m.weight, gain=gain)
-            m.bias.data.fill_(0.01)
-
-    def forward(self, x):
-        return self.net(x)
-
 
 # class DDPG_Critic(nn.Module):
 # def __init__(self, num_state, num_actions, hidden_dim, init_w=3e-3):
@@ -184,11 +154,9 @@ class DDPG_Actor(nn.Module):
 #     return x
 
 
-class DDPG_Critic(nn.Module):
-    def __init__(self, num_state, num_action, hidden_dim=64, non_linear=nn.ReLU()):
-        super(DDPG_Critic, self).__init__()
-        in_dim = num_state + num_action
-        out_dim = 1
+class DDPG_Network(nn.Module):
+    def __init__(self, in_dim, out_dim, hidden_dim=64, non_linear=nn.ReLU()):
+        super(DDPG_Network, self).__init__()
         self.net = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
             non_linear,

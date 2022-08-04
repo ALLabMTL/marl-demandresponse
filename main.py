@@ -23,12 +23,11 @@ def main():
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
     obs_dict = env.reset()
-
+    print("Number of states: ", obs_dict)
     # Select agent
     agents = {"ppo": PPO, "dqn": DQN}
 
     num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
-    print("Number of states: {}".format(num_state))
     # TODO num_state = env.observation_space.n
     # TODO num_action = env.action_space.n
     agent = agents[opt.agent_type](config_dict, opt, num_state=num_state, wandb_run = wandb_run) # num_state, num_action

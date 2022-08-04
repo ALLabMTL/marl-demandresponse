@@ -12,7 +12,7 @@ from agents.buffer import DDPGBuffer as Buffer
 from typing import List
 from torch import nn, Tensor
 import numpy as np
-from agents.network import DDPG_Actor, DDPG_Critic
+from agents.network import DDPG_Network
 
 
 def copy_model(src, dst):
@@ -20,12 +20,13 @@ def copy_model(src, dst):
         dst_param.data.copy_(src_param.data)
     return dst
 
-def parameter sharing
+
 class DDPG:
     def __init__(
         self,
         config_dict,
         opt,
+        num_all_state_action=24,
         num_state=22,
         num_action=2,
         wandb_run=None,
@@ -49,35 +50,35 @@ class DDPG:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # initilize the actor and critic network
-        self.actor_net = DDPG_Actor(
-            num_state=num_state,
-            num_action=num_action,
+        self.actor_net = DDPG_Network(
+            in_dim=num_state,
+            out_dim=num_action,
             hidden_dim=config_dict["DDPG_prop"]["actor_hidden_dim"],
         )
-        self.critic_net = DDPG_Critic(
-            num_state=num_state,
-            num_action=num_action,
+        self.critic_net = DDPG_Network(
+            in_dim=num_all_state_action,
+            out_dim=1,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
 
         # initialize the target actor and critic network
-        self.tgt_actor_net = DDPG_Actor(
-            num_state=num_state,
-            num_action=num_action,
+        self.tgt_actor_net = DDPG_Network(
+            in_dim=num_state,
+            out_dim=num_action,
             hidden_dim=config_dict["DDPG_prop"]["actor_hidden_dim"],
         )
-        self.tgt_critic_net = DDPG_Critic(
-            num_state=num_state,
-            num_action=num_action,
+        self.tgt_critic_net = DDPG_Network(
+            in_dim=num_all_state_action,
+            out_dim=1,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
+        print("import_nets", import_nets)
         if import_nets is not None:
             for key in import_nets:
                 try:
                     self.__dict__[key] = import_nets[key]
                 except KeyError:
                     print("KeyError: {}".format(key))
-                
 
         # copy the target network from the actor and critic network
         copy_model(self.actor_net, self.tgt_actor_net)
@@ -175,23 +176,26 @@ class DDPG:
 
 
 class MADDPG:
-    def __init__(self, dim_info, capacity, batch_size, actor_lr, critic_lr, res_dir):
+    def __init__(self, dim_info, config_dict, opt):
         # sum all the dims of each agent to get input dim for critic
-        global_obs_act_dim = sum(sum(val) for val in dim_info.values())
+        # global_obs_act_dim = sum(sum(val) for val in dim_info.values())
         # create Agent(actor-critic) and replay buffer for each agent
         self.agents = {}
         self.buffers = {}
-        for agent_id, (obs_dim, act_dim) in dim_info.items():
+        self.config_dict = config_dict
+        self.opt = opt
+        global_state_action_dim = sum(sum(val) for val in dim_info.values())
+        for agent_id, (state_dim, action_dim) in dim_info.items():
             self.agents[agent_id] = DDPG(
-                obs_dim, act_dim, global_obs_act_dim, actor_lr, critic_lr
+                self.config_dict,self.opt, global_state_action_dim, state_dim, action_dim
             )
-            self.buffers[agent_id] = Buffer(capacity)
+            self.buffers[agent_id] = Buffer(self.opt.buffer_capacity, state_dim, action_dim, "cpu")
 
         self.dim_info = dim_info
 
-        self.batch_size = batch_size
-        self.res_dir = res_dir  # directory to save the training result
-        self.logger = self.setup_logger(os.path.join(res_dir, "maddpg.log"))
+        self.batch_size = self.opt.batch_size
+        self.result_dir = self.opt.result_dir  # directory to save the training result
+        self.logger = self.setup_logger(os.path.join(self.opt.result_dir, "maddpg.log"))
 
     def setup_logger(self, filename):
         """set up logger with filename."""
@@ -220,8 +224,8 @@ class MADDPG:
 
             r = reward[agent_id]
             next_s = next_state[agent_id]
-            # d = done[agent_id]
-            self.buffers[agent_id].push(s, a, r, next_s)
+            d = done[agent_id]
+            self.buffers[agent_id].push(s, a, r, next_s, d)
 
     def sample(self, batch_size):
         """sample experience from all the agents' buffers, and collect data for network input"""
@@ -264,7 +268,9 @@ class MADDPG:
 
     def update(self):
         for agent_id, agent in self.agents.items():
-            state, action, reward, next_state, done, next_action = self.sample(self.batch_size)
+            state, action, reward, next_state, done, next_action = self.sample(
+                self.batch_size
+            )
 
             # update critic
             critic_value = agent.get_value(

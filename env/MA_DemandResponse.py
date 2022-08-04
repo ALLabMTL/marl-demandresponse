@@ -91,7 +91,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         else:
             self.noise_house_prop = config["noise_house_prop"]
             self.noise_hvac_prop = config["noise_hvac_prop"]
-
+        # self.num_state = env.reset()
         self.build_environment()
 
     def build_environment(self):
