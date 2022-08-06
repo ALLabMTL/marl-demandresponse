@@ -3,7 +3,7 @@
 import numpy as np
 import random
 from collections import deque, namedtuple
-
+import torch
 #%% Classes
 
 Transition = namedtuple("Transition", ("state", "action", "reward", "next_state"))
@@ -50,8 +50,6 @@ class DDPGBuffer:
 
     def push(self, obs, action, reward, next_obs, done):
         """add an experience to the memory"""
-        print("obs", obs)
-        print("type(obs)", type(obs))
         self.obs[self._index] = obs
         self.action[self._index] = action
         self.reward[self._index] = reward

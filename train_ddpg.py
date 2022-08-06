@@ -48,6 +48,11 @@ def train_ddpg(env, dim_info, config_dict, opt):
     episode_rewards = {agent_id: np.zeros(opt.episode_num) for agent_id in range(opt.nb_agents)}
     for episode in range(opt.episode_num):
         obs = env.reset()
+        obs = normStateDict(obs[next(iter(obs))], config_dict)
+        obs_ = {
+            agent_id: obs # env.action_space(agent_id).sample()
+            for agent_id in range(opt.nb_agents)
+        }
         agent_reward = {
             agent_id: 0 for agent_id in range(opt.nb_agents)
         }  # agent reward of the current episode
@@ -59,12 +64,16 @@ def train_ddpg(env, dim_info, config_dict, opt):
                     for agent_id in range(opt.nb_agents)
                 }
             else:
-                action = maddpg.select_action(obs)
+                action = maddpg.select_action(obs_)
 
             next_obs, reward, done, info = env.step(action)
             # env.render()
-            print("action: ", action)
-            maddpg.push(obs, action, reward, next_obs, done)
+            next_obs = normStateDict(next_obs[next(iter(next_obs))], config_dict)
+            next_obs_ = {
+                agent_id: next_obs # env.action_space(agent_id).sample()
+                for agent_id in range(opt.nb_agents)
+            }
+            maddpg.push(obs_, action, reward, next_obs_, done)
 
             for agent_id, r in reward.items():  # update reward
                 agent_reward[agent_id] += r
@@ -72,8 +81,9 @@ def train_ddpg(env, dim_info, config_dict, opt):
             if (
                 step >= opt.random_steps and step % opt.learn_interval == 0
             ):  # learn every few steps
-                maddpg.learn(opt.batch_size, opt.gamma)
-                maddpg.update_target(opt.tau)
+                # maddpg.update(opt.batch_size, opt.gamma)
+                maddpg.update()
+                maddpg.update_target()
 
             obs = next_obs
 
@@ -124,12 +134,13 @@ if __name__ == "__main__":
     opt.episode_num = 10000
     opt.episode_length = 25
     opt.random_steps = 100
-    opt.tau = 0.02
+    opt.soft_tau = 0.02
     opt.gamma = 0.95
     opt.buffer_capacity = int(1e6)
-    opt.batch_size = 1024
+    opt.batch_size = 64
     opt.actor_lr = 1e-2
     opt.critic_lr = 1e-2
+    opt.learn_interval = 100
 
     env_dir = os.path.join("./ddpg_results")
     if not os.path.exists(env_dir):

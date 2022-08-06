@@ -72,7 +72,7 @@ class DDPG:
             out_dim=1,
             hidden_dim=config_dict["DDPG_prop"]["critic_hidden_dim"],
         )
-        print("import_nets", import_nets)
+
         if import_nets is not None:
             for key in import_nets:
                 try:
@@ -88,7 +88,7 @@ class DDPG:
         self.lr_actor = config_dict["DDPG_prop"]["lr_actor"]
         self.lr_critic = config_dict["DDPG_prop"]["lr_critic"]
         self.actor_optimizer = optim.Adam(self.actor_net.parameters(), self.lr_actor)
-        self.critic_net_optimizer = optim.Adam(
+        self.critic_optimizer = optim.Adam(
             self.critic_net.parameters(), self.lr_critic
         )
 
@@ -132,9 +132,9 @@ class DDPG:
 
     def select_action(self, state, output_logits=False, is_target=False):
         if not is_target:
-            logits = self.actor(state)  # torch.Size([batch_size, action_size])
+            logits = self.actor_net(state)  # torch.Size([batch_size, action_size])
         else:
-            logits = self.tgt_actor(state)  # torch.Size([batch_size, action_size])
+            logits = self.tgt_actor_net(state)  # torch.Size([batch_size, action_size])
         # action = self.gumbel_softmax(logits)
         action = F.gumbel_softmax(logits, hard=True)
         action = action.squeeze(0).detach() if is_target else action
@@ -155,13 +155,13 @@ class DDPG:
     def update_actor(self, loss):
         self.actor_optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 0.5)
+        torch.nn.utils.clip_grad_norm_(self.actor_net.parameters(), 0.5)
         self.actor_optimizer.step()
 
     def update_critic(self, loss):
         self.critic_optimizer.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.critic.parameters(), 0.5)
+        torch.nn.utils.clip_grad_norm_(self.critic_net.parameters(), 0.5)
         self.critic_optimizer.step()
 
     @staticmethod
@@ -230,7 +230,7 @@ class MADDPG:
     def sample(self, batch_size):
         """sample experience from all the agents' buffers, and collect data for network input"""
         # get the total num of transitions, these buffers should have same number of transitions
-        total_num = len(self.buffers["agent_0"])
+        total_num = len(self.buffers[0])
         indices = np.random.choice(total_num, size=batch_size, replace=False)
 
         # NOTE that in MADDPG, we need the obs and actions of all agents
@@ -245,7 +245,7 @@ class MADDPG:
             next_state[agent_id] = n_s
             done[agent_id] = d
             # calculate next_action using target_network and next_state
-            next_action[agent_id] = self.agents[agent_id].target_action(n_s)
+            next_action[agent_id] = self.agents[agent_id].select_action(n_s, is_target=True)
 
         # return obs, act, reward, next_obs, done, next_act
         return state, action, reward, next_state, done, next_action
@@ -255,7 +255,7 @@ class MADDPG:
         actions = {}
         for agent, s in state.items():
             s = torch.from_numpy(s).unsqueeze(0).float()
-            a = self.agents[agent].action(s)  # torch.Size([1, action_size])
+            a = self.agents[agent].select_action(s)  # torch.Size([1, action_size])
             # NOTE that the output is a tensor, convert it to int before input to the environment
             actions[agent] = a.squeeze(0).argmax().item()
             self.logger.info(f"{agent} action: {actions[agent]}")
@@ -292,9 +292,11 @@ class MADDPG:
 
             # update actor
             # action of the current agent is calculated using its actor
-            action, logits = agent.action(state[agent_id], model_out=True)
-            action[agent_id] = action
-            actor_loss = -agent.critic_value(
+            action_, logits = agent.select_action(state[agent_id], output_logits=True)
+            # print("action", action)
+            # print("agent_id", agent_id)
+            action[agent_id] = action_
+            actor_loss = -agent.get_value(
                 list(state.values()), list(action.values())
             ).mean()
             actor_loss_pse = torch.pow(logits, 2).mean()
