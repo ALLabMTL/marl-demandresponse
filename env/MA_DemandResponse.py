@@ -103,8 +103,6 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.noise_hvac_prop,
         )
 
-
-
         self.start_datetime = self.env_properties[
             "start_datetime"
         ]  # Start date and time
@@ -724,6 +722,8 @@ class ClusterHouses(object):
         """
         self.cluster_prop = cluster_prop
         self.agent_ids = agent_ids
+        self.nb_agents = len(agent_ids)
+        print("nb agents: {}".format(self.nb_agents))
 
         # Houses
         self.houses = {}
@@ -803,6 +803,45 @@ class ClusterHouses(object):
                 possible_ids.remove(agent_id)
                 ids_houses_messages = random.sample(possible_ids, k=nb_comm)
                 self.agent_communicators[agent_id] = ids_houses_messages
+
+        elif self.cluster_prop["agents_comm_mode"] == "neighbours_2D":
+            row_size = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["row_size"]
+            distance_comm = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["distance_comm"]
+            if self.nb_agents % row_size != 0:
+                raise ValueError("Neighbours 2D row_size must be a divisor of nb_agents")
+
+            max_y = self.nb_agents // row_size
+            if distance_comm >= (row_size+1) // 2 or distance_comm >= (max_y+1) // 2:
+                raise ValueError("Neighbours 2D distance_comm ({}) must be strictly smaller than (row_size+1) / 2 ({}) and (max_y+1) / 2 ({})".format(distance_comm, (row_size+1) // 2, (max_y+1) // 2))
+
+            distance_pattern = []
+            for x_diff in range(-1*distance_comm, distance_comm + 1):
+                for y_diff in range(-1*distance_comm, distance_comm + 1):
+                    if abs(x_diff) + abs(y_diff) <= distance_comm and (x_diff != 0 or y_diff != 0):
+                        distance_pattern.append((x_diff, y_diff))
+
+            print("distance_pattern: {}".format(distance_pattern))
+
+            for agent_id in self.agent_ids:
+                x = agent_id % row_size
+                y = agent_id // row_size
+                ids_houses_messages = []
+                for pair_diff in distance_pattern:
+                    x_new = x + pair_diff[0]
+                    y_new = y + pair_diff[1]
+                    if x_new < 0:
+                        x_new += row_size
+                    if x_new >= row_size:
+                        x_new -= row_size
+                    if y_new < 0:
+                        y_new += max_y
+                    if y_new >= max_y:
+                        y_new -= max_y
+                    agent_id_new = y_new*row_size + x_new
+                    ids_houses_messages.append(agent_id_new)
+                self.agent_communicators[agent_id] = ids_houses_messages
+            print("self.agent_communicators: {}".format(self.agent_communicators))
+
         else:
             raise ValueError(
                 "Cluster property: unknown agents_comm_mode '{}'.".format(

@@ -245,7 +245,13 @@ config_dict = {
 		},
 		"nb_agents": 1,							# Number of houses
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
-		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
+		"agents_comm_mode": "neighbours",		# Communication mode
+		"agents_comm_parameters": {
+			"neighbours_2D": {
+				"row_size": 5,					# Row side length
+				"distance_comm": 2,					# Max distance between two communicating houses
+			},
+		},
 	},
 	"state_properties": {
 		"hour": True,
