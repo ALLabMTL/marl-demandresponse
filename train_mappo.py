@@ -5,12 +5,10 @@ from cli import cli_train
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
-from plotting import colorPlotTestAgentHouseTemp
 from utils import (
-    normStateDict,
-    testAgentHouseTemperature,
-    saveActorNetDict,
     adjust_config_train,
+    normStateDict,
+    saveActorNetDict,
     render_and_wandb_init,
     test_ppo_agent
 )
@@ -28,7 +26,6 @@ def train_mappo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
     id_rng = np.random.default_rng()
     unique_ID = str(int(id_rng.random() * 1000000))
-
 
     # Initialize render, if applicable
     if render:
@@ -134,9 +131,9 @@ if __name__ == "__main__":
     import os
     os.environ["WANDB_SILENT"] = "true"
     opt = cli_train()
-    adjust_config(opt, config_dict)
+    adjust_config_train(opt, config_dict)
     render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
     agent = PPO(config_dict, opt)
-    train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run)
+    train_mappo(env, agent, opt, config_dict, render, log_wandb, wandb_run)

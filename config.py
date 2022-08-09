@@ -307,8 +307,7 @@ config_dict = {
 			},
 		},
 		"sig_penalty_mode": "common_L2",					# Mode of signal penalty
-	}
-
+	},
 },
 
 # Agent properties

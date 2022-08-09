@@ -116,13 +116,14 @@ for i in range(nb_time_steps):
     signal_error = obs_dict[0]["reg_signal"] - obs_dict[0]["cluster_hvac_power"]
     cumul_signal_offset += signal_error
     cumul_signal_error += np.abs(signal_error)
+
     if i >= opt.start_stats_from:
         cumul_squared_error_sig += signal_error**2
 
     if i % time_steps_log == time_steps_log - 1:  # Log train statistics
         # print("Logging stats at time {}".format(t))
 
-        print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
+        #print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
 
 
         mean_temp_offset = cumul_temp_offset / time_steps_log
@@ -169,7 +170,7 @@ print("RMSE Temperature: {} C".format(rmse_temp))
 print("RMS Max Error Temperature: {} C".format(rms_max_error_temp))
 
 
-print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
+#print("Average absolute noise: {} W".format(env.power_grid.cumulated_abs_noise / env.power_grid.nb_steps ))
 if log_wandb:
     wandb_run.log({
         "RMSE signal per agent": rmse_sig_per_ag,

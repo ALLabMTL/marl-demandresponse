@@ -1147,7 +1147,7 @@ class PowerGrid(object):
             if len(periods) != len(amplitudes):
                 raise ValueError(
                     "Power grid signal parameters: periods and amplitude_ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(amplitude_ratios): {}.".format(
-                        len(periods), len(amplitude_ratios)
+                        len(periods), len(amplitudes)
                     )
                 )
 
