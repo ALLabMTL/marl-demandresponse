@@ -88,9 +88,7 @@ class DDPG:
         self.lr_actor = config_dict["DDPG_prop"]["lr_actor"]
         self.lr_critic = config_dict["DDPG_prop"]["lr_critic"]
         self.actor_optimizer = optim.Adam(self.actor_net.parameters(), self.lr_actor)
-        self.critic_optimizer = optim.Adam(
-            self.critic_net.parameters(), self.lr_critic
-        )
+        self.critic_optimizer = optim.Adam(self.critic_net.parameters(), self.lr_critic)
 
         # other params
         self.soft_tau = config_dict["DDPG_prop"][
@@ -175,8 +173,18 @@ class DDPG:
         self.soft_update(self.critic_net, self.tgt_critic_net, self.soft_tau)
 
 
+def get_dim_info(opt, n_state, n_action=2):
+    """get the dimension information of the environment"""
+    dim_info = {}
+    for agent_id in range(opt.nb_agents):
+        dim_info[agent_id] = []
+        dim_info[agent_id].append(n_state)
+        dim_info[agent_id].append(n_action)
+    return dim_info
+
+
 class MADDPG:
-    def __init__(self, dim_info, config_dict, opt):
+    def __init__(self, config_dict, opt, num_state, wandb_run):
         # sum all the dims of each agent to get input dim for critic
         # global_obs_act_dim = sum(sum(val) for val in dim_info.values())
         # create Agent(actor-critic) and replay buffer for each agent
@@ -184,18 +192,33 @@ class MADDPG:
         self.buffers = {}
         self.config_dict = config_dict
         self.opt = opt
+        self.num_state = num_state
+        self.capacity = self.config_dict["DDPG_prop"]["buffer_capacity"]
+        dim_info = get_dim_info(opt, num_state)
         global_state_action_dim = sum(sum(val) for val in dim_info.values())
         for agent_id, (state_dim, action_dim) in dim_info.items():
             self.agents[agent_id] = DDPG(
-                self.config_dict,self.opt, global_state_action_dim, state_dim, action_dim
+                self.config_dict,
+                self.opt,
+                global_state_action_dim,
+                state_dim,
+                action_dim,
             )
-            self.buffers[agent_id] = Buffer(self.opt.buffer_capacity, state_dim, action_dim, "cpu")
+            self.buffers[agent_id] = Buffer(
+                self.capacity,
+                state_dim,
+                action_dim,
+                "cpu",
+            )
 
         self.dim_info = dim_info
-
-        self.batch_size = self.opt.batch_size
-        self.result_dir = self.opt.result_dir  # directory to save the training result
-        self.logger = self.setup_logger(os.path.join(self.opt.result_dir, "maddpg.log"))
+        self.wandb_run = wandb_run
+        self.batch_size = self.config_dict["DDPG_prop"]["batch_size"]
+        self.result_dir = os.path.join(
+            "./ddpg_results"
+        )  # directory to save the training result
+        self.logger = self.setup_logger(os.path.join(self.result_dir, "maddpg.log"))
+        self.log_wandb = not opt.no_wandb
 
     def setup_logger(self, filename):
         """set up logger with filename."""
@@ -245,7 +268,9 @@ class MADDPG:
             next_state[agent_id] = n_s
             done[agent_id] = d
             # calculate next_action using target_network and next_state
-            next_action[agent_id] = self.agents[agent_id].select_action(n_s, is_target=True)
+            next_action[agent_id] = self.agents[agent_id].select_action(
+                n_s, is_target=True
+            )
 
         # return obs, act, reward, next_obs, done, next_act
         return state, action, reward, next_state, done, next_action
@@ -301,3 +326,5 @@ class MADDPG:
             ).mean()
             actor_loss_pse = torch.pow(logits, 2).mean()
             agent.update_actor(actor_loss + 1e-3 * actor_loss_pse)
+        if self.log_wandb:
+            self.wandb_run.log({"critic_loss": critic_loss, "actor_loss": actor_loss})
