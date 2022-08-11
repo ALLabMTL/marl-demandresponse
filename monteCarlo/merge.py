@@ -22,4 +22,4 @@ matrix = df["hvac_average_power"].values
 df.to_csv(f"gridSearchResultFinal_merged.csv")
 
 # save as a np matrix
-np.save("mergedGridSearchResultFinal_from_0_to_3061800.npy", matrix)
+np.save("mergedGridSearchResultFinal.npy", matrix)

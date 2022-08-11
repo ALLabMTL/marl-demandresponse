@@ -544,44 +544,6 @@ def test_ppo_agent(agent, env, config_dict, opt, tr_time_steps):
     }
 
 
-def testAgentHouseTemperature(
-    agent, state, low_temp, high_temp, config_dict, reg_signal
-):
-    """
-    Receives an agent and a given state. Tests the agent probability output for 100 points
-    given range of indoors temperature, returning a vector for the probability of True (on).
-    """
-    temp_range = np.linspace(low_temp, high_temp, num=100)
-    prob_on = np.zeros(100)
-    for i in range(100):
-        temp = temp_range[i]
-        state["house_temp"] = temp
-        state["reg_signal"] = reg_signal
-        norm_state = normStateDict(state, config_dict)
-        action, action_prob = agent.select_action(norm_state)
-        if not action:  # we want probability of True
-            prob_on[i] = 1 - action_prob
-        else:
-            prob_on[i] = action_prob
-    return prob_on
-
-
-def get_agent_test(agent, state, config_dict, reg_signal, low_temp=10, high_temp=30):
-    """
-    Receives an agent and a given state. Tests the agent output for 100 points
-    given a range of indoors temperature, returning a vector of actions.
-    """
-    temp_range = np.linspace(low_temp, high_temp, num=100)
-    actions = np.zeros(100)
-    for i in range(100):
-        temp = temp_range[i]
-        state["house_temp"] = temp
-        state["reg_signal"] = reg_signal
-        norm_state = normStateDict(state, config_dict)
-        action = agent.select_action(norm_state)
-        actions[i] = action
-    return actions
-
 
 def saveActorNetDict(agent, path, t=None):
     if not os.path.exists(path):

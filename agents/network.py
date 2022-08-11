@@ -123,11 +123,3 @@ class DDPG_Network(nn.Module):
         return self.net(x)
 
 
-#%% Testing
-
-if __name__ == "__main__":
-    layers = [20, 100, 2]
-    neuralnet = NN(layers)
-    print(neuralnet)
-    layers_wrong = [20, 2]
-    neuralnet_wrong = NN(layers_wrong)

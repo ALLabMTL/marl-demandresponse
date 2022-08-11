@@ -20,7 +20,8 @@ from env import *
 from utils import get_actions
 
 SECOND_IN_A_HOUR = 3600
-NB_TIME_STEPS_BY_SIM = 450
+NB_TIME_STEPS_BY_SIM = 75
+NB_TIME_STEPS_AVG = 10
 
 parser = argparse.ArgumentParser(description="Deployment options")
 
@@ -39,16 +40,49 @@ parser.add_argument(
 )
 
 opt = parser.parse_args()
-
+""" To test
+parameters_dict = {
+    "Ua_ratio": [1],#[0.9, 1, 1.1],
+    "Cm_ratio": [1],#[0.9, 1, 1.1],
+    "Ca_ratio": [1],#[0.9, 1, 1.1],
+    "Hm_ratio": [1],#[0.9, 1, 1.1],
+    "air_temp": [1],  # Setter au debut. Si c'est plus haut, ne fait pas de différence sur 75 time steps.
+    "mass_temp": [0],  # Setter au debut, ajouter au conf dict
+    "OD_temp": [15],  # fixé
+    "HVAC_power": [15000],
+    "hour": [
+        0.0,
+        #3.0,
+        #6.0,
+        #7.0,
+        #7.50,
+        #11.0,
+        #13.0,
+        #16.0,
+        #17.0,
+        #17.5,
+        #21.0,
+        #24 - 1.0 / 3600,
+    ],
+    "date": [
+        (2021, 1, 1),
+        #(2021, 3, 21),
+        #(2021, 6, 21),
+        #(2021, 9, 21),
+        #(2021, 12, 21),
+        #(2021, 12, 31),
+    ],
+}
+"""
 parameters_dict = {
     "Ua_ratio": [0.9, 1, 1.1],
     "Cm_ratio": [0.9, 1, 1.1],
     "Ca_ratio": [0.9, 1, 1.1],
     "Hm_ratio": [0.9, 1, 1.1],
-    "air_temp": [-6, -4, -2, -1, 0, 1, 2, 4, 6],  # Setter au debut
-    "mass_temp": [-6, -4, -2, 0, 2, 4, 6],  # Setter au debut, ajouter au conf dict
-    "OD_temp": [1, 3, 5, 7, 9, 11],  # fixé
-    "HVAC_power": [7500, 10000, 12500],
+    "air_temp": [-4, -2, -1, -0.3, 0, 0.3, 1, 2, 4],  # Setter au debut. Si c'est plus haut, ne fait pas de différence sur 75 time steps.
+    "mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
+    "OD_temp": [1, 3, 5, 7, 9, 11, 13, 15],  # fixé
+    "HVAC_power": [10000, 15000],
     "hour": [
         0.0,
         3.0,
@@ -111,6 +145,7 @@ def eval_parameters_bangbang_average_consumption(
     config["default_env_prop"]["cluster_prop"]["nb_agents"] = 1
     config["default_hvac_prop"]["cooling_capacity"] = HVAC_power
     config["default_env_prop"]["start_datetime_mode"] = "fixed"
+    config["default_hvac_prop"]["lockout_duration"] = 1
     config["default_env_prop"]["start_datetime"] = str(
         datetime.datetime(date.year, date.month, date.day, hour_int, min_int, sec_int)
     )
@@ -154,11 +189,15 @@ def eval_parameters_bangbang_average_consumption(
 
     actions = get_actions(actors, obs_dict)
 
+    average_cluster_hvac_power = 0
     for i in range(NB_TIME_STEPS_BY_SIM):
         obs_dict, _, _, info = env.step(actions)
         total_cluster_hvac_power += info["cluster_hvac_power"]
+        if i >= NB_TIME_STEPS_BY_SIM - NB_TIME_STEPS_AVG:
+            average_cluster_hvac_power += total_cluster_hvac_power/((i+1) * NB_TIME_STEPS_AVG) # The average of the NB_TIME_STEPS_AVG last averages (to stabilize)
         actions = get_actions(actors, obs_dict)
-    average_cluster_hvac_power = total_cluster_hvac_power / NB_TIME_STEPS_BY_SIM
+        #print("Step {} - Avg power: {} - LastAvg: {} - Power: {}".format(i, total_cluster_hvac_power/(i+1), average, info["cluster_hvac_power"]))
+    #average_cluster_hvac_power = total_cluster_hvac_power / NB_TIME_STEPS_BY_SIM
     return average_cluster_hvac_power
 
 

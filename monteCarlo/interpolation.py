@@ -120,7 +120,7 @@ class PowerInterpolator(object):
 		# Thermal parameters
 		closest_id = []
 		for i in range(4):
-			value = point_coordinates[i]
+			value = list(point_dict.values())[i]
 			distances = np.abs(np.array(self.points[i]) - value)
 			index = np.argmin(distances)
 			closest_id.append(index)
@@ -150,11 +150,37 @@ class PowerInterpolator(object):
 
 if __name__ == "__main__":
 
-	parameters_dict = {"Ua_ratio": [0.9, 1, 1.1], "Cm_ratio": [0.9, 1, 1.1], "Ca_ratio": [0.9, 1, 1.1], "Hm_ratio": [0.9, 1, 1.1], "air_temp": [-6, -4, -2, -1, 0, 1, 2, 4, 6], "mass_temp": [-6, -4, -2, 0, 2, 4, 6], "OD_temp": [1, 3, 5, 7, 9, 11], "HVAC_power": [10000, 15000, 20000], "hour": [0.0, 10800.0, 21600.0, 25200.0, 27000.0, 39600.0, 46800.0, 57600.0, 61200.0, 63000.0, 75600.0, 86399.0], "date": [0, 79, 171, 263, 354, 364]}
+	parameters_dict = {"Ua_ratio": [1, 1.1], "Cm_ratio": [1, 1.1], "Ca_ratio": [1, 1.1], "Hm_ratio": [1, 1.1], "air_temp": [0, 1], "mass_temp": [0, 1], "OD_temp": [11, 13], "HVAC_power": [10000, 15000], "hour": [0.0, 10800.0], "date": [0, 79]}
+
 
 	dict_keys = ["Ua_ratio", "Cm_ratio", "Ca_ratio", "Hm_ratio", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"]
+
 	power_inter = PowerInterpolator('./mergedGridSearchResultFinal.npy', parameters_dict, dict_keys)
 
+
+	try_0 = {
+	"Ua_ratio": 1.1,
+	"Cm_ratio": 1.1,
+	"Ca_ratio": 1.1,
+	"Hm_ratio": 1.1,
+	"air_temp": 0,
+	"mass_temp": 0,
+	"OD_temp": 13,
+	"HVAC_power": 10000,
+	"hour": 0,
+	"date": 0,
+	}
+
+
+	id0 = power_inter.interpolateGridFast(try_0)
+	id1 = power_inter.interpolateGrid(try_0)
+
+	print("Fast: {}".format(id0))
+	print("Normal: {}".format(id1))
+
+
+
+"""
 	try_0 = {
 	"Ua_ratio": 1,
 	"Cm_ratio": 1,
@@ -228,3 +254,4 @@ if __name__ == "__main__":
 	#array = np.array([1, 2, 3, 4, 5, 6])
 	#value = -0.1
 	#print(get_two_closest(array,value))
+"""

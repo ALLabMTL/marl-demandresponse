@@ -91,7 +91,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         else:
             self.noise_house_prop = config["noise_house_prop"]
             self.noise_hvac_prop = config["noise_hvac_prop"]
-        # self.num_state = env.reset()
+
         self.build_environment()
 
     def build_environment(self):
@@ -102,8 +102,6 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.default_hvac_prop,
             self.noise_hvac_prop,
         )
-
-
 
         self.start_datetime = self.env_properties[
             "start_datetime"
@@ -208,7 +206,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
         """
 
-        obs_dict = deepcopy(cluster_obs_dict)
+        obs_dict = cluster_obs_dict
         for agent_id in self.agent_ids:
             obs_dict[agent_id]["reg_signal"] = power_grid_reg_signal
             obs_dict[agent_id]["cluster_hvac_power"] = cluster_hvac_power
@@ -724,6 +722,8 @@ class ClusterHouses(object):
         """
         self.cluster_prop = cluster_prop
         self.agent_ids = agent_ids
+        self.nb_agents = len(agent_ids)
+        print("nb agents: {}".format(self.nb_agents))
 
         # Houses
         self.houses = {}
@@ -803,6 +803,45 @@ class ClusterHouses(object):
                 possible_ids.remove(agent_id)
                 ids_houses_messages = random.sample(possible_ids, k=nb_comm)
                 self.agent_communicators[agent_id] = ids_houses_messages
+
+        elif self.cluster_prop["agents_comm_mode"] == "neighbours_2D":
+            row_size = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["row_size"]
+            distance_comm = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["distance_comm"]
+            if self.nb_agents % row_size != 0:
+                raise ValueError("Neighbours 2D row_size must be a divisor of nb_agents")
+
+            max_y = self.nb_agents // row_size
+            if distance_comm >= (row_size+1) // 2 or distance_comm >= (max_y+1) // 2:
+                raise ValueError("Neighbours 2D distance_comm ({}) must be strictly smaller than (row_size+1) / 2 ({}) and (max_y+1) / 2 ({})".format(distance_comm, (row_size+1) // 2, (max_y+1) // 2))
+
+            distance_pattern = []
+            for x_diff in range(-1*distance_comm, distance_comm + 1):
+                for y_diff in range(-1*distance_comm, distance_comm + 1):
+                    if abs(x_diff) + abs(y_diff) <= distance_comm and (x_diff != 0 or y_diff != 0):
+                        distance_pattern.append((x_diff, y_diff))
+
+            print("distance_pattern: {}".format(distance_pattern))
+
+            for agent_id in self.agent_ids:
+                x = agent_id % row_size
+                y = agent_id // row_size
+                ids_houses_messages = []
+                for pair_diff in distance_pattern:
+                    x_new = x + pair_diff[0]
+                    y_new = y + pair_diff[1]
+                    if x_new < 0:
+                        x_new += row_size
+                    if x_new >= row_size:
+                        x_new -= row_size
+                    if y_new < 0:
+                        y_new += max_y
+                    if y_new >= max_y:
+                        y_new -= max_y
+                    agent_id_new = y_new*row_size + x_new
+                    ids_houses_messages.append(agent_id_new)
+                self.agent_communicators[agent_id] = ids_houses_messages
+            print("self.agent_communicators: {}".format(self.agent_communicators))
+
         else:
             raise ValueError(
                 "Cluster property: unknown agents_comm_mode '{}'.".format(
@@ -994,6 +1033,8 @@ class PowerGrid(object):
         self.base_power_mode = power_grid_prop["base_power_mode"]
         self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
         self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
+        self.cumulated_abs_noise = 0
+        self.nb_steps = 0
 
         ## Constant base power
         if self.base_power_mode == "constant":
@@ -1145,7 +1186,7 @@ class PowerGrid(object):
             if len(periods) != len(amplitudes):
                 raise ValueError(
                     "Power grid signal parameters: periods and amplitude_ratios lists should have the same length. Change it in the config.py file. len(periods): {}, leng(amplitude_ratios): {}.".format(
-                        len(periods), len(amplitude_ratios)
+                        len(periods), len(amplitudes)
                     )
                 )
 
@@ -1175,7 +1216,11 @@ class PowerGrid(object):
             unix_time_stamp = time.mktime(date_time.timetuple()) % 86400
             signal = self.base_power
             perlin = self.perlin.calculate_noise(unix_time_stamp)
-            self.current_signal = signal + (signal * amplitude * perlin)
+
+            self.cumulated_abs_noise += np.abs(signal * amplitude * perlin)
+            self.nb_steps += 1
+
+            self.current_signal = np.maximum(0, signal + (signal * amplitude * perlin))
         else:
             raise ValueError(
                 "Invalid power grid signal mode: {}. Change value in the config file.".format(

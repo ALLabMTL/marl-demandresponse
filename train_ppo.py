@@ -5,12 +5,10 @@ from cli import cli_train
 from agents.ppo import PPO
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
-from plotting import colorPlotTestAgentHouseTemp
 from utils import (
-    normStateDict,
-    testAgentHouseTemperature,
-    saveActorNetDict,
     adjust_config_train,
+    normStateDict,
+    saveActorNetDict,
     render_and_wandb_init,
     test_ppo_agent
 )
@@ -45,6 +43,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
     # Get first observation
     obs_dict = env.reset()
+
     for t in range(opt.nb_time_steps):
         
         # Render observation
@@ -75,6 +74,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
         # Set next state as current state
         obs_dict = next_obs_dict
+
         # New episode, reset environment
         if done:     
             print(f"New episode at time {t}")
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     import os
     os.environ["WANDB_SILENT"] = "true"
     opt = cli_train()
-    adjust_config(opt, config_dict)
+    adjust_config_train(opt, config_dict)
     render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)

@@ -5,8 +5,7 @@ from config import config_dict
 from cli import cli_train
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
-from plotting import colorPlotTestAgentHouseTemp
-from utils import normStateDict, adjust_config_train, render_and_wandb_init, get_agent_test, test_dqn_agent, saveDQNNetDict
+from utils import adjust_config_train, normStateDict, render_and_wandb_init, test_dqn_agent, saveDQNNetDict
 
 import random
 import os
@@ -125,7 +124,7 @@ if __name__ == "__main__":
     import os
     os.environ["WANDB_SILENT"] = "true"
     opt = cli_train()
-    adjust_config(opt, config_dict)
+    adjust_config_train(opt, config_dict)
     render, log_wandb, wandb_run = render_and_wandb_init(opt, config_dict)
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
