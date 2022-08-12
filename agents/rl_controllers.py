@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
 import os
-from agents.network import Actor, OldActor, DQN_network
+from agents.network import Actor, OldActor, DQN_network, DDPG_Network
 import sys
 sys.path.append("..")
 
@@ -57,3 +57,28 @@ class DQNAgent():
             qs = self.DQN_net(state)
         action = torch.argmax(qs).item()
         return action
+
+class DDPGAgent():
+    def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
+        super(DDPGAgent, self).__init__()
+        self.id = agent_properties["id"]
+        self.agent_name = agent_properties["actor_name"]
+        self.agent_path = os.path.join(".", "actors", self.agent_name)
+        self.config_dict = config_dict
+
+        self.seed = agent_properties["net_seed"]
+        torch.manual_seed(self.seed)
+        self.DDPG_net = DDPG_Network(in_dim=num_state, out_dim=num_action, hidden_dim = config_dict["DDPG_prop"]["actor_hidden_dim"])
+        self.DDPG_net.load_state_dict(torch.load(os.path.join(self.agent_path, 'DDPG.pth')))
+        self.DDPG_net.eval()
+
+
+    def act(self, obs_dict):
+        obs_dict = obs_dict[self.id]
+        state = normStateDict(obs_dict, self.config_dict)
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        with torch.no_grad():
+            qs = self.DDPG_net(state)
+        action = torch.argmax(qs).item()
+        return action
+

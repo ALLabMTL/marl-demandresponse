@@ -28,6 +28,7 @@ agents_dict = {
     "DQN": DQNAgent,
     "GreedyMyopic": GreedyMyopic,
     "MPC": MPCController,
+    "MADDPG": DDPGAgent,
 }
 
 
