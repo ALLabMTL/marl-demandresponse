@@ -9,7 +9,7 @@ from metrics import Metrics
 from plotting import colorPlotTestAgentHouseTemp
 from utils import (
     normStateDict,
-    testAgentHouseTemperature,
+    # testAgentHouseTemperature,
     saveActorNetDict,
     adjust_config_train,
     render_and_wandb_init,

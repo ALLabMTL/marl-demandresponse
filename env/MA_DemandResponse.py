@@ -723,7 +723,7 @@ class ClusterHouses(object):
         self.cluster_prop = cluster_prop
         self.agent_ids = agent_ids
         self.nb_agents = len(agent_ids)
-        print("nb agents: {}".format(self.nb_agents))
+        # print("nb agents: {}".format(self.nb_agents))
 
         # Houses
         self.houses = {}
