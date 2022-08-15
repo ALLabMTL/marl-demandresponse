@@ -10,7 +10,7 @@ from plotting import colorPlotTestAgentHouseTemp
 from utils import (
     normStateDict,
     # testAgentHouseTemperature,
-    saveActorNetDict,
+    saveDDPGDict,
     adjust_config_train,
     render_and_wandb_init,
     test_ppo_agent,
@@ -60,11 +60,12 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         agent_id: np.zeros(config_dict["DDPG_prop"]["episode_num"])
         for agent_id in range(opt.nb_agents)
     }
+
     for episode in range(config_dict["DDPG_prop"]["episode_num"]):
-        if render:
-            renderer.render(obs)
         print(f"New episode at time {step}")
         obs = env.reset()
+        if render:
+            renderer.render(obs)
         obs_ = normStateDict(obs[next(iter(obs))], config_dict)
         obs_dict = {
             agent_id: obs_  # env.action_space(agent_id).sample()
@@ -152,7 +153,7 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             and step != 0
         ):
             path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
-            saveActorNetDict(agent, path, step)
+            saveDDPGDict(agent, path, step)
             if log_wandb:
                 wandb.save(os.path.join(path, "actor" + str(step) + ".pth"))
     if render:

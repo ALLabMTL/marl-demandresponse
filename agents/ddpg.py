@@ -94,6 +94,7 @@ class DDPG:
         self.soft_tau = config_dict["DDPG_prop"][
             "soft_tau"
         ]  # soft update for target network
+        self.gumbel_softmax_tau = config_dict["DDPG_prop"]["gumbel_softmax_tau"]
         self.gamma = config_dict["DDPG_prop"]["gamma"]
         self.batch_size = config_dict["DDPG_prop"]["batch_size"]
         self.wandb_run = wandb_run
@@ -134,7 +135,7 @@ class DDPG:
         else:
             logits = self.tgt_actor_net(state)  # torch.Size([batch_size, action_size])
         # action = self.gumbel_softmax(logits)
-        action = F.gumbel_softmax(logits, hard=True)
+        action = F.gumbel_softmax(logits, tau=self.gumbel_softmax_tau, hard=True)
         action = action.squeeze(0).detach() if is_target else action
         if output_logits:
             return action, logits

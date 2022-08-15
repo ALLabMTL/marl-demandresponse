@@ -329,6 +329,7 @@ config_dict = {
         "learn_interval": 100,
         "learn_interval": 100,
         "random_steps": 100,
+        "gumbel_softmax_tau": 1,
     },
     "DQN_prop": {
         "network_layers": [100, 100],
