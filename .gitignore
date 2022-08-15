@@ -22,3 +22,4 @@ monteCarlo/*.csv
 actors/
 
 slurm*
+ddpg_results/*
