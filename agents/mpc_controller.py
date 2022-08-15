@@ -28,10 +28,13 @@ class MPCController(object):
             self.signal_parameter = config_dict["default_env_prop"]["power_grid_prop"][
                 "signal_parameters"
             ]["sinusoidals"]
+        self.solar_gain = config_dict["default_house_prop"]["solar_gain_bool"]
+      
 
     def act(self, obs):
         self.time_step += 1
         if global_mpc_memory[0] != self.time_step:
+            start = time.time()
             df = pd.DataFrame(obs).transpose()
             nb_agents = len(df.index)
             Ua = df["house_Ua"].to_list()
@@ -44,15 +47,18 @@ class MPCController(object):
             remaining_lockout = (
                 df["hvac_lockout_duration"] - df["hvac_seconds_since_off"]
             ) * df["hvac_turned_on"]
-            print(df.columns)
+        
             rolling_horizon = self.rolling_horizon
-
-            solar_gain = [
-                house_solar_gain(
-                    df["datetime"][0], self.window_area, self.shading_coeff
-                )
-            ] * rolling_horizon
-            print(self.time_step_duration)
+            if self.solar_gain:
+                solar_gain = [
+                    house_solar_gain(
+                        df["datetime"][0], self.window_area, self.shading_coeff
+                    )
+                ] * rolling_horizon
+            else: 
+                solar_gain = [
+                    0
+                ] * rolling_horizon
             time_step_duration = self.time_step_duration
             lockout_duration = df["hvac_lockout_duration"][0]
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
@@ -61,10 +67,6 @@ class MPCController(object):
             HVAC_cooling = df["hvac_cooling_capacity"] / (
                 1 + df["hvac_latent_cooling_fraction"]
             )
-
-            print("iat:", initial_air_temperature)
-            print("td:", initial_air_temperature[0] - target_temperature[0])
-
             start = time.time()
             global_mpc_memory[1] = best_MPC_action(
                 nb_agents,
@@ -86,7 +88,6 @@ class MPCController(object):
                 lockout_duration,
             )
             end = time.time()
-            print("duration :", end - start)
             global_mpc_memory[0] = self.time_step
-
+            print(end - start)
         return global_mpc_memory[1][self.id]

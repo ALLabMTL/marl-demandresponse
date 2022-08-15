@@ -247,7 +247,7 @@ config_dict = {
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
 		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
 	},
-	"state_properties": {
+	"state_properties": {						# Data that are given in the state or not
 		"hour": True,
 		"day": True,
 		"solar_gain": True,

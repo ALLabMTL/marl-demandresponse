@@ -168,55 +168,5 @@ def best_MPC_action(
 
     os.remove(path)
     sys.stdout = sys.__stdout__
-    print(temperature_difference.value)
-    print(HVAC_state.value[lockout_duration:])
+
     return (HVAC_state.value > 0.5)[lockout_duration, :]
-
-
-# hvac_power = np.array([10000] * 15)15
-# initial_air_temperature = np.array([16 + 273] * 15)
-# initial_mass_temperature = np.array([16 + 273] * 15)
-# target_temperature = np.array([20 + 273] * 15)
-# remaining_lockout = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
-# rolling_horizon = 15
-# nb_agent = 10
-# lockout_duration = 10
-# signal = np.array([50000] * rolling_horizon)
-# od_temp_K = np.array([30 + 273] * 15)
-# other_Qa = np.array([1] * 15)  # Solar gain
-
-# time_step_sec = 4
-# Hm, Ca, Ua, Cm = (
-#     np.array([2.84e03] * 15),
-#     np.array([9.08e05] * 15),
-#     np.array([2.18e02] * 15),
-#     np.array([3.45e06] * 15),
-# )
-# # ____________
-
-# start = time.time()
-
-# next_action = best_MPC_action(
-#     nb_agent,
-#     hvac_power,
-#     initial_air_temperature,
-#     initial_mass_temperature,
-#     target_temperature,
-#     remaining_lockout,
-#     signal,
-#     od_temp_K,
-#     other_Qa,
-#     Hm,
-#     Ca,
-#     Ua,
-#     Cm,
-#     rolling_horizon,
-#     time_step_sec,
-#     lockout_duration,
-# )
-
-
-# end = time.time()
-# print(next_action)
-# print(end - start)
