@@ -24,7 +24,7 @@ import wandb
 
 #%% Functions
 
-# def train_ddpg(env, dim_info, config_dict, opt):
+
 def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     # id_rng = np.random.default_rng()
     # unique_ID = str(int(id_rng.random() * 1000000))
@@ -63,6 +63,7 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     for episode in range(config_dict["DDPG_prop"]["episode_num"]):
         if render:
             renderer.render(obs)
+        print(f"New episode at time {step}")
         obs = env.reset()
         obs_ = normStateDict(obs[next(iter(obs))], config_dict)
         obs_dict = {
@@ -72,9 +73,7 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         agent_reward = {
             agent_id: 0 for agent_id in range(opt.nb_agents)
         }  # agent reward of the current episode
-        for s in range(
-            config_dict["DDPG_prop"]["episode_len"]
-        ):  # interact with the env for an episode
+        for s in range(time_steps_per_episode):  # interact with the env for an episode
             step += 1
             if step < config_dict["DDPG_prop"]["random_steps"]:
                 action = {
@@ -87,7 +86,7 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
                 action = maddpg.select_action(obs_dict)
 
             next_obs, reward, done, info = env.step(action)
-            if render and t >= opt.render_after:
+            if render and step >= opt.render_after:
                 renderer.render(next_obs)
             # env.render()
             next_obs_ = normStateDict(next_obs[next(iter(next_obs))], config_dict)
@@ -105,9 +104,10 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
             if (
                 step >= config_dict["DDPG_prop"]["random_steps"]
-                and step % config_dict["DDPG_prop"]["learn_interval"] == 0
+                and step % time_steps_per_epoch == 0
             ):  # learn every few steps
                 # maddpg.update(opt.batch_size, opt.gamma)
+                print(f"Updating agent at time {step}")
                 maddpg.update()
                 maddpg.update_target()
 
@@ -125,6 +125,36 @@ def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
                 sum_reward += r
             message += f"sum reward: {sum_reward}"
             print(message)
+            if log_wandb:
+                wandb_run.log({"sum_reward": sum_reward})
+        # Log train statistics
+        if (
+            step % time_steps_train_log == time_steps_train_log - 1
+        ):  # Log train statistics
+            # print("Logging stats at time {}".format(t))
+            logged_metrics = metrics.log(step, time_steps_train_log)
+            if log_wandb:
+                wandb_run.log(logged_metrics)
+            metrics.reset()
+
+        # Test policy
+        if step % time_steps_test_log == time_steps_test_log - 1:  # Test policy
+            print(f"Testing at time {step}")
+            metrics_test = test_ppo_agent(agent, env, config_dict, opt, step)
+            if log_wandb:
+                wandb_run.log(metrics_test)
+            else:
+                print("Training step - {}".format(step))
+
+        if (
+            opt.save_actor_name
+            and step % time_steps_per_saving_actor == 0
+            and step != 0
+        ):
+            path = os.path.join(".", "actors", opt.save_actor_name + unique_ID)
+            saveActorNetDict(agent, path, step)
+            if log_wandb:
+                wandb.save(os.path.join(path, "actor" + str(step) + ".pth"))
     if render:
         renderer.__del__(obs)
     maddpg.save(episode_rewards)  # save model
