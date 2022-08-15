@@ -1,4 +1,3 @@
-
 config_dict = {
 
 # House properties
@@ -245,9 +244,15 @@ config_dict = {
 		},
 		"nb_agents": 1,							# Number of houses
 		"nb_agents_comm": 10,					# Maximal number of houses a single house communicates with
-		"agents_comm_mode": "neighbours",		# Maximal number of houses a single house communicates with
+		"agents_comm_mode": "neighbours",		# Communication mode
+		"agents_comm_parameters": {
+			"neighbours_2D": {
+				"row_size": 5,					# Row side length
+				"distance_comm": 2,					# Max distance between two communicating houses
+			},
+		},
 	},
-	"state_properties": {						# Data that are given in the state or not
+	"state_properties": {
 		"hour": True,
 		"day": True,
 		"solar_gain": True,
@@ -307,8 +312,7 @@ config_dict = {
 			},
 		},
 		"sig_penalty_mode": "common_L2",					# Mode of signal penalty
-	}
-
+	},
 },
 
 # Agent properties
@@ -335,6 +339,25 @@ config_dict = {
     "max_grad_norm": 0.5,
     "ppo_update_time": 10,
     "batch_size": 256,
+    },
+    
+"DDPG_prop": {
+    "actor_hidden_dim": 256,
+    "critic_hidden_dim": 256,
+    "gamma": 0.99,
+    "lr_critic": 3e-3,
+    "lr_actor": 1e-3,
+    "soft_tau": 0.01,
+    "clip_param": 0.2,
+    "max_grad_norm": 0.5,
+    "ddpg_update_time": 10,
+    "batch_size": 64,
+    "buffer_capacity": 524288,
+    "episode_num": 10000,
+    "episode_len": 25,
+    "learn_interval": 100,
+    "learn_interval": 100,
+    "random_steps": 100,
     },
 
 "DQN_prop": {
