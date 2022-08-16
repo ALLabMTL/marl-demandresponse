@@ -9,7 +9,7 @@ import time
 import wandb 
 import numpy as np 
 from agents.network import Actor, Critic, OldActor, OldCritic 
- 
+import pprint
  
 class PPO: 
     def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None): 
@@ -28,7 +28,7 @@ class PPO:
         self.critic_net = Critic( 
             num_state=num_state, layers=config_dict["PPO_prop"]["critic_layers"] 
         ) 
-        self.buffer = [] 
+        self.nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
         self.batch_size = config_dict["PPO_prop"]["batch_size"] 
         self.ppo_update_time = config_dict["PPO_prop"]["ppo_update_time"] 
         self.max_grad_norm = config_dict["PPO_prop"]["max_grad_norm"] 
@@ -39,6 +39,11 @@ class PPO:
         self.wandb_run = wandb_run 
         self.log_wandb = not opt.no_wandb 
         self.zero_eoepisode_return = config_dict["PPO_prop"]["zero_eoepisode_return"]
+
+        # Initialize buffer
+        self.buffer = {}
+        for agent in range(self.nb_agents):
+            self.buffer[agent] = []
  
         print( 
             "ppo_update_time: {}, max_grad_norm: {}, clip_param: {}, gamma: {}, batch_size: {}, lr_actor: {}, lr_critic: {}".format( 
@@ -51,7 +56,6 @@ class PPO:
                 self.lr_critic, 
             ) 
         ) 
-        self.counter = 0 
         self.training_step = 0 
  
         self.actor_optimizer = optim.Adam(self.actor_net.parameters(), self.lr_actor) 
@@ -73,23 +77,37 @@ class PPO:
         with torch.no_grad(): 
             value = self.critic_net(state) 
         return value.item() 
+
+    def reset_buffer(self):
+        self.buffer = {}
+        for agent in range(self.nb_agents):
+            self.buffer[agent] = []
  
-    def store_transition(self, transition): 
-        self.buffer.append(transition) 
-        self.counter += 1 
+    def store_transition(self, transition, agent): 
+        self.buffer[agent].append(transition) 
  
     def update(self, t): 
-        state = torch.tensor([t.state for t in self.buffer], dtype=torch.float) 
-        next_state = torch.tensor([t.next_state for t in self.buffer], dtype=torch.float)
-        action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view( 
+        Gt = {}
+
+        sequential_buffer =  []
+        for agent in range(self.nb_agents):
+            sequential_buffer += self.buffer[agent]
+        
+        #print("buffer:")
+        #pprint.pprint(self.buffer)
+        #print("Sequential buffer".format(sequential_buffer))
+        #pprint.pprint(sequential_buffer)
+
+        state = torch.tensor([t.state for t in sequential_buffer], dtype=torch.float) 
+        next_state = torch.tensor([t.next_state for t in sequential_buffer], dtype=torch.float)
+        action = torch.tensor([t.action for t in sequential_buffer], dtype=torch.long).view( 
             -1, 1 
         ) 
-        reward = [t.reward for t in self.buffer] 
+        reward = [t.reward for t in sequential_buffer] 
         old_action_log_prob = torch.tensor( 
-            [t.a_log_prob for t in self.buffer], dtype=torch.float 
+            [t.a_log_prob for t in sequential_buffer], dtype=torch.float 
         ).view(-1, 1) 
-        done = [t.done for t in self.buffer] 
-        R = 0 
+        done = [t.done for t in sequential_buffer] 
         Gt = [] 
         for i in reversed(range(len(reward))): 
             if done[i]: 
@@ -97,7 +115,6 @@ class PPO:
                     R = 0
                 else:
                     R = self.get_value(next_state[i])   # When last state of episode, start from estimated value of next state
-                print(R)
             R = reward[i] + self.gamma * R 
             Gt.insert(0, R) 
         Gt = torch.tensor(Gt, dtype=torch.float) 
@@ -107,7 +124,7 @@ class PPO:
         # print("The agent is updateing....") 
         for i in range(self.ppo_update_time): 
             for index in BatchSampler( 
-                SubsetRandomSampler(range(len(self.buffer))), self.batch_size, False 
+                SubsetRandomSampler(range(len(sequential_buffer))), self.batch_size, False 
             ): 
                 if self.training_step % 1000 == 0: 
                     print("Time step: {} ，train {} times".format(t, self.training_step)) 
@@ -213,4 +230,5 @@ class PPO:
                 } 
             ) 
  
-        del self.buffer[:]  # clear experience 
+        self.reset_buffer()  # clear experience 
+ 

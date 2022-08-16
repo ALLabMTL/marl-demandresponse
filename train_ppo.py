@@ -83,7 +83,8 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
                     rewards_dict[k],
                     normStateDict(next_obs_dict[k], config_dict),
                     done,
-                )
+                ),
+                k
             )
             # Update metrics
             metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
