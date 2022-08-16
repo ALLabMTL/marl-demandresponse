@@ -337,6 +337,13 @@ def cli_train():
         help="Number of update rounds at each epoch",
     )
 
+    parser.add_argument(
+        "--zero_eoepisode_return",
+        choices=["True", "False"],
+        default="False",
+        help="Include day in the state",
+    )
+
     ## DDPG agent
     parser.add_argument(
         "--gumbel_softmax_tau",

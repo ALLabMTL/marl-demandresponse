@@ -301,6 +301,7 @@ config_dict = {
         "max_grad_norm": 0.5,
         "ppo_update_time": 10,
         "batch_size": 256,
+        "zero_eoepisode_return": False,
     },
     "MAPPO_prop": {
         "actor_layers": [100, 100],
@@ -312,6 +313,7 @@ config_dict = {
         "max_grad_norm": 0.5,
         "ppo_update_time": 10,
         "batch_size": 256,
+        "zero_eoepisode_return": False,
     },
     "DDPG_prop": {
         "actor_hidden_dim": 256,

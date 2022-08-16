@@ -186,6 +186,9 @@ def adjust_config_train(opt, config_dict):
         config_dict["PPO_prop"]["max_grad_norm"] = opt.max_grad_norm
     if opt.ppo_update_time != -1:
         config_dict["PPO_prop"]["ppo_update_time"] = opt.ppo_update_time
+    config_dict["PPO_prop"]["zero_eoepisode_return"] = (
+        opt.zero_eoepisode_return == "True"
+    )
 
     ## DQN agent
     # NN architecture

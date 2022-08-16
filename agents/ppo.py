@@ -38,6 +38,7 @@ class PPO:
         self.lr_critic = config_dict["PPO_prop"]["lr_critic"] 
         self.wandb_run = wandb_run 
         self.log_wandb = not opt.no_wandb 
+        self.zero_eoepisode_return = config_dict["PPO_prop"]["zero_eoepisode_return"]
  
         print( 
             "ppo_update_time: {}, max_grad_norm: {}, clip_param: {}, gamma: {}, batch_size: {}, lr_actor: {}, lr_critic: {}".format( 
@@ -92,7 +93,11 @@ class PPO:
         Gt = [] 
         for i in reversed(range(len(reward))): 
             if done[i]: 
-                R = self.get_value(next_state[i])   # When last state of episode, start from estimated value of next state
+                if self.zero_eoepisode_return: 
+                    R = 0
+                else:
+                    R = self.get_value(next_state[i])   # When last state of episode, start from estimated value of next state
+                print(R)
             R = reward[i] + self.gamma * R 
             Gt.insert(0, R) 
         Gt = torch.tensor(Gt, dtype=torch.float) 
