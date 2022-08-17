@@ -158,7 +158,7 @@ def best_MPC_action(
 
     problem = cp.Problem(
         cp.Minimize(
-            cp.sum_squares(consumption - signal) / (7500**2) *0
+            cp.sum_squares(consumption - signal) / (7500**2) 
             + cp.sum_squares(temperature_difference)
         ),
         constraints,
