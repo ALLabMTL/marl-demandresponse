@@ -27,78 +27,106 @@ def render_and_wandb_init(opt, config_dict):
 def adjust_config_train(opt, config_dict):
     """Changes configuration of config_dict based on args."""
 
-### Environment
+    ### Environment
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
     if opt.time_step != -1:
         config_dict["default_env_prop"]["time_step"] = opt.time_step
 
-## Reward
+    ## Reward
     if opt.alpha_temp != -1:
         config_dict["default_env_prop"]["reward_prop"]["alpha_temp"] = opt.alpha_temp
     if opt.alpha_sig != -1:
         config_dict["default_env_prop"]["reward_prop"]["alpha_sig"] = opt.alpha_sig
     if opt.temp_penalty_mode != "config":
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_mode"] = opt.temp_penalty_mode
+        config_dict["default_env_prop"]["reward_prop"][
+            "temp_penalty_mode"
+        ] = opt.temp_penalty_mode
     if opt.alpha_ind_L2 != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_ind_L2"] = opt.alpha_ind_L2
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_ind_L2"] = opt.alpha_ind_L2
     if opt.alpha_common_L2 != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_L2"] = opt.alpha_common_L2
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_common_L2"] = opt.alpha_common_L2
     if opt.alpha_common_max != -1:
-        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"]["mixture"]["alpha_common_max"] = opt.alpha_common_max
+        config_dict["default_env_prop"]["reward_prop"]["temp_penalty_parameters"][
+            "mixture"
+        ]["alpha_common_max"] = opt.alpha_common_max
 
-## Simulator
-# Outdoors
+    ## Simulator
+    # Outdoors
     if opt.OD_temp_mode != "config":
         config_dict["default_env_prop"]["cluster_prop"]["temp_mode"] = opt.OD_temp_mode
     config_dict["default_house_prop"]["solar_gain_bool"] = not opt.no_solar_gain
-# House and HVAC
+    # House and HVAC
     if opt.cooling_capacity != -1:
         config_dict["default_hvac_prop"]["cooling_capacity"] = opt.cooling_capacity
     if opt.lockout_duration != -1:
         config_dict["default_hvac_prop"]["lockout_duration"] = opt.lockout_duration
-# Noise
+    # Noise
     if opt.house_noise_mode != "config":
         config_dict["noise_house_prop"]["noise_mode"] = opt.house_noise_mode
     if opt.house_noise_mode_test == "train":
-        config_dict["noise_house_prop_test"]["noise_mode"] = config_dict["noise_house_prop"]["noise_mode"]
+        config_dict["noise_house_prop_test"]["noise_mode"] = config_dict[
+            "noise_house_prop"
+        ]["noise_mode"]
     else:
         config_dict["noise_house_prop_test"]["noise_mode"] = opt.house_noise_mode_test
     if opt.hvac_noise_mode != "config":
         config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
     if opt.hvac_noise_mode_test == "train":
-        config_dict["noise_hvac_prop_test"]["noise_mode"] = config_dict["noise_hvac_prop_test"]["noise_mode"]
+        config_dict["noise_hvac_prop_test"]["noise_mode"] = config_dict[
+            "noise_hvac_prop_test"
+        ]["noise_mode"]
     else:
         config_dict["noise_hvac_prop_test"]["noise_mode"] = opt.hvac_noise_mode_test
 
-## Signal
+    ## Signal
     if opt.signal_mode != "config":
-        config_dict["default_env_prop"]["power_grid_prop"]["signal_mode"] = opt.signal_mode
+        config_dict["default_env_prop"]["power_grid_prop"][
+            "signal_mode"
+        ] = opt.signal_mode
     if opt.base_power_mode != "config":
-        config_dict["default_env_prop"]["power_grid_prop"]["base_power_mode"] = opt.base_power_mode
-    config_dict["default_env_prop"]["power_grid_prop"]["artificial_ratio"] = opt.artificial_signal_ratio
+        config_dict["default_env_prop"]["power_grid_prop"][
+            "base_power_mode"
+        ] = opt.base_power_mode
+    config_dict["default_env_prop"]["power_grid_prop"][
+        "artificial_ratio"
+    ] = opt.artificial_signal_ratio
     if opt.artificial_signal_ratio_range != -1:
-        config_dict["default_env_prop"]["power_grid_prop"]["artificial_signal_ratio_range"] = opt.artificial_signal_ratio_range
+        config_dict["default_env_prop"]["power_grid_prop"][
+            "artificial_signal_ratio_range"
+        ] = opt.artificial_signal_ratio_range
 
+    ## State
+    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = (
+        opt.state_solar_gain == "True"
+    )
+    config_dict["default_env_prop"]["state_properties"]["hour"] = (
+        opt.state_hour == "True"
+    )
+    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == "True"
+    config_dict["default_env_prop"]["state_properties"]["thermal"] = (
+        opt.state_thermal == "True"
+    )
 
-## State
-    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
-    config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
-    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
-    config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal == 'True'
+    ### Agent
 
-
-### Agent
-
-## Agent communication constraints
+    ## Agent communication constraints
 
     if opt.nb_agents_comm != -1:
-        config_dict["default_env_prop"]["cluster_prop"]["nb_agents_comm"] = opt.nb_agents_comm
+        config_dict["default_env_prop"]["cluster_prop"][
+            "nb_agents_comm"
+        ] = opt.nb_agents_comm
     if opt.agents_comm_mode != "config":
-        config_dict["default_env_prop"]["cluster_prop"]["agents_comm_mode"] = opt.agents_comm_mode
+        config_dict["default_env_prop"]["cluster_prop"][
+            "agents_comm_mode"
+        ] = opt.agents_comm_mode
 
-## PPO agent
-# NN architecture
+    ## PPO agent
+    # NN architecture
     if opt.layers_actor != "config":
         config_dict["PPO_prop"]["actor_layers"] = opt.layers_actor
     if opt.layers_critic != "config":
@@ -106,7 +134,7 @@ def adjust_config_train(opt, config_dict):
     if opt.layers_both != "config":
         config_dict["PPO_prop"]["actor_layers"] = opt.layers_both
         config_dict["PPO_prop"]["critic_layers"] = opt.layers_both
-# NN optimization
+    # NN optimization
     if opt.batch_size != -1:
         config_dict["PPO_prop"]["batch_size"] = opt.batch_size
     if opt.lr_critic != -1:
@@ -117,8 +145,39 @@ def adjust_config_train(opt, config_dict):
         config_dict["PPO_prop"]["lr_critic"] = opt.lr_both
         config_dict["PPO_prop"]["lr_actor"] = opt.lr_both
         if opt.lr_actor != -1 or opt.lr_critic != -1:
-            raise ValueError("Potential conflict: both lr_both and lr_actor or lr_critic were set in the CLI")
-# RL optimization
+            raise ValueError(
+                "Potential conflict: both lr_both and lr_actor or lr_critic were set in the CLI"
+            )
+
+    ## DDPG agent
+    # NN architecture
+    if opt.layers_actor != "config":
+        config_dict["DDPG_prop"]["actor_layers"] = opt.layers_actor
+    if opt.layers_critic != "config":
+        config_dict["DDPG_prop"]["critic_layers"] = opt.layers_critic
+    if opt.layers_both != "config":
+        config_dict["DDPG_prop"]["actor_layers"] = opt.layers_both
+        config_dict["DDPG_prop"]["critic_layers"] = opt.layers_both
+    # NN optimization
+    if opt.batch_size != -1:
+        config_dict["DDPG_prop"]["batch_size"] = opt.batch_size
+    if opt.lr_critic != -1:
+        config_dict["DDPG_prop"]["lr_critic"] = opt.lr_critic
+    if opt.lr_actor != -1:
+        config_dict["DDPG_prop"]["lr_actor"] = opt.lr_actor
+    if opt.lr_both != -1:
+        config_dict["DDPG_prop"]["lr_critic"] = opt.lr_both
+        config_dict["DDPG_prop"]["lr_actor"] = opt.lr_both
+        if opt.lr_actor != -1 or opt.lr_critic != -1:
+            raise ValueError(
+                "Potential conflict: both lr_both and lr_actor or lr_critic were set in the CLI"
+            )
+    if opt.gumbel_softmax_tau != -1:
+        config_dict["DDPG_prop"]["gumbel_softmax_tau"] = opt.gumbel_softmax_tau
+    if opt.tau != -1:
+        config_dict["DDPG_prop"]["soft_tau"] = opt.tau
+
+    # RL optimization
     if opt.gamma != -1:
         config_dict["PPO_prop"]["gamma"] = opt.gamma
     if opt.clip_param != -1:
@@ -127,30 +186,34 @@ def adjust_config_train(opt, config_dict):
         config_dict["PPO_prop"]["max_grad_norm"] = opt.max_grad_norm
     if opt.ppo_update_time != -1:
         config_dict["PPO_prop"]["ppo_update_time"] = opt.ppo_update_time
+    config_dict["PPO_prop"]["zero_eoepisode_return"] = (
+        opt.zero_eoepisode_return == "True"
+    )
 
-## DQN agent
-# NN architecture
+    ## DQN agent
+    # NN architecture
     if opt.DQNnetwork_layers != "config":
         config_dict["DQN_prop"]["network_layers"] = opt.DQNnetwork_layers
 
-# NN optimization
+    # NN optimization
     if opt.batch_size != -1:
         config_dict["DQN_prop"]["batch_size"] = opt.batch_size
     if opt.DQN_lr != -1:
-        config_dict["DQN_prop"]["lr"] = opt.DQN_lr       
+        config_dict["DQN_prop"]["lr"] = opt.DQN_lr
 
-# RL optimization
+    # RL optimization
     if opt.gamma != -1:
         config_dict["DQN_prop"]["gamma"] = opt.gamma
     if opt.tau != -1:
         config_dict["DQN_prop"]["tau"] = opt.tau
     if opt.buffer_capacity != -1:
-        config_dict["DQN_prop"]["buffer_capacity"] = opt.buffer_capacity    
+        config_dict["DQN_prop"]["buffer_capacity"] = opt.buffer_capacity
     if opt.epsilon_decay != -1:
-        config_dict["DQN_prop"]["epsilon_decay"] = opt.epsilon_decay    
+        config_dict["DQN_prop"]["epsilon_decay"] = opt.epsilon_decay
     if opt.min_epsilon != -1:
-        config_dict["DQN_prop"]["min_epsilon"] = opt.min_epsilon    
-        
+        config_dict["DQN_prop"]["min_epsilon"] = opt.min_epsilon
+
+
 def adjust_config_deploy(opt, config_dict):
     if opt.nb_agents != -1:
         config_dict["default_env_prop"]["cluster_prop"]["nb_agents"] = opt.nb_agents
@@ -197,12 +260,20 @@ def adjust_config_deploy(opt, config_dict):
     if opt.start_datetime_mode != "config":
         config_dict["default_env_prop"]["start_datetime_mode"] = opt.start_datetime_mode
 
-    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain == 'True'
-    config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour == 'True'
-    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == 'True'
-    config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal == 'True'
+    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = (
+        opt.state_solar_gain == "True"
+    )
+    config_dict["default_env_prop"]["state_properties"]["hour"] = (
+        opt.state_hour == "True"
+    )
+    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == "True"
+    config_dict["default_env_prop"]["state_properties"]["thermal"] = (
+        opt.state_thermal == "True"
+    )
 
-    config_dict["default_env_prop"]["power_grid_prop"]["artificial_ratio"] = opt.artificial_signal_ratio
+    config_dict["default_env_prop"]["power_grid_prop"][
+        "artificial_ratio"
+    ] = opt.artificial_signal_ratio
 
 
 # Applying noise on environment properties
@@ -307,7 +378,9 @@ def apply_hvac_noise(hvac_prop, noise_hvac_prop):
     hvac_capacity = hvac_prop["cooling_capacity"]
     noise_hvac_params = noise_hvac_prop["noise_parameters"][noise_hvac_mode]
 
-    hvac_prop["cooling_capacity"] = random.choices(noise_hvac_params["cooling_capacity_list"][hvac_capacity])[0]
+    hvac_prop["cooling_capacity"] = random.choices(
+        noise_hvac_params["cooling_capacity_list"][hvac_capacity]
+    )[0]
 
 
 """
@@ -383,8 +456,8 @@ def normStateDict(sDict, config_dict, returnDict=False):
             "hvac_latent_cooling_fraction",
         ]
     else:
-        k_temp = ["house_temp", "house_mass_temp", "house_target_temp"]    
-        k_div = ["hvac_cooling_capacity"]    
+        k_temp = ["house_temp", "house_mass_temp", "house_target_temp"]
+        k_div = ["hvac_cooling_capacity"]
 
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
@@ -402,7 +475,7 @@ def normStateDict(sDict, config_dict, returnDict=False):
         result["cos_hr"] = np.cos(hour * 2 * np.pi / 24)
 
     if state_prop["solar_gain"]:
-        result["house_solar_gain"] = sDict["house_solar_gain"]/1000
+        result["house_solar_gain"] = sDict["house_solar_gain"] / 1000
 
     for k in k_div:
         k1 = "_".join(k.split("_")[1:])
@@ -497,7 +570,7 @@ def test_dqn_agent(agent, env, config_dict, opt, tr_time_steps):
     mean_avg_return = cumul_avg_reward / opt.nb_time_steps_test
     mean_temp_error = cumul_temp_error / opt.nb_time_steps_test
     mean_signal_error = cumul_signal_error / opt.nb_time_steps_test
-    
+
     return {
         "Mean test return": mean_avg_return,
         "Test mean temperature error": mean_temp_error,
@@ -583,14 +656,44 @@ def get_agent_test(agent, state, config_dict, reg_signal, low_temp=10, high_temp
     return actions
 
 
+def saveDDPGDict(agent, path, t=None):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    agents = agent.agents
+    network_dict = {}
+    for i in range(len(agents)):
+        network_dict[i] = {
+            "actor_state_dict": agents[i].actor_net.state_dict(),
+            "actor_optimizer_state_dict": agents[i].actor_optimizer.state_dict(),
+            "critic_state_dict": agents[i].critic_net.state_dict(),
+            "critic_optimizer_state_dict": agents[i].critic_optimizer.state_dict(),
+            "tgt_actor_net_state_dict": agents[i].tgt_actor_net.state_dict(),
+            "tgt_critic_net_state_dict": agents[i].tgt_critic_net.state_dict(),
+            "lr_actor": agents[i].lr_actor,
+            "lr_critic": agents[i].lr_critic,
+            "gamma": agents[i].gamma,
+            "soft_tau": agents[i].soft_tau,
+        }
+    if t:
+        torch.save(
+            network_dict,
+            os.path.join(path, "actor" + str(t) + ".pth"),
+        )
+    else:
+        torch.save(network_dict, os.path.join(path, "actor.pth"))
+
+
 def saveActorNetDict(agent, path, t=None):
     if not os.path.exists(path):
         os.makedirs(path)
     actor_net = agent.actor_net
     if t:
-        torch.save(actor_net.state_dict(), os.path.join(path, "actor" + str(t) + ".pth"))
+        torch.save(
+            actor_net.state_dict(), os.path.join(path, "actor" + str(t) + ".pth")
+        )
     else:
         torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))
+
 
 def saveDQNNetDict(agent, path, t=None):
     if not os.path.exists(path):

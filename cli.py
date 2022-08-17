@@ -4,8 +4,7 @@ import argparse
 def cli_train():
     parser = argparse.ArgumentParser(description="Training options")
 
-
-### Context
+    ### Context
 
     parser.add_argument(
         "--exp",
@@ -42,12 +41,12 @@ def cli_train():
 
     parser.add_argument(
         "--nb_inter_saving_actor",
-        type = int,
-        default = 0,
-        help="Number of intermediate times the actor is saved during training."
-        )
+        type=int,
+        default=0,
+        help="Number of intermediate times the actor is saved during training.",
+    )
 
-### Environment
+    ### Environment
 
     parser.add_argument(
         "--nb_agents",
@@ -70,8 +69,7 @@ def cli_train():
         help="Time step in seconds",
     )
 
-
-## Reward
+    ## Reward
 
     parser.add_argument(
         "--alpha_temp",
@@ -105,18 +103,19 @@ def cli_train():
         "--alpha_common_L2",
         type=float,
         default=-1,
-        help="Coefficient of common L2 in mixture temperature loss")
+        help="Coefficient of common L2 in mixture temperature loss",
+    )
 
     parser.add_argument(
         "--alpha_common_max",
         type=float,
         default=-1,
-        help="Coefficient of common_max in mixture temperature loss") 
+        help="Coefficient of common_max in mixture temperature loss",
+    )
 
-## Simulator
+    ## Simulator
 
-
-# Outdoors
+    # Outdoors
 
     parser.add_argument(
         "--OD_temp_mode",
@@ -131,8 +130,7 @@ def cli_train():
         help="Removes the solar gain from the simulation.",
     )
 
-
-# House and HVAC
+    # House and HVAC
     parser.add_argument(
         "--cooling_capacity",
         type=int,
@@ -147,8 +145,7 @@ def cli_train():
         help="Default AC lockout duration, in seconds",
     )
 
-
-# Noise
+    # Noise
     parser.add_argument(
         "--house_noise_mode",
         type=str,
@@ -177,8 +174,7 @@ def cli_train():
         help="Mode of noise over HVAC parameters for test environment.",
     )
 
-
-## Signal
+    ## Signal
     parser.add_argument(
         "--signal_mode",
         type=str,
@@ -197,44 +193,47 @@ def cli_train():
         "--artificial_signal_ratio",
         type=float,
         default=1.0,
-        help="Artificially multiply the base signal for experimental purposes.")
+        help="Artificially multiply the base signal for experimental purposes.",
+    )
 
     parser.add_argument(
         "--artificial_signal_ratio_range",
         type=float,
         default=-1,
-        help="Range from which the base signal is artificially multiplied or divided at every episode during training. Ex: 1 will not modify the signal. 3 will have signal modified between 1/3 and 3 times the base signal.")
+        help="Range from which the base signal is artificially multiplied or divided at every episode during training. Ex: 1 will not modify the signal. 3 will have signal modified between 1/3 and 3 times the base signal.",
+    )
 
-
-## State
+    ## State
 
     parser.add_argument(
         "--state_day",
-        choices = ['True','False'],
-        default='True',
-        help="Include day in the state")
+        choices=["True", "False"],
+        default="True",
+        help="Include day in the state",
+    )
 
     parser.add_argument(
         "--state_hour",
-        choices = ['True','False'],
-        default='True',
-        help="Include hour in the state")
+        choices=["True", "False"],
+        default="True",
+        help="Include hour in the state",
+    )
 
     parser.add_argument(
         "--state_solar_gain",
-        choices = ['True','False'],
-        default='False',
-        help="Include solar gain in the state")
+        choices=["True", "False"],
+        default="False",
+        help="Include solar gain in the state",
+    )
 
     parser.add_argument(
         "--state_thermal",
-        choices = ['True','False'],
-        default = 'True',
-        help="Include outdoors temperature, and house thermal parameters, in the state.")
+        choices=["True", "False"],
+        default="True",
+        help="Include outdoors temperature, and house thermal parameters, in the state.",
+    )
 
-
-
-### Agent
+    ### Agent
 
     parser.add_argument(
         "--agent_type",
@@ -243,7 +242,7 @@ def cli_train():
         help="Type of agent (dqn, ppo)",
     )
 
-## Agent communication constraints
+    ## Agent communication constraints
 
     parser.add_argument(
         "--nb_agents_comm",
@@ -259,11 +258,9 @@ def cli_train():
         help="Mode for choosing the agents to communicate with. Can be 'neighbours' or 'random'",
     )
 
+    ## PPO agent
 
-
-## PPO agent
-
-# NN architecture
+    # NN architecture
 
     parser.add_argument(
         "--layers_critic",
@@ -283,10 +280,10 @@ def cli_train():
         "--layers_both",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
 
-# NN initialization
+    # NN initialization
 
     parser.add_argument(
         "--net_seed",
@@ -295,7 +292,7 @@ def cli_train():
         help="Neural network seed",
     )
 
-# NN optimization
+    # NN optimization
 
     parser.add_argument(
         "--batch_size",
@@ -305,103 +302,92 @@ def cli_train():
     )
 
     parser.add_argument(
-        "--lr_critic",
-        type=float,
-        default=-1,
-        help="Learning rate of critic network"
-        )
+        "--lr_critic", type=float, default=-1, help="Learning rate of critic network"
+    )
 
     parser.add_argument(
-        "--lr_actor",
-        type=float,
-        default=-1,
-        help="Learning rate of actor network"
-        )
+        "--lr_actor", type=float, default=-1, help="Learning rate of actor network"
+    )
 
     parser.add_argument(
         "--lr_both",
         type=float,
         default=-1,
-        help="Equal learning rate of actor and critic networks")
+        help="Equal learning rate of actor and critic networks",
+    )
 
-# RL optimization
-
-    parser.add_argument(
-        "--gamma",
-        type=float,
-        default=-1,
-        help="Reward discount parameter"
-        )
-
+    # RL optimization
 
     parser.add_argument(
-        "--clip_param",
-        type=float,
-        default=-1,
-        help="PPO loss clipping parameter"
-        )
+        "--gamma", type=float, default=-1, help="Reward discount parameter"
+    )
 
     parser.add_argument(
-        "--max_grad_norm",
-        type=float,
-        default=-1,
-        help="PPO gradient norm maximum"
-        )
+        "--clip_param", type=float, default=-1, help="PPO loss clipping parameter"
+    )
+
+    parser.add_argument(
+        "--max_grad_norm", type=float, default=-1, help="PPO gradient norm maximum"
+    )
 
     parser.add_argument(
         "--ppo_update_time",
         type=int,
         default=-1,
-        help="Number of update rounds at each epoch"
-        )    
+        help="Number of update rounds at each epoch",
+    )
 
+    parser.add_argument(
+        "--zero_eoepisode_return",
+        choices=["True", "False"],
+        default="False",
+        help="Include day in the state",
+    )
 
-
-## DQN agent (only those which were not already added in PPO agent)
+    ## DDPG agent
+    parser.add_argument(
+        "--gumbel_softmax_tau",
+        type=float,
+        default=-1,
+        help="Temperature parameter for gumbel_softmax in the DDPG.",
+    )
+    ## DQN agent (only those which were not already added in PPO agent)
 
     parser.add_argument(
         "--DQNnetwork_layers",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the DQN neural network model"
+        help="List containing the number of neurons on each layers of the DQN neural network model",
     )
 
     parser.add_argument(
         "--tau",
         type=float,
         default=-1,
-        help="Rate of update of the target network following the policy network."
+        help="Rate of update of the target network following the policy network.",
     )
-       
+
     parser.add_argument(
         "--epsilon_decay",
         type=float,
         default=-1,
-        help="Decay rate of epsilon-greedy exploration parameter."
+        help="Decay rate of epsilon-greedy exploration parameter.",
     )
-        
+
     parser.add_argument(
         "--min_epsilon",
         type=float,
         default=-1,
-        help="Minimal value of epsilon-greedy exploration parameter."
+        help="Minimal value of epsilon-greedy exploration parameter.",
     )
 
     parser.add_argument(
-        "--buffer_capacity",
-        type=int,
-        default=-1,
-        help="Replay buffer capacity"
-    )
-        
-    parser.add_argument(
-        "--DQN_lr",
-        type=float,
-        default=-1,
-        help="Learning rate"
+        "--buffer_capacity", type=int, default=-1, help="Replay buffer capacity"
     )
 
-### Training parameters
+    parser.add_argument("--DQN_lr", type=float, default=-1, help="Learning rate")
+
+    ### Training parameters
 
     parser.add_argument(
         "--nb_tr_episodes",
@@ -444,7 +430,6 @@ def cli_train():
         default=50000,
         help="Total number of time steps in an episode at test time",
     )
-
 
     opt = parser.parse_args()
 
@@ -607,25 +592,23 @@ def cli_deploy(agents_dict):
         "--layers_critic",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
 
     parser.add_argument(
         "--layers_actor",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
-
 
     parser.add_argument(
         "--layers_both",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the critic NN model"
+        help="List containing the number of neurons on each layers of the critic NN model",
     )
 
-    
     parser.add_argument(
         "--start_stats_from",
         type=int,
@@ -641,48 +624,51 @@ def cli_deploy(agents_dict):
     )
     parser.add_argument(
         "--state_day",
-        default='True',
-        choices = ['True','False'],
-        help="Include day in the state")
+        default="True",
+        choices=["True", "False"],
+        help="Include day in the state",
+    )
 
     parser.add_argument(
         "--state_hour",
-        default='True',
-        choices = ['True','False'],
-        help="Include hour in the state")
+        default="True",
+        choices=["True", "False"],
+        help="Include hour in the state",
+    )
 
     parser.add_argument(
         "--state_solar_gain",
-        default='False',
-        choices = ['True','False'],
-        help="Include solar gain in the state")
+        default="False",
+        choices=["True", "False"],
+        help="Include solar gain in the state",
+    )
 
     parser.add_argument(
         "--start_datetime_mode",
-        default='config',
-        help="Decide if start date time is 'fixed' or uniformly 'random'.")
+        default="config",
+        help="Decide if start date time is 'fixed' or uniformly 'random'.",
+    )
 
     parser.add_argument(
         "--state_thermal",
-        choices = ['True','False'],
-        default = 'True',
-        help="Include outdoors temperature, and house thermal parameters, in the state.")
+        choices=["True", "False"],
+        default="True",
+        help="Include outdoors temperature, and house thermal parameters, in the state.",
+    )
 
     parser.add_argument(
         "--artificial_signal_ratio",
         type=float,
         default=1.0,
-        help="Artificially multiply the base signal for experimental purposes."
-        )
-
+        help="Artificially multiply the base signal for experimental purposes.",
+    )
 
     parser.add_argument(
         "--DQNnetwork_layers",
         type=str,
         default="config",
-        help="List containing the number of neurons on each layers of the DQN neural network model"
+        help="List containing the number of neurons on each layers of the DQN neural network model",
     )
-
 
     opt = parser.parse_args()
 
