@@ -116,7 +116,7 @@ class PowerInterpolator(object):
 		"""
 		point_coordinates = list(point_dict.values())[4:]		# Remove the house thermal parameters
 		points = self.points[4:]								# Remove the house thermal parameters
-
+		
 		# Thermal parameters
 		closest_id = []
 		for i in range(4):

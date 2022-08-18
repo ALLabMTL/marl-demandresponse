@@ -29,7 +29,7 @@ class MPCController(object):
                 "signal_parameters"
             ]["sinusoidals"]
         self.solar_gain = config_dict["default_house_prop"]["solar_gain_bool"]
-      
+       
 
     def act(self, obs):
         self.time_step += 1
@@ -51,6 +51,7 @@ class MPCController(object):
             rolling_horizon = self.rolling_horizon
             if self.solar_gain:
                 solar_gain = [
+
                     house_solar_gain(
                         df["datetime"][0], self.window_area, self.shading_coeff
                     )
@@ -59,6 +60,8 @@ class MPCController(object):
                 solar_gain = [
                     0
                 ] * rolling_horizon
+       
+            print("\n\n\n---------------", solar_gain, "-----------\n\n\n")
             time_step_duration = self.time_step_duration
             lockout_duration = df["hvac_lockout_duration"][0]
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
@@ -67,7 +70,7 @@ class MPCController(object):
             HVAC_cooling = df["hvac_cooling_capacity"] / (
                 1 + df["hvac_latent_cooling_fraction"]
             )
-            start = time.time()
+           
             global_mpc_memory[1] = best_MPC_action(
                 nb_agents,
                 HVAC_cooling,
@@ -87,7 +90,7 @@ class MPCController(object):
                 time_step_duration,
                 lockout_duration,
             )
-            end = time.time()
+          
             global_mpc_memory[0] = self.time_step
-            print(end - start)
+           
         return global_mpc_memory[1][self.id]
