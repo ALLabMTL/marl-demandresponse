@@ -96,6 +96,8 @@ class PPO:
         #print("Sequential buffer".format(sequential_buffer))
         #pprint.pprint(sequential_buffer)
 
+        # TODO this seems the slowest part? UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
+
         state = torch.tensor([t.state for t in sequential_buffer], dtype=torch.float) 
         next_state = torch.tensor([t.next_state for t in sequential_buffer], dtype=torch.float)
         action = torch.tensor([t.action for t in sequential_buffer], dtype=torch.long).view(-1, 1) 
