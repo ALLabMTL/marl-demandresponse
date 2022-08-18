@@ -23,3 +23,11 @@ actors/
 
 slurm*
 ddpg_results/*.log
+
+monteCarlo/PreviousGridSearchResults/Small_432steps/
+
+monteCarlo/PreviousGridSearchResults/
+
+monteCarlo/results/
+
+.vscode/

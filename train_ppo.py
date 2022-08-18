@@ -100,7 +100,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
         # Epoch: update agent
         if (
             t % time_steps_per_epoch == time_steps_per_epoch - 1
-            and len(agent.buffer) >= agent.batch_size
+            and len(agent.buffer[0]) >= agent.batch_size
         ):
             print(f"Updating agent at time {t}")
             agent.update(t)

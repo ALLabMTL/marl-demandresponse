@@ -87,8 +87,6 @@ class PPO:
         self.buffer[agent].append(transition) 
  
     def update(self, t): 
-        Gt = {}
-
         sequential_buffer =  []
         for agent in range(self.nb_agents):
             sequential_buffer += self.buffer[agent]
@@ -98,16 +96,19 @@ class PPO:
         #print("Sequential buffer".format(sequential_buffer))
         #pprint.pprint(sequential_buffer)
 
+        # TODO this seems the slowest part? UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
+
         state = torch.tensor([t.state for t in sequential_buffer], dtype=torch.float) 
         next_state = torch.tensor([t.next_state for t in sequential_buffer], dtype=torch.float)
-        action = torch.tensor([t.action for t in sequential_buffer], dtype=torch.long).view( 
-            -1, 1 
-        ) 
+        action = torch.tensor([t.action for t in sequential_buffer], dtype=torch.long).view(-1, 1) 
         reward = [t.reward for t in sequential_buffer] 
+
         old_action_log_prob = torch.tensor( 
             [t.a_log_prob for t in sequential_buffer], dtype=torch.float 
         ).view(-1, 1) 
         done = [t.done for t in sequential_buffer] 
+
+
         Gt = [] 
         for i in reversed(range(len(reward))): 
             if done[i]: 
@@ -121,7 +122,7 @@ class PPO:
         ratios = np.array([]) 
         clipped_ratios = np.array([]) 
         gradient_norms = np.array([]) 
-        # print("The agent is updateing....") 
+        print("The agent is updating....") 
         for i in range(self.ppo_update_time): 
             for index in BatchSampler( 
                 SubsetRandomSampler(range(len(sequential_buffer))), self.batch_size, False 
