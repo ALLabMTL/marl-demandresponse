@@ -102,6 +102,7 @@ class PPO:
         reward = [t.reward for t in sequential_buffer] 
         old_action_log_prob = torch.tensor(old_action_log_prob_np, dtype=torch.float).view(-1, 1) 
         done = [t.done for t in sequential_buffer] 
+
         """
         # Changed to accelerate process. UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
 
