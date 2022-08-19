@@ -277,10 +277,10 @@ config_dict = {
                     "period": 300,  # In seconds
                 },
                 "perlin": {
-                    "amplitude_ratios": 3.0,
+                    "amplitude_ratios": 0.9,
                     "nb_octaves": 5,
                     "octaves_step": 1,
-                    "period": 100,
+                    "period": 400,
                 },
             },
         },
