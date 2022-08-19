@@ -5,7 +5,7 @@ import torch.optim as optim
 from torch.distributions import Categorical 
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler 
 import os 
-import time 
+#from time import perf_counter
 import wandb 
 import numpy as np 
 from agents.network import Actor, Critic, OldActor, OldCritic 
@@ -90,13 +90,20 @@ class PPO:
         sequential_buffer =  []
         for agent in range(self.nb_agents):
             sequential_buffer += self.buffer[agent]
-        
-        #print("buffer:")
-        #pprint.pprint(self.buffer)
-        #print("Sequential buffer".format(sequential_buffer))
-        #pprint.pprint(sequential_buffer)
 
-        # TODO this seems the slowest part? UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
+        state_np = np.array([t.state for t in sequential_buffer])
+        next_state_np = np.array([t.next_state for t in sequential_buffer])
+        action_np = np.array([t.action for t in sequential_buffer])
+        old_action_log_prob_np = np.array([t.a_log_prob for t in sequential_buffer])
+        
+        state = torch.tensor(state_np, dtype=torch.float) 
+        next_state = torch.tensor(next_state_np, dtype=torch.float)
+        action = torch.tensor(action_np, dtype=torch.long).view(-1, 1) 
+        reward = [t.reward for t in sequential_buffer] 
+        old_action_log_prob = torch.tensor(old_action_log_prob_np, dtype=torch.float).view(-1, 1) 
+        done = [t.done for t in sequential_buffer] 
+        """
+        # Changed to accelerate process. UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
 
         state = torch.tensor([t.state for t in sequential_buffer], dtype=torch.float) 
         next_state = torch.tensor([t.next_state for t in sequential_buffer], dtype=torch.float)
@@ -107,6 +114,8 @@ class PPO:
             [t.a_log_prob for t in sequential_buffer], dtype=torch.float 
         ).view(-1, 1) 
         done = [t.done for t in sequential_buffer] 
+        
+        """
 
 
         Gt = [] 
