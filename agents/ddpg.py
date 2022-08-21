@@ -213,11 +213,15 @@ class MADDPG:
             )
         self.shared = opt.DDPG_shared
         assert self.shared != -1, "shared must be set as True or False (1 or 0)"
+        print("DDPG shared status: {}".format(self.shared))
         if self.shared:
             self.agents[agent_id].actor_net = self.agents[0].actor_net
             self.agents[agent_id].critic_net = self.agents[0].critic_net
             self.agents[agent_id].tgt_actor_net = self.agents[0].tgt_actor_net
             self.agents[agent_id].tgt_critic_net = self.agents[0].tgt_critic_net
+            self.agents[agent_id].actor_optimizer = self.agents[0].actor_optimizer
+            self.agents[agent_id].critic_optimizer = self.agents[0].critic_optimizer
+
         self.dim_info = dim_info
         self.wandb_run = wandb_run
         self.batch_size = self.config_dict["DDPG_prop"]["batch_size"]
