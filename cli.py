@@ -351,6 +351,12 @@ def cli_train():
         default=-1,
         help="Temperature parameter for gumbel_softmax in the DDPG.",
     )
+    parser.add_argument(
+        "--DDPG_shared",
+        type=float,
+        default=-1,
+        help="Temperature parameter for gumbel_softmax in the DDPG.",
+    )
     ## DQN agent (only those which were not already added in PPO agent)
 
     parser.add_argument(

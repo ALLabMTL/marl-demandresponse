@@ -211,7 +211,12 @@ class MADDPG:
                 action_dim,
                 "cpu",
             )
-
+        self.shared = opt.DDPG_shared
+        if self.shared:
+            self.agents[agent_id].actor_net = self.agents[0].actor_net
+            self.agents[agent_id].critic_net = self.agents[0].critic_net
+            self.agents[agent_id].tgt_actor_net = self.agents[0].tgt_actor_net
+            self.agents[agent_id].tgt_critic_net = self.agents[0].tgt_critic_net
         self.dim_info = dim_info
         self.wandb_run = wandb_run
         self.batch_size = self.config_dict["DDPG_prop"]["batch_size"]

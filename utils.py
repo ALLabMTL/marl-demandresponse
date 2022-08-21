@@ -176,6 +176,8 @@ def adjust_config_train(opt, config_dict):
         config_dict["DDPG_prop"]["gumbel_softmax_tau"] = opt.gumbel_softmax_tau
     if opt.tau != -1:
         config_dict["DDPG_prop"]["soft_tau"] = opt.tau
+    if opt.tau != -1:
+        config_dict["DDPG_prop"]["DDPG_shared"] = opt.DDPG_shared
 
     # RL optimization
     if opt.gamma != -1:

@@ -332,6 +332,7 @@ config_dict = {
         "learn_interval": 100,
         "random_steps": 100,
         "gumbel_softmax_tau": 1,
+        "DDPG_shared": True
     },
     "DQN_prop": {
         "network_layers": [100, 100],
