@@ -212,6 +212,7 @@ class MADDPG:
                 "cpu",
             )
         self.shared = opt.DDPG_shared
+        assert self.shared != -1, "shared must be set as True or False (1 or 0)"
         if self.shared:
             self.agents[agent_id].actor_net = self.agents[0].actor_net
             self.agents[agent_id].critic_net = self.agents[0].critic_net
