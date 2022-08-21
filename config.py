@@ -25,6 +25,12 @@ config_dict = {
                 "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
                 "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
             },
+            "dwarf_noise": {
+                "std_start_temp": 0.05,  # Std noise on starting temperature
+                "std_target_temp": 0.05,  # Std Noise on target temperature
+                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
+                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
+            },
             "small_noise": {
                 "std_start_temp": 3,  # Std noise on starting temperature
                 "std_target_temp": 1,  # Std Noise on target temperature
@@ -57,6 +63,12 @@ config_dict = {
             "no_noise": {
                 "std_start_temp": 0,  # Std noise on starting temperature
                 "std_target_temp": 0,  # Std Noise on target temperature
+                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
+                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
+            },
+            "dwarf_noise": {
+                "std_start_temp": 0.05,  # Std noise on starting temperature
+                "std_target_temp": 0.05,  # Std Noise on target temperature
                 "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
                 "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
             },
