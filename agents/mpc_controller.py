@@ -34,7 +34,7 @@ class MPCController(object):
     def act(self, obs):
         self.time_step += 1
 
-        if self.time_step % 500 == 0:
+        if self.time_step % 5 == 0:
             print("current_timestep : ", self.time_step)
         if global_mpc_memory[0] != self.time_step:
             start = time.time()
