@@ -33,6 +33,9 @@ class MPCController(object):
 
     def act(self, obs):
         self.time_step += 1
+
+        if self.time_step % 500 == 0:
+            print("current_timestep : ", self.time_step)
         if global_mpc_memory[0] != self.time_step:
             start = time.time()
             df = pd.DataFrame(obs).transpose()
@@ -61,7 +64,7 @@ class MPCController(object):
                     0
                 ] * rolling_horizon
        
-            print("\n\n\n---------------", solar_gain, "-----------\n\n\n")
+          
             time_step_duration = self.time_step_duration
             lockout_duration = df["hvac_lockout_duration"][0]
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
