@@ -1,0 +1,3 @@
+Set parameter Username
+Academic license - for non-commercial use only - expires 2023-06-03
+{'model': <gurobi.Model MIP instance Unnamed: 1230 constrs, 1320 vars, Parameter changes: NodefileStart=0.5, QCPDual=1, OutputFlag=0>}

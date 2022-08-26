@@ -29,7 +29,7 @@ class MPCController(object):
                 "signal_parameters"
             ]["sinusoidals"]
         self.solar_gain = config_dict["default_house_prop"]["solar_gain_bool"]
-       
+        self.norm_signal_normalization = config_dict["default_env_prop"]["reward_prop"]["norm_reg_sig"]
 
     def act(self, obs):
         self.time_step += 1
@@ -92,6 +92,7 @@ class MPCController(object):
                 rolling_horizon,
                 time_step_duration,
                 lockout_duration,
+                self.norm_signal_normalization
             )
           
             global_mpc_memory[0] = self.time_step

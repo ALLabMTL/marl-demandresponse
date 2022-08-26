@@ -25,8 +25,9 @@ def best_MPC_action(
     rolling_horizon,
     time_step_sec,
     lockout_duration,
+    norm_sign_regulation
 ):
-
+    start = time.time()
     path = "./log_gurobi"+ unique_ID +".txt"
     sys.stdout = open(path, "w")
 
@@ -158,7 +159,7 @@ def best_MPC_action(
 
     problem = cp.Problem(
         cp.Minimize(
-            cp.sum_squares(consumption - signal) / (7500**2) 
+            cp.sum_squares(consumption - signal) / ( norm_sign_regulation**2) 
             + cp.sum_squares(temperature_difference)
         ),
         constraints,
@@ -168,5 +169,7 @@ def best_MPC_action(
 
     os.remove(path)
     sys.stdout = sys.__stdout__
-
+    end = time.time()
+    print("temps de calcule:", end-start)
+    
     return (HVAC_state.value > 0.5)[lockout_duration, :]
