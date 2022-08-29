@@ -31,6 +31,25 @@ config_dict = {
                 "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
                 "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
             },
+            "house_small_noise": {
+                "std_start_temp": 0,  # Std noise on starting temperature
+                "std_target_temp": 0,  # Std Noise on target temperature
+                "factor_thermo_low": 0.9,  # Lowest random factor for Ua, Cm, Ca, Hm
+                "factor_thermo_high": 1.1,  # Highest random factor for Ua, Cm, Ca, Hm
+            },
+            "house_medium_noise": {
+                "std_start_temp": 0,  # Std noise on starting temperature
+                "std_target_temp": 0,  # Std Noise on target temperature
+                "factor_thermo_low": 0.8,  # Lowest random factor for Ua, Cm, Ca, Hm
+                "factor_thermo_high": 1.2,  # Highest random factor for Ua, Cm, Ca, Hm
+            },
+            "house_big_noise": {
+                "std_start_temp": 0,  # Std noise on starting temperature
+                "std_target_temp": 0,  # Std Noise on target temperature
+                "factor_thermo_low": 0.5,  # Lowest random factor for Ua, Cm, Ca, Hm
+                "factor_thermo_high": 1.5,  # Highest random factor for Ua, Cm, Ca, Hm
+            },
+
             "small_noise": {
                 "std_start_temp": 3,  # Std noise on starting temperature
                 "std_target_temp": 1,  # Std Noise on target temperature
@@ -118,7 +137,7 @@ config_dict = {
                 # "factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
             },
             "small_noise": {
-                "cooling_capacity_list": {10000: [7500, 10000], 15000: [10000, 15000]}
+                "cooling_capacity_list": {10000: [9000, 10000, 11000], 15000: [12500, 15000, 17500]}
                 # "std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
                 # "factor_COP_low": 0.95,   # Lowest random factor for COP
                 # "factor_COP_high": 1.05,   # Highest random factor for COP
@@ -127,8 +146,8 @@ config_dict = {
             },
             "big_noise": {
                 "cooling_capacity_list": {
-                    10000: [7500, 10000, 12500],
-                    15000: [10000, 15000, 20000],
+                    10000: [7500, 9000, 10000, 11000, 12500],
+                    15000: [10000, 12500, 15000, 17500, 20000],
                 }
                 # "std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
                 # "factor_COP_low": 0.85,   # Lowest random factor for COP
@@ -196,6 +215,18 @@ config_dict = {
                     "temp_std": 0,
                     "random_phase_offset": False,
                 },
+                "sinusoidal_hot_heatwave": {
+                    "day_temp": 38,
+                    "night_temp": 32,
+                    "temp_std": 0,
+                    "random_phase_offset": False,
+                },
+                "sinusoidal_cold_heatwave": {
+                    "day_temp": 30,
+                    "night_temp": 24,
+                    "temp_std": 0,
+                    "random_phase_offset": False,
+                },
                 "sinusoidal_cold": {
                     "day_temp": 24,
                     "night_temp": 22,
@@ -220,6 +251,12 @@ config_dict = {
                     "temp_std": 0.5,
                     "random_phase_offset": False,
                 },
+                "noisier_sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
+                    "temp_std": 2,
+                    "random_phase_offset": False,
+                },
                 "noisy_sinusoidal_cold": {
                     "day_temp": 24,
                     "night_temp": 22,
@@ -229,6 +266,12 @@ config_dict = {
                 "shifting_sinusoidal": {
                     "day_temp": 30,
                     "night_temp": 23,
+                    "temp_std": 0,
+                    "random_phase_offset": True,
+                },
+                "shifting_sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
                     "temp_std": 0,
                     "random_phase_offset": True,
                 },
@@ -281,6 +324,30 @@ config_dict = {
                     "nb_octaves": 5,
                     "octaves_step": 1,
                     "period": 400,
+                },
+                "amplitude+_perlin": {
+                    "amplitude_ratios": 0.9*1.1,
+                    "nb_octaves": 5,
+                    "octaves_step": 1,
+                    "period": 400,
+                },
+                "amplitude++_perlin": {
+                    "amplitude_ratios": 0.9*1.3,
+                    "nb_octaves": 5,
+                    "octaves_step": 1,
+                    "period": 400,
+                },
+                "fast+_perlin": {
+                    "amplitude_ratios": 0.9,
+                    "nb_octaves": 5,
+                    "octaves_step": 1,
+                    "period": 300,
+                },
+                "fast++_perlin": {
+                    "amplitude_ratios": 0.9,
+                    "nb_octaves": 5,
+                    "octaves_step": 1,
+                    "period": 200,
                 },
             },
         },
