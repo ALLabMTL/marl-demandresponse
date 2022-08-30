@@ -995,7 +995,7 @@ class ClusterHouses(object):
         temperature = amplitude * np.sin(2 * np.pi * (time_day + delay) / 24) + bias
 
         # Adding noise
-        temperature += 0 * random.gauss(0, self.temp_std)
+        temperature += random.gauss(0, self.temp_std)
 
         return temperature
 
