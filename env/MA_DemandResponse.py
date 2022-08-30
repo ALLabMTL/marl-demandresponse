@@ -1094,9 +1094,9 @@ class PowerGrid(object):
         self.max_power = power_grid_prop["max_power"]
 
         if "perlin" in power_grid_prop["signal_mode"]:
-            self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
+            self.signal_params = power_grid_prop["signal_parameters"][power_grid_prop["signal_mode"]]
             nb_octaves = self.signal_params["nb_octaves"]
-            octaves_step = self.signal_params["nb_octaves"]
+            octaves_step = self.signal_params["octaves_step"]
             period = self.signal_params["period"]
             self.perlin = Perlin(
                 1, nb_octaves, octaves_step, period, random.random()
