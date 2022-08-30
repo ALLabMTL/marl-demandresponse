@@ -820,7 +820,6 @@ class ClusterHouses(object):
                     if abs(x_diff) + abs(y_diff) <= distance_comm and (x_diff != 0 or y_diff != 0):
                         distance_pattern.append((x_diff, y_diff))
 
-            print("distance_pattern: {}".format(distance_pattern))
 
             for agent_id in self.agent_ids:
                 x = agent_id % row_size
@@ -840,7 +839,6 @@ class ClusterHouses(object):
                     agent_id_new = y_new*row_size + x_new
                     ids_houses_messages.append(agent_id_new)
                 self.agent_communicators[agent_id] = ids_houses_messages
-            print("self.agent_communicators: {}".format(self.agent_communicators))
 
         else:
             raise ValueError(
