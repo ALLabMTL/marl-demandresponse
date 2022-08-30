@@ -1093,7 +1093,7 @@ class PowerGrid(object):
 
         self.max_power = power_grid_prop["max_power"]
 
-        if power_grid_prop["signal_mode"] == "perlin":
+        if "perlin" in power_grid_prop["signal_mode"]:
             self.signal_params = power_grid_prop["signal_parameters"]["perlin"]
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["nb_octaves"]
@@ -1211,7 +1211,7 @@ class PowerGrid(object):
                 (time_sec % period) - (1 - ratio) * period, 1
             )
             self.current_signal = signal
-        elif self.signal_mode == "perlin":
+        elif "perlin" in self.signal_mode :
             amplitude = self.signal_params["amplitude_ratios"]
             unix_time_stamp = time.mktime(date_time.timetuple()) % 86400
             signal = self.base_power
