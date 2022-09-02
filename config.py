@@ -287,9 +287,10 @@ config_dict = {
             },
         },
         "state_properties": {
-            "hour": True,
-            "day": True,
-            "solar_gain": True,
+            "hour": False,
+            "day": False,
+            "solar_gain": False,
+            "thermal": False,
         },
         "power_grid_prop": {
             "base_power_mode": "interpolation",  # Interpolation (based on deadband bang-bang controller) or constant

@@ -207,31 +207,27 @@ def cli_train():
 
     parser.add_argument(
         "--state_day",
-        choices=["True", "False"],
-        default="True",
-        help="Include day in the state",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include day in the state")
 
     parser.add_argument(
         "--state_hour",
-        choices=["True", "False"],
-        default="True",
-        help="Include hour in the state",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include hour in the state")
 
     parser.add_argument(
         "--state_solar_gain",
-        choices=["True", "False"],
-        default="False",
-        help="Include solar gain in the state",
-    )
-
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include solar gain in the state")
+        
     parser.add_argument(
         "--state_thermal",
-        choices=["True", "False"],
-        default="True",
-        help="Include outdoors temperature, and house thermal parameters, in the state.",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include outdoors temperature, and house thermal parameters, in the state.")
 
     ### Agent
 
@@ -630,36 +626,32 @@ def cli_deploy(agents_dict):
     )
     parser.add_argument(
         "--state_day",
-        default="True",
-        choices=["True", "False"],
-        help="Include day in the state",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include day in the state")
 
     parser.add_argument(
         "--state_hour",
-        default="True",
-        choices=["True", "False"],
-        help="Include hour in the state",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include hour in the state")
 
     parser.add_argument(
         "--state_solar_gain",
-        default="False",
-        choices=["True", "False"],
-        help="Include solar gain in the state",
-    )
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include solar gain in the state")
+        
+    parser.add_argument(
+        "--state_thermal",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include outdoors temperature, and house thermal parameters, in the state.")
 
     parser.add_argument(
         "--start_datetime_mode",
         default="config",
         help="Decide if start date time is 'fixed' or uniformly 'random'.",
-    )
-
-    parser.add_argument(
-        "--state_thermal",
-        choices=["True", "False"],
-        default="True",
-        help="Include outdoors temperature, and house thermal parameters, in the state.",
     )
 
     parser.add_argument(
