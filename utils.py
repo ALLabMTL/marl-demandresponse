@@ -101,16 +101,42 @@ def adjust_config_train(opt, config_dict):
         ] = opt.artificial_signal_ratio_range
 
     ## State
-    config_dict["default_env_prop"]["state_properties"]["solar_gain"] = (
-        opt.state_solar_gain == "True"
-    )
-    config_dict["default_env_prop"]["state_properties"]["hour"] = (
-        opt.state_hour == "True"
-    )
-    config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day == "True"
-    config_dict["default_env_prop"]["state_properties"]["thermal"] = (
-        opt.state_thermal == "True"
-    )
+    if opt.state_solar_gain != "config":
+        print("Setting state solar gain to {}".format(opt.state_solar_gain))
+        if opt.state_solar_gain == "True":
+            config_dict["default_env_prop"]["state_properties"]["solar_gain"] = True
+        elif opt.state_solar_gain == "False":
+            config_dict["default_env_prop"]["state_properties"]["solar_gain"] = False
+        else:
+            raise ValueError("Invalid value for state solar gain")
+
+    if opt.state_hour != "config":
+        print("Setting state hour to {}".format(opt.state_hour))
+        if opt.state_hour == "True":
+            config_dict["default_env_prop"]["state_properties"]["hour"] = True
+        elif opt.state_hour == "False":
+            config_dict["default_env_prop"]["state_properties"]["hour"] = False
+        else:
+            raise ValueError("Invalid value for state_hour")
+
+
+    if opt.state_day != "config":
+        print("Setting state day to {}".format(opt.state_day))
+        if opt.state_day == "True":
+            config_dict["default_env_prop"]["state_properties"]["day"] = True
+        elif opt.state_day == "False":
+            config_dict["default_env_prop"]["state_properties"]["day"] = False
+        else:
+            raise ValueError("Invalid value for state_day")
+
+    if opt.state_thermal != "config":
+        print("Setting state thermal to {}".format(opt.state_thermal))
+        if opt.state_thermal == "True":
+            config_dict["default_env_prop"]["state_properties"]["thermal"] = True
+        elif opt.state_thermal == "False":
+            config_dict["default_env_prop"]["state_properties"]["thermal"] = False
+        else:
+            raise ValueError("Invalid value for state_day")
 
     ### Agent
 
@@ -266,16 +292,40 @@ def adjust_config_deploy(opt, config_dict):
     print("-- Agent observations --")
     if opt.state_solar_gain != "config":
         print("Setting state solar gain to {}".format(opt.state_solar_gain))
-        config_dict["default_env_prop"]["state_properties"]["solar_gain"] = opt.state_solar_gain
+        if opt.state_solar_gain == "True":
+            config_dict["default_env_prop"]["state_properties"]["solar_gain"] = True
+        elif opt.state_solar_gain == "False":
+            config_dict["default_env_prop"]["state_properties"]["solar_gain"] = False
+        else:
+            raise ValueError("Invalid value for state solar gain")
+
     if opt.state_hour != "config":
         print("Setting state hour to {}".format(opt.state_hour))
-        config_dict["default_env_prop"]["state_properties"]["hour"] = opt.state_hour
+        if opt.state_hour == "True":
+            config_dict["default_env_prop"]["state_properties"]["hour"] = True
+        elif opt.state_hour == "False":
+            config_dict["default_env_prop"]["state_properties"]["hour"] = False
+        else:
+            raise ValueError("Invalid value for state_hour")
+
+
     if opt.state_day != "config":
         print("Setting state day to {}".format(opt.state_day))
-        config_dict["default_env_prop"]["state_properties"]["day"] = opt.state_day
+        if opt.state_day == "True":
+            config_dict["default_env_prop"]["state_properties"]["day"] = True
+        elif opt.state_day == "False":
+            config_dict["default_env_prop"]["state_properties"]["day"] = False
+        else:
+            raise ValueError("Invalid value for state_day")
+
     if opt.state_thermal != "config":
         print("Setting state thermal to {}".format(opt.state_thermal))
-        config_dict["default_env_prop"]["state_properties"]["thermal"] = opt.state_thermal
+        if opt.state_thermal == "True":
+            config_dict["default_env_prop"]["state_properties"]["thermal"] = True
+        elif opt.state_thermal == "False":
+            config_dict["default_env_prop"]["state_properties"]["thermal"] = False
+        else:
+            raise ValueError("Invalid value for state_day")
 
     config_dict["default_env_prop"]["power_grid_prop"][
         "artificial_ratio"
