@@ -31,3 +31,4 @@ monteCarlo/PreviousGridSearchResults/
 monteCarlo/results/
 
 .vscode/
+save_ckpt/*/*.pt
