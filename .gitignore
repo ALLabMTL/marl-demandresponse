@@ -32,3 +32,4 @@ monteCarlo/results/
 
 .vscode/
 log_gurobi*
+save_ckpt/*/*.pt
