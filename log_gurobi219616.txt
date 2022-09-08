@@ -1,1 +1,0 @@
-{'model': <gurobi.Model MIP instance Unnamed: 1056 constrs, 1136 vars, Parameter changes: NodefileStart=0.5, QCPDual=1, OutputFlag=0>}
