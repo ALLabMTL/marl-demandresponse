@@ -10,7 +10,7 @@ import os
 import random
 import time
 import numpy as np
-
+import pandas as pd
 import argparse
 import wandb
 from cli import cli_deploy
@@ -42,6 +42,8 @@ if opt.render:
     from env.renderer import Renderer
 
     renderer = Renderer(opt.nb_agents)
+if opt.log_metrics_path != "":
+    df_metrics = pd.DataFrame()
 
 # Creating environment
 random.seed(opt.env_seed)
@@ -54,7 +56,8 @@ env = MADemandResponseEnv(config_dict)
 obs_dict = env.reset()
 num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
 
-
+if opt.log_metrics_path != "":
+    df_metrics = pd.DataFrame()
 time_steps_log = int(opt.nb_time_steps / opt.nb_logs)
 nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
 houses = env.cluster.houses
@@ -90,9 +93,29 @@ actions = get_actions(actors, obs_dict)
 t1_start = time.process_time() 
 
 
+
+
+
 for i in range(nb_time_steps):
     obs_dict, _, _, info = env.step(actions)
     actions = get_actions(actors, obs_dict)
+    if opt.log_metrics_path != "" and i >= opt.start_stats_from:
+        df = pd.DataFrame(obs_dict).transpose()
+ 
+        df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
+        df["temperature_error"] = np.abs(df["house_temp"] - df["house_target_temp"])
+        temp_diff = df["temperature_difference"].mean() 
+        temp_err = df["temperature_error"].mean()
+        air_temp = df["house_temp"].mean()
+        mass_temp = df["house_mass_temp"].mean()
+        target_temp = df["house_target_temp"].mean()
+        OD_temp = df["OD_temp"][0]
+        signal = df["reg_signal"][0]
+        consumption = df["cluster_hvac_power"][0]
+        row = pd.DataFrame({"temp_diff":temp_diff, "temp_err":temp_err, "air_temp":air_temp, "mass_temp":mass_temp,"target_temp":target_temp, "OD_temp":OD_temp, "signal": signal, "consumption":consumption}, index=[config_dict["default_env_prop"]["time_step"]*i])
+        df_metrics = pd.concat([df_metrics,row])
+        
+
     if opt.render and i >= opt.render_after:
         renderer.render(obs_dict)
     max_temp_error_houses = 0
@@ -179,3 +202,5 @@ if log_wandb:
         "RMS Max Error temperature": rms_max_error_temp,
         }
     )
+if opt.log_metrics_path != "":
+    df_metrics.to_csv(opt.log_metrics_path)

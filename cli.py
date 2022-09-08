@@ -624,6 +624,7 @@ def cli_deploy(agents_dict):
         default=-1,
         help="Duration of the MPC rooling horizon in time step",
     )
+
     parser.add_argument(
         "--state_day",
         default='config',
@@ -667,6 +668,14 @@ def cli_deploy(agents_dict):
         default="config",
         help="List containing the number of neurons on each layers of the DQN neural network model",
     )
+
+    parser.add_argument(
+        "--log_metrics_path",
+        type=str,
+        default="",
+        help="path to which the simulation data is saved as a CSV. If no name is given no saving is done.",
+    )
+
 
     opt = parser.parse_args()
 
