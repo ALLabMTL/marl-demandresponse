@@ -1,4 +1,5 @@
 # from apt import ProblemResolver
+from cmath import nan
 from env import *
 from agents import *
 from config import config_dict
@@ -158,9 +159,21 @@ for i in range(nb_time_steps):
         mean_signal = cumul_signal / time_steps_log
         mean_consumption = cumul_cons / time_steps_log
 
+        if i >= opt.start_stats_from:
+            rmse_sig_per_ag = np.sqrt(cumul_squared_error_sig/(i-opt.start_stats_from))/env.nb_agents
+            rmse_temp = np.sqrt(cumul_squared_error_temp/((i-opt.start_stats_from)*env.nb_agents))
+            rms_max_error_temp = np.sqrt(cumul_squared_max_error_temp/(i-opt.start_stats_from))
+        else:
+            rmse_sig_per_ag = nan
+            rmse_temp = nan 
+            rms_max_error_temp = nan
+
         if log_wandb:
             wandb_run.log(
                 {
+                    "RMSE signal per agent": rmse_sig_per_ag,
+                    "RMSE temperature": rmse_temp,
+                    "RMS Max Error temperature": rms_max_error_temp,
                     "Mean temperature offset": mean_temp_offset,
                     "Mean temperature error": mean_temp_error,
                     "Max temperature error": max_temp_error,
