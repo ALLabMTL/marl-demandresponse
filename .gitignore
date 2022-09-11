@@ -29,7 +29,7 @@ monteCarlo/PreviousGridSearchResults/Small_432steps/
 monteCarlo/PreviousGridSearchResults/
 
 monteCarlo/results/
-
+path*
 .vscode/
 log_gurobi*
 save_ckpt/*/*.pt

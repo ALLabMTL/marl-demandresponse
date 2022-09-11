@@ -153,23 +153,23 @@ def best_MPC_action(
     ]
     constraints += [
         temperature_difference[t][i] == (air_temperature[t][i] - target_temperature[i])
-        for t in range(i, rolling_horizon)
+        for t in range(0, rolling_horizon)
         for i in range(nb_agent)
     ]
 
     problem = cp.Problem(
         cp.Minimize(
-            cp.sum_squares(consumption - signal) / ( norm_sign_regulation**2) 
+            cp.sum_squares(consumption - signal) / (norm_sign_regulation**2) 
             + cp.sum_squares(temperature_difference)
         ),
         constraints,
     )
 
     problem.solve(solver=cp.GUROBI, NodefileStart=0.5)
-
+    
     os.remove(path)
     sys.stdout = sys.__stdout__
     end = time.time()
-    print("temps de calcule:", end-start)
+    
     
     return (HVAC_state.value > 0.5)[lockout_duration, :]
