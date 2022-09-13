@@ -1,12 +1,12 @@
 import pandas as pd
-
 from torch import Tensor
 
+global_myopic_memory = [None, None]
 
 class GreedyMyopic(object):
     """Try to distribute the energy budget among all the agents prioritizing the agents 
     with a high temperature compared to the target temperature in a greedy way"""
-
+    
     actions_df = []
 
     def __init__(self, agent_properties, config_dict, num_state = None):
@@ -14,13 +14,15 @@ class GreedyMyopic(object):
         self.id = agent_properties["id"]
         self.last_obs = pd.DataFrame(columns=(
             "temperature_difference", "power_consumption", "hvac_lockout",  "reg_signal"))
-
+        self.time_step = 0
     def act(self, obs):
-        if True:
+        self.time_step += 1
+        if global_myopic_memory[0] != self.time_step:
             self.last_obs = obs
             self.get_action(obs)
-
-        action = GreedyMyopic.actions_df.loc[self.id]["HVAC_status"]
+            global_myopic_memory[0] = self.time_step
+            global_myopic_memory[1] = GreedyMyopic.actions_df
+        action = global_myopic_memory[1].loc[self.id]["HVAC_status"]
 
         return action
 
