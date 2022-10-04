@@ -124,6 +124,7 @@ config_dict = {
         "cooling_capacity": 15000,  # Cooling capacity (W)
         "latent_cooling_fraction": 0.35,  # Fraction of latent cooling w.r.t. sensible cooling
         "lockout_duration": 40,  # In seconds
+        "lockout_noise": 0,  # In seconds
     },
     "noise_hvac_prop": {
         "noise_mode": "small_noise",  # Can be: no_noise, small_noise, big_noise
@@ -291,6 +292,11 @@ config_dict = {
             "day": False,
             "solar_gain": False,
             "thermal": False,
+            "hvac": False,
+        },
+        "message_properties": {
+            "thermal": False,
+            "hvac": False,
         },
         "power_grid_prop": {
             "base_power_mode": "interpolation",  # Interpolation (based on deadband bang-bang controller) or constant

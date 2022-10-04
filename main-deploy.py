@@ -55,6 +55,7 @@ if log_wandb:
 
 env = MADemandResponseEnv(config_dict)
 obs_dict = env.reset()
+
 num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
 
 if opt.log_metrics_path != "":
@@ -92,10 +93,6 @@ cumul_squared_max_error_temp = 0
 
 actions = get_actions(actors, obs_dict)
 t1_start = time.process_time() 
-
-
-
-
 
 for i in range(nb_time_steps):
     obs_dict, _, _, info = env.step(actions)

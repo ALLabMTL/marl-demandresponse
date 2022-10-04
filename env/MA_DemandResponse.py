@@ -1,3 +1,4 @@
+from distutils.command.config import config
 from sympy import octave_code
 import gym
 import ray
@@ -118,6 +119,7 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.agent_ids,
             self.datetime,
             self.time_step,
+            self.default_env_prop
         )
 
         self.env_properties["power_grid_prop"]["max_power"] = self.cluster.max_power
@@ -408,7 +410,8 @@ class HVAC(object):
         self.COP = hvac_properties["COP"]
         self.cooling_capacity = hvac_properties["cooling_capacity"]
         self.latent_cooling_fraction = hvac_properties["latent_cooling_fraction"]
-        self.lockout_duration = hvac_properties["lockout_duration"]
+        self.lockout_duration = hvac_properties["lockout_duration"] + random.randint(-hvac_properties["lockout_noise"],hvac_properties["lockout_noise"])
+       
         self.turned_on = False
         self.lockout = False
         self.seconds_since_off = self.lockout_duration
@@ -601,17 +604,28 @@ class SingleHouse(object):
             )
             self.disp_count = 0
 
-    def message(self):
+    def message(self, message_properties):
         """
         Message sent by the house to other agents
         """
+   
         message = {
             "current_temp_diff_to_target": self.current_temp - self.target_temp,
             "hvac_seconds_since_off": self.hvac.seconds_since_off,
             "hvac_curr_consumption": self.hvac.power_consumption(),
             "hvac_max_consumption": self.hvac.max_consumption,
+            "hvac_lockout_duration": self.hvac.lockout_duration
         }
 
+        if message_properties["thermal"]:
+            message["house_Ua"] = self.Ua
+            message["house_Cm"] = self.Cm
+            message["house_Ca"] = self.Ca
+            message["house_Hm"] = self.Hm
+        if message_properties["hvac"]:
+            message["hvac_COP"] = self.hvac.COP
+            message["hvac_latent_cooling_fraction"] = self.hvac.latent_cooling_fraction
+            message["hvac_cooling_capacity"] = self.hvac.cooling_capacity
         return message
 
     def update_temperature(self, od_temp, time_step, date_time):
@@ -711,7 +725,7 @@ class ClusterHouses(object):
     compute_OD_temp(self, date_time): models the outdoors temperature
     """
 
-    def __init__(self, cluster_prop, agent_ids, date_time, time_step):
+    def __init__(self, cluster_prop, agent_ids, date_time, time_step, default_env_properties):
         """
         Initialize the cluster of houses
 
@@ -720,6 +734,7 @@ class ClusterHouses(object):
         date_time: datetime, initial date and time
         time_step: timedelta, time step of the simulation
         """
+      
         self.cluster_prop = cluster_prop
         self.agent_ids = agent_ids
         self.nb_agents = len(agent_ids)
@@ -737,6 +752,7 @@ class ClusterHouses(object):
         self.night_temp = self.temp_params["night_temp"]
         self.temp_std = self.temp_params["temp_std"]
         self.random_phase_offset = self.temp_params["random_phase_offset"]
+        self.env_prop = default_env_properties
         if self.random_phase_offset:
             self.phase = random.random() * 24
         else:
@@ -897,7 +913,7 @@ class ClusterHouses(object):
                 "hvac_latent_cooling_fraction"
             ] = hvac.latent_cooling_fraction
             cluster_obs_dict[house_id]["hvac_lockout_duration"] = hvac.lockout_duration
-
+            
             # Messages from the other agents
 
             if self.cluster_prop["agents_comm_mode"] == "random_sample":
@@ -915,7 +931,7 @@ class ClusterHouses(object):
             cluster_obs_dict[house_id]["message"] = []
             for id_house_message in ids_houses_messages:
                 cluster_obs_dict[house_id]["message"].append(
-                    self.houses[id_house_message].message()
+                    self.houses[id_house_message].message(self.env_prop["message_properties"])
                 )
         return cluster_obs_dict
 

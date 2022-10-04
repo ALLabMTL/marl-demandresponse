@@ -27,7 +27,7 @@ def main():
     random.seed(opt.env_seed)
     env = MADemandResponseEnv(config_dict)
     obs_dict = env.reset()
-
+    print(obs_dict)
     # Select agent
     agents = {"ppo": PPO, "mappo": MAPPO, "dqn": DQN, "maddpg": MADDPG}
 

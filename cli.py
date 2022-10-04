@@ -168,6 +168,13 @@ def cli_train():
     )
 
     parser.add_argument(
+        "--hvac_lockout_noise",
+        type=int,
+        default=-1,
+        help="Noise on the Hvac Lockout duration in second.",
+    )
+
+    parser.add_argument(
         "--hvac_noise_mode_test",
         type=str,
         default="train",
@@ -229,6 +236,24 @@ def cli_train():
         choices = ['True','False', 'config'],
         help="Include outdoors temperature, and house thermal parameters, in the state.")
 
+    parser.add_argument(
+        "--state_hvac",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="hvac parameters, in the state.")
+    
+    parser.add_argument(
+        "--message_thermal",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include themal parameters in messages")
+    
+    parser.add_argument(
+        "--message_hvac",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include hvac parameters in messages")
+    
     ### Agent
 
     parser.add_argument(
@@ -564,6 +589,13 @@ def cli_deploy(agents_dict):
     )
 
     parser.add_argument(
+        "--hvac_lockout_noise",
+        type=int,
+        default=-1,
+        help="Noise on the Hvac Lockout duration in second.",
+    )
+
+    parser.add_argument(
         "--OD_temp_mode",
         type=str,
         default="config",
@@ -632,6 +664,18 @@ def cli_deploy(agents_dict):
         help="Include day in the state")
 
     parser.add_argument(
+        "--message_thermal",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include themal parameters in messages")
+    
+    parser.add_argument(
+        "--message_hvac",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="Include hvac parameters in messages")
+
+    parser.add_argument(
         "--state_hour",
         default='config',
         choices = ['True','False', 'config'],
@@ -648,6 +692,12 @@ def cli_deploy(agents_dict):
         default='config',
         choices = ['True','False', 'config'],
         help="Include outdoors temperature, and house thermal parameters, in the state.")
+
+    parser.add_argument(
+        "--state_hvac",
+        default='config',
+        choices = ['True','False', 'config'],
+        help="hvac parameters, in the state.")
 
     parser.add_argument(
         "--start_datetime_mode",
