@@ -156,9 +156,9 @@ def adjust_config_train(opt, config_dict):
             raise ValueError("Invalid value for message_thermal")
     if opt.message_hvac != "config":
         if opt.message_hvac == "True":
-            config_dict["default_message_prop"]["message_properties"]["hvac"] = True
+            config_dict["default_env_prop"]["message_properties"]["hvac"] = True
         elif opt.state_hvac == "False":
-            config_dict["default_message_prop"]["message_properties"]["hvac"] = False
+            config_dict["default_env_prop"]["message_properties"]["hvac"] = False
         else:
             raise ValueError("Invalid value for message_hvac")
 
