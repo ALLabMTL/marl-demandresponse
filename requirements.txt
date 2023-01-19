@@ -6,7 +6,7 @@ torch
 ray[tune]
 gym
 sympy
-pyglet
+pyglet==1.5.*
 matplotlib
 perlin_noise
 cvxpy
