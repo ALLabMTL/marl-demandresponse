@@ -3,7 +3,7 @@ wandb
 numpy
 pandas
 torch
-ray[tune]
+ray[rllib]
 gym
 sympy
 pyglet==1.5.*
