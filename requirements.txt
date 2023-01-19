@@ -14,8 +14,7 @@ dm_tree
 scikit-image # for rllib
 
 # dev requirements
-# black # code formatter
-autopep8 # code formatter
+black # code formatter
 isort # code formatter
 pylint # code linter
 pytest # test runner

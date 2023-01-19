@@ -2,7 +2,7 @@
     "python.linting.mypyEnabled": true,
     "python.linting.pydocstyleEnabled": true,
     "python.linting.pylintEnabled": true,
-    "python.formatting.provider": "autopep8",
+    "python.formatting.provider": "black",
     "editor.formatOnSave": true,
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.inlayHints.functionReturnTypes": true,
