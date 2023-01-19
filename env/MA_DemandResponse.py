@@ -1,23 +1,23 @@
-from distutils.command.config import config
-from sympy import octave_code
-import gym
-import ray
-import numpy as np
-import warnings
-import random
-from copy import deepcopy
-import json
 import csv
-
-from datetime import datetime, timedelta, time
-from ray.rllib.env.multi_agent_env import MultiAgentEnv
-from ray.rllib.utils.annotations import override, PublicAPI
-from ray.rllib.utils.typing import MultiAgentDict, AgentID
-from typing import Tuple, Dict, List, Any
+import json
+import random
 import sys
-from utils import applyPropertyNoise, Perlin, deadbandL2
 import time
-from datetime import datetime
+import warnings
+from copy import deepcopy
+from datetime import datetime, time, timedelta
+from distutils.command.config import config
+from typing import Any, Dict, List, Tuple
+
+import gym
+import numpy as np
+import ray
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
+from ray.rllib.utils.annotations import PublicAPI, override
+from ray.rllib.utils.typing import AgentID, MultiAgentDict
+from sympy import octave_code
+
+from utils import Perlin, applyPropertyNoise, deadbandL2
 
 # import noise
 # import wandb
@@ -25,13 +25,14 @@ from datetime import datetime
 
 sys.path.append("..")
 sys.path.append("./monteCarlo")
+from interpolation import PowerInterpolator
+
 from utils import (
     applyPropertyNoise,
     clipInterpolationPoint,
-    sortDictKeys,
     house_solar_gain,
+    sortDictKeys,
 )
-from interpolation import PowerInterpolator
 
 
 class MADemandResponseEnv(MultiAgentEnv):
@@ -119,7 +120,7 @@ class MADemandResponseEnv(MultiAgentEnv):
             self.agent_ids,
             self.datetime,
             self.time_step,
-            self.default_env_prop
+            self.default_env_prop,
         )
 
         self.env_properties["power_grid_prop"]["max_power"] = self.cluster.max_power
@@ -410,8 +411,10 @@ class HVAC(object):
         self.COP = hvac_properties["COP"]
         self.cooling_capacity = hvac_properties["cooling_capacity"]
         self.latent_cooling_fraction = hvac_properties["latent_cooling_fraction"]
-        self.lockout_duration = hvac_properties["lockout_duration"] + random.randint(-hvac_properties["lockout_noise"],hvac_properties["lockout_noise"])
-       
+        self.lockout_duration = hvac_properties["lockout_duration"] + random.randint(
+            -hvac_properties["lockout_noise"], hvac_properties["lockout_noise"]
+        )
+
         self.turned_on = False
         self.lockout = False
         self.seconds_since_off = self.lockout_duration
@@ -555,7 +558,6 @@ class SingleHouse(object):
         self.solar_gain_bool = house_properties["solar_gain_bool"]
         self.current_solar_gain = 0
 
-
         # Thermal constraints
         self.target_temp = house_properties["target_temp"]
         self.deadband = house_properties["deadband"]
@@ -608,13 +610,13 @@ class SingleHouse(object):
         """
         Message sent by the house to other agents
         """
-   
+
         message = {
             "current_temp_diff_to_target": self.current_temp - self.target_temp,
             "hvac_seconds_since_off": self.hvac.seconds_since_off,
             "hvac_curr_consumption": self.hvac.power_consumption(),
             "hvac_max_consumption": self.hvac.max_consumption,
-            "hvac_lockout_duration": self.hvac.lockout_duration
+            "hvac_lockout_duration": self.hvac.lockout_duration,
         }
 
         if message_properties["thermal"]:
@@ -658,11 +660,13 @@ class SingleHouse(object):
 
         # Total heat addition to air
         if self.solar_gain_bool:
-            self.current_solar_gain = house_solar_gain(date_time, self.window_area, self.shading_coeff)
+            self.current_solar_gain = house_solar_gain(
+                date_time, self.window_area, self.shading_coeff
+            )
         else:
             self.current_solar_gain = 0
 
-        other_Qa = self.current_solar_gain # windows, ...
+        other_Qa = self.current_solar_gain  # windows, ...
         Qa = total_Qhvac + other_Qa
         # Heat from inside devices (oven, windows, etc)
         Qm = 0
@@ -725,7 +729,9 @@ class ClusterHouses(object):
     compute_OD_temp(self, date_time): models the outdoors temperature
     """
 
-    def __init__(self, cluster_prop, agent_ids, date_time, time_step, default_env_properties):
+    def __init__(
+        self, cluster_prop, agent_ids, date_time, time_step, default_env_properties
+    ):
         """
         Initialize the cluster of houses
 
@@ -734,7 +740,7 @@ class ClusterHouses(object):
         date_time: datetime, initial date and time
         time_step: timedelta, time step of the simulation
         """
-      
+
         self.cluster_prop = cluster_prop
         self.agent_ids = agent_ids
         self.nb_agents = len(agent_ids)
@@ -821,21 +827,35 @@ class ClusterHouses(object):
                 self.agent_communicators[agent_id] = ids_houses_messages
 
         elif self.cluster_prop["agents_comm_mode"] == "neighbours_2D":
-            row_size = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["row_size"]
-            distance_comm = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"]["distance_comm"]
+            row_size = self.cluster_prop["agents_comm_parameters"]["neighbours_2D"][
+                "row_size"
+            ]
+            distance_comm = self.cluster_prop["agents_comm_parameters"][
+                "neighbours_2D"
+            ]["distance_comm"]
             if self.nb_agents % row_size != 0:
-                raise ValueError("Neighbours 2D row_size must be a divisor of nb_agents")
+                raise ValueError(
+                    "Neighbours 2D row_size must be a divisor of nb_agents"
+                )
 
             max_y = self.nb_agents // row_size
-            if distance_comm >= (row_size+1) // 2 or distance_comm >= (max_y+1) // 2:
-                raise ValueError("Neighbours 2D distance_comm ({}) must be strictly smaller than (row_size+1) / 2 ({}) and (max_y+1) / 2 ({})".format(distance_comm, (row_size+1) // 2, (max_y+1) // 2))
+            if (
+                distance_comm >= (row_size + 1) // 2
+                or distance_comm >= (max_y + 1) // 2
+            ):
+                raise ValueError(
+                    "Neighbours 2D distance_comm ({}) must be strictly smaller than (row_size+1) / 2 ({}) and (max_y+1) / 2 ({})".format(
+                        distance_comm, (row_size + 1) // 2, (max_y + 1) // 2
+                    )
+                )
 
             distance_pattern = []
-            for x_diff in range(-1*distance_comm, distance_comm + 1):
-                for y_diff in range(-1*distance_comm, distance_comm + 1):
-                    if abs(x_diff) + abs(y_diff) <= distance_comm and (x_diff != 0 or y_diff != 0):
+            for x_diff in range(-1 * distance_comm, distance_comm + 1):
+                for y_diff in range(-1 * distance_comm, distance_comm + 1):
+                    if abs(x_diff) + abs(y_diff) <= distance_comm and (
+                        x_diff != 0 or y_diff != 0
+                    ):
                         distance_pattern.append((x_diff, y_diff))
-
 
             for agent_id in self.agent_ids:
                 x = agent_id % row_size
@@ -852,7 +872,7 @@ class ClusterHouses(object):
                         y_new += max_y
                     if y_new >= max_y:
                         y_new -= max_y
-                    agent_id_new = y_new*row_size + x_new
+                    agent_id_new = y_new * row_size + x_new
                     ids_houses_messages.append(agent_id_new)
                 self.agent_communicators[agent_id] = ids_houses_messages
 
@@ -913,7 +933,7 @@ class ClusterHouses(object):
                 "hvac_latent_cooling_fraction"
             ] = hvac.latent_cooling_fraction
             cluster_obs_dict[house_id]["hvac_lockout_duration"] = hvac.lockout_duration
-            
+
             # Messages from the other agents
 
             if self.cluster_prop["agents_comm_mode"] == "random_sample":
@@ -931,7 +951,9 @@ class ClusterHouses(object):
             cluster_obs_dict[house_id]["message"] = []
             for id_house_message in ids_houses_messages:
                 cluster_obs_dict[house_id]["message"].append(
-                    self.houses[id_house_message].message(self.env_prop["message_properties"])
+                    self.houses[id_house_message].message(
+                        self.env_prop["message_properties"]
+                    )
                 )
         return cluster_obs_dict
 
@@ -1045,8 +1067,14 @@ class PowerGrid(object):
 
         # Base power
         self.base_power_mode = power_grid_prop["base_power_mode"]
-        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"]["constant"]["init_signal_per_hvac"]
-        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop["artificial_signal_ratio_range"]**(random.random()*2 - 1)      # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
+        self.init_signal_per_hvac = power_grid_prop["base_power_parameters"][
+            "constant"
+        ]["init_signal_per_hvac"]
+        self.artificial_ratio = power_grid_prop["artificial_ratio"] * power_grid_prop[
+            "artificial_signal_ratio_range"
+        ] ** (
+            random.random() * 2 - 1
+        )  # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
         self.cumulated_abs_noise = 0
         self.nb_steps = 0
 
@@ -1108,7 +1136,9 @@ class PowerGrid(object):
         self.max_power = power_grid_prop["max_power"]
 
         if "perlin" in power_grid_prop["signal_mode"]:
-            self.signal_params = power_grid_prop["signal_parameters"][power_grid_prop["signal_mode"]]
+            self.signal_params = power_grid_prop["signal_parameters"][
+                power_grid_prop["signal_mode"]
+            ]
             nb_octaves = self.signal_params["nb_octaves"]
             octaves_step = self.signal_params["octaves_step"]
             period = self.signal_params["period"]
@@ -1122,22 +1152,22 @@ class PowerGrid(object):
         self.default_house_prop = default_house_prop
         self.base_power = 0
 
-
-
-
     def interpolatePower(self, date_time):
         base_power = 0
 
         if self.default_house_prop["solar_gain_bool"]:
             point = {
                 "date": date_time.timetuple().tm_yday,
-                "hour": (date_time - date_time.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+                "hour": (
+                    date_time
+                    - date_time.replace(hour=0, minute=0, second=0, microsecond=0)
+                ).total_seconds(),
             }
-        else:       # No solar gain - make it think it is midnight
+        else:  # No solar gain - make it think it is midnight
             point = {
                 "date": 0.0,
                 "hour": 0.0,
-            }            
+            }
 
         all_ids = list(self.cluster_houses.houses.keys())
         if len(all_ids) <= self.interp_nb_agents:
@@ -1225,7 +1255,7 @@ class PowerGrid(object):
                 (time_sec % period) - (1 - ratio) * period, 1
             )
             self.current_signal = signal
-        elif "perlin" in self.signal_mode :
+        elif "perlin" in self.signal_mode:
             amplitude = self.signal_params["amplitude_ratios"]
             unix_time_stamp = time.mktime(date_time.timetuple()) % 86400
             signal = self.base_power
@@ -1242,7 +1272,9 @@ class PowerGrid(object):
                 )
             )
 
-        self.current_signal = self.current_signal * self.artificial_ratio    #Artificial_ration should be 1. Only change for experimental purposes.
+        self.current_signal = (
+            self.current_signal * self.artificial_ratio
+        )  # Artificial_ration should be 1. Only change for experimental purposes.
 
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 

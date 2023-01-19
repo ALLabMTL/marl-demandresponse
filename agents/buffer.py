@@ -1,9 +1,11 @@
 #%% Imports
 
-import numpy as np
 import random
 from collections import deque, namedtuple
+
+import numpy as np
 import torch
+
 #%% Classes
 
 Transition = namedtuple("Transition", ("state", "action", "reward", "next_state"))

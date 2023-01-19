@@ -7,6 +7,7 @@ import os
 id_rng = np.random.default_rng()
 unique_ID = str(int(id_rng.random() * 1000000))
 
+
 def best_MPC_action(
     nb_agent,
     hvac_cooling,
@@ -25,10 +26,10 @@ def best_MPC_action(
     rolling_horizon,
     time_step_sec,
     lockout_duration,
-    norm_sign_regulation
+    norm_sign_regulation,
 ):
     start = time.time()
-    path = "./log_gurobi"+ unique_ID +".txt"
+    path = "./log_gurobi" + unique_ID + ".txt"
     sys.stdout = open(path, "w")
 
     Qa = cp.Variable((rolling_horizon, nb_agent))
@@ -159,17 +160,16 @@ def best_MPC_action(
 
     problem = cp.Problem(
         cp.Minimize(
-            cp.sum_squares(consumption - signal) / (norm_sign_regulation**2) 
+            cp.sum_squares(consumption - signal) / (norm_sign_regulation**2)
             + cp.sum_squares(temperature_difference)
         ),
         constraints,
     )
 
     problem.solve(solver=cp.GUROBI, NodefileStart=0.5)
-    
+
     os.remove(path)
     sys.stdout = sys.__stdout__
     end = time.time()
-    
-    
+
     return (HVAC_state.value > 0.5)[lockout_duration, :]

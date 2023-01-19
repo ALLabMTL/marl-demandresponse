@@ -4,6 +4,7 @@ Forked from open/ai gym
 """
 import os
 import sys
+
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from numpy.lib.function_base import gradient
 from pyglet import window
@@ -41,6 +42,7 @@ except ImportError as e:
     )
 
 import math
+
 import numpy as np
 
 glEnable(GL_BLEND)

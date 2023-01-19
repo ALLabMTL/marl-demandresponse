@@ -1,15 +1,16 @@
-import pandas as pd
 import glob
 import os
-import numpy as np
 import re
+
+import numpy as np
+import pandas as pd
 
 # list of merged files returned
 files = os.path.join("gridSearchResultFinal_from*.csv")
 files = glob.glob(files)
 
 # Sorting files by the first index number
-file_ids = [int(re.search('from_(.*)_to*', file).group(1)) for file in files]
+file_ids = [int(re.search("from_(.*)_to*", file).group(1)) for file in files]
 files = [x for _, x in sorted(zip(file_ids, files))]
 
 # joining files with concat and read_csv

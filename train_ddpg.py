@@ -1,26 +1,26 @@
 #%% Imports
 
-from config import config_dict
-from cli import cli_train
-from agents.ddpg import MADDPG
-from env.MA_DemandResponse import MADemandResponseEnv
-from metrics import Metrics
-
-from plotting import colorPlotTestAgentHouseTemp
-from utils import (
-    normStateDict,
-    # testAgentHouseTemperature,
-    saveDDPGDict,
-    adjust_config_train,
-    render_and_wandb_init,
-    test_ppo_agent,
-)
-import matplotlib.pyplot as plt
 import os
 import random
-import numpy as np
 from collections import namedtuple
+
+import matplotlib.pyplot as plt
+import numpy as np
 import wandb
+
+from agents.ddpg import MADDPG
+from cli import cli_train
+from config import config_dict
+from env.MA_DemandResponse import MADemandResponseEnv
+from metrics import Metrics
+from plotting import colorPlotTestAgentHouseTemp
+from utils import (
+    adjust_config_train,  # testAgentHouseTemperature,
+    normStateDict,
+    render_and_wandb_init,
+    saveDDPGDict,
+    test_ppo_agent,
+)
 
 #%% Functions
 

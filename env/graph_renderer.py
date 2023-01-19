@@ -1,12 +1,23 @@
 from re import S
-from matplotlib.pyplot import axis
-import matplotlib.ticker as mticker
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
+from matplotlib.pyplot import axis
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, signal, consumption, timestep):
+def make_graph(
+    temp_diff,
+    temp_err,
+    air_temp,
+    mass_temp,
+    target_temp,
+    OD_temp,
+    signal,
+    consumption,
+    timestep,
+):
     start_point_graph = max(0, timestep - len(temp_diff))
 
     if len(temp_diff) < 50:
@@ -33,9 +44,8 @@ def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, s
     # find the mean
     nb_of_ignored_timestep = len(temp_diff) % array_step
 
-
-    recent_signal = signal[max(-50,-len(signal)):]
-    recent_consumption = consumption[max(-50,-len(consumption)):]
+    recent_signal = signal[max(-50, -len(signal)) :]
+    recent_consumption = consumption[max(-50, -len(consumption)) :]
 
     if nb_of_ignored_timestep > 0:
         temp_diff = temp_diff[:-nb_of_ignored_timestep]
@@ -74,8 +84,8 @@ def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, s
     )
     fig.set_size_inches(6.4, 7.2)
     plt.xticks(x)
-    axs[0].plot( recent_signal, color="dodgerblue")
-    axs[0].plot( recent_consumption, color="yellow")
+    axs[0].plot(recent_signal, color="dodgerblue")
+    axs[0].plot(recent_consumption, color="yellow")
     axs[0].legend(
         ["Most recent signal", "Most recent consumption"],
         loc="lower right",
@@ -83,8 +93,7 @@ def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, s
     )
     axs[0].set_ylabel("Recent RS", color="white")
     axs[0].set_ylim(ymin=0)
-    
-   
+
     axs[1].plot(x, signal, color="dodgerblue")
     axs[1].plot(x, consumption, color="yellow")
     # axs[0].plot(signal , color="orange")
@@ -97,16 +106,21 @@ def make_graph(temp_diff, temp_err, air_temp, mass_temp, target_temp, OD_temp, s
 
     axs[2].plot(x, temp_diff, color="orangered")
     axs[2].plot(x, temp_err, color="darkblue")
-    axs[2].legend(["Mean temperature difference", "Mean temperature error"], loc="lower right", framealpha=0.3)
+    axs[2].legend(
+        ["Mean temperature difference", "Mean temperature error"],
+        loc="lower right",
+        framealpha=0.3,
+    )
 
     axs[2].set_ylabel("Average temperature difference", color="white")
-   
 
     axs[3].plot(x, air_temp, color="lightblue")
     axs[3].plot(x, mass_temp, color="maroon")
     axs[3].plot(x, target_temp, color="gold")
     axs[3].plot(x, OD_temp, color="forestgreen")
-    axs[3].legend(["Air","Mass","Target","Outdoors"], loc="lower right", framealpha=0.3)
+    axs[3].legend(
+        ["Air", "Mass", "Target", "Outdoors"], loc="lower right", framealpha=0.3
+    )
 
     axs[3].set_ylabel("Temperature", color="white")
 

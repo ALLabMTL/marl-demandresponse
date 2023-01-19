@@ -214,46 +214,53 @@ def cli_train():
 
     parser.add_argument(
         "--state_day",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include day in the state")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include day in the state",
+    )
 
     parser.add_argument(
         "--state_hour",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include hour in the state")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include hour in the state",
+    )
 
     parser.add_argument(
         "--state_solar_gain",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include solar gain in the state")
-        
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include solar gain in the state",
+    )
+
     parser.add_argument(
         "--state_thermal",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include outdoors temperature, and house thermal parameters, in the state.")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include outdoors temperature, and house thermal parameters, in the state.",
+    )
 
     parser.add_argument(
         "--state_hvac",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="hvac parameters, in the state.")
-    
+        default="config",
+        choices=["True", "False", "config"],
+        help="hvac parameters, in the state.",
+    )
+
     parser.add_argument(
         "--message_thermal",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include themal parameters in messages")
-    
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include themal parameters in messages",
+    )
+
     parser.add_argument(
         "--message_hvac",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include hvac parameters in messages")
-    
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include hvac parameters in messages",
+    )
+
     ### Agent
 
     parser.add_argument(
@@ -659,45 +666,52 @@ def cli_deploy(agents_dict):
 
     parser.add_argument(
         "--state_day",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include day in the state")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include day in the state",
+    )
 
     parser.add_argument(
         "--message_thermal",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include themal parameters in messages")
-    
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include themal parameters in messages",
+    )
+
     parser.add_argument(
         "--message_hvac",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include hvac parameters in messages")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include hvac parameters in messages",
+    )
 
     parser.add_argument(
         "--state_hour",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include hour in the state")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include hour in the state",
+    )
 
     parser.add_argument(
         "--state_solar_gain",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include solar gain in the state")
-        
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include solar gain in the state",
+    )
+
     parser.add_argument(
         "--state_thermal",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="Include outdoors temperature, and house thermal parameters, in the state.")
+        default="config",
+        choices=["True", "False", "config"],
+        help="Include outdoors temperature, and house thermal parameters, in the state.",
+    )
 
     parser.add_argument(
         "--state_hvac",
-        default='config',
-        choices = ['True','False', 'config'],
-        help="hvac parameters, in the state.")
+        default="config",
+        choices=["True", "False", "config"],
+        help="hvac parameters, in the state.",
+    )
 
     parser.add_argument(
         "--start_datetime_mode",
@@ -725,7 +739,6 @@ def cli_deploy(agents_dict):
         default="",
         help="path to which the simulation data is saved as a CSV. If no name is given no saving is done.",
     )
-
 
     opt = parser.parse_args()
 

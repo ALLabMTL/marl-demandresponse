@@ -1,11 +1,12 @@
+import math
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+import env.graph_renderer as graph_renderer
 import env.rendering as rendering
 import env.turbo as turbo
-import math
-import env.graph_renderer as graph_renderer
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 
 WIDTH = 1600
 HEIGHT = 960
@@ -39,8 +40,7 @@ class Renderer(object):
 
         for i in range(nb_horizontal):
             self.viewer.draw_polyline(
-                ((i * horizontal_distance, min_y),
-                 (i * horizontal_distance, max_y))
+                ((i * horizontal_distance, min_y), (i * horizontal_distance, max_y))
             )
 
         for i in range(nb_vertical):
@@ -117,9 +117,7 @@ class Renderer(object):
                     (255, 50, 50, 255),
                     house_dimension / 7,
                 )
-            elif (
-                obs[i]["hvac_lockout"]
-            ):
+            elif obs[i]["hvac_lockout"]:
                 self.viewer.add_labels(
                     "Lockout",
                     house_dimension * column + house_dimension,
@@ -148,8 +146,7 @@ class Renderer(object):
             self.viewer.add_labels(
                 str(
                     round(
-                        obs[i]["house_temp"]
-                        - obs[i]["house_target_temp"],
+                        obs[i]["house_temp"] - obs[i]["house_target_temp"],
                         2,
                     )
                 )
@@ -163,14 +160,12 @@ class Renderer(object):
     def color_house(self, obs):
         for index, house in enumerate(self.house_poly):
             temperature = (
-                obs[index]["house_temp"]
-                - obs[index]["house_target_temp"]
+                obs[index]["house_temp"] - obs[index]["house_target_temp"]
             )  # house_temperature[index]
             temperature = min(TEMPERATURE_SCALE, temperature)
             temperature = max(-TEMPERATURE_SCALE, temperature)
             color_index = int(
-                127 * (math.sin((temperature) /
-                       TEMPERATURE_SCALE * math.pi / 2)) + 128
+                127 * (math.sin((temperature) / TEMPERATURE_SCALE * math.pi / 2)) + 128
             )
 
             t = turbo.colormap[color_index]
@@ -184,7 +179,7 @@ class Renderer(object):
             self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
             self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
             self.OD_temp[max(-GRAPH_MEMORY, -len(self.OD_temp)) :],
-            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :], 
+            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
             self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :],
             self.time,
         )
@@ -226,11 +221,11 @@ class Renderer(object):
 
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
-        #self.data_messages["Number of HVAC Turned ON"] = str(
+        # self.data_messages["Number of HVAC Turned ON"] = str(
         #    df["hvac_turned_on"].sum())
-        #self.data_messages["Number of HVAC Turned OFF"] = str(
+        # self.data_messages["Number of HVAC Turned OFF"] = str(
         #    df.shape[0] - df["hvac_turned_on"].sum()
-        #)
+        # )
         self.data_messages["Number of locked HVAC"] = str(
             np.where(
                 df["hvac_seconds_since_off"] > df["hvac_lockout_duration"], 1, 0
@@ -247,29 +242,47 @@ class Renderer(object):
         )
         self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
         self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
-        self.data_messages["Consumption error (%)"] = "{:.3f}%".format((df["reg_signal"][0] - df["cluster_hvac_power"][0])/df["reg_signal"][0] * 100)
-        self.data_messages["RMSE"] = "{:.0f}".format(np.sqrt(np.mean(( self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :] - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :] )**2)))
-        self.data_messages["Cumulative average offset"] = "{:.0f}".format(np.mean(self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :] - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :] ))
+        self.data_messages["Consumption error (%)"] = "{:.3f}%".format(
+            (df["reg_signal"][0] - df["cluster_hvac_power"][0])
+            / df["reg_signal"][0]
+            * 100
+        )
+        self.data_messages["RMSE"] = "{:.0f}".format(
+            np.sqrt(
+                np.mean(
+                    (
+                        self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
+                        - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
+                    )
+                    ** 2
+                )
+            )
+        )
+        self.data_messages["Cumulative average offset"] = "{:.0f}".format(
+            np.mean(
+                self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
+                - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
+            )
+        )
 
     def render(self, obs):
 
         df = pd.DataFrame(obs).transpose()
         df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
         df["temperature_error"] = np.abs(df["house_temp"] - df["house_target_temp"])
-        self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean() )
-        self.temp_err = np.append(self.temp_err, df["temperature_error"].mean() )
-        self.air_temp = np.append(self.air_temp, df["house_temp"].mean() )
-        self.mass_temp = np.append(self.mass_temp, df["house_mass_temp"].mean() )
-        self.target_temp = np.append(self.target_temp, df["house_target_temp"].mean() )
-        self.OD_temp = np.append(self.OD_temp, df["OD_temp"].mean() )
+        self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean())
+        self.temp_err = np.append(self.temp_err, df["temperature_error"].mean())
+        self.air_temp = np.append(self.air_temp, df["house_temp"].mean())
+        self.mass_temp = np.append(self.mass_temp, df["house_mass_temp"].mean())
+        self.target_temp = np.append(self.target_temp, df["house_target_temp"].mean())
+        self.OD_temp = np.append(self.OD_temp, df["OD_temp"].mean())
         self.signal = np.append(self.signal, df["reg_signal"][0])
         self.consumption = np.append(self.consumption, df["cluster_hvac_power"][0])
 
         if self.viewer is None:
 
             self.legend_data = self.draw_legend()
-            self.viewer = rendering.Viewer(
-                self.screen_width, self.screen_height)
+            self.viewer = rendering.Viewer(self.screen_width, self.screen_height)
             self.viewer.draw_legend(self.screen_height, 0)
             self.draw_house(obs)
             self.define_data_box()

@@ -1,15 +1,18 @@
-from utils import normStateDict
+import os
+import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Categorical
-import os
-from agents.network import Actor, OldActor, DQN_network, DDPG_Network
-import sys
+
+from agents.network import Actor, DDPG_Network, DQN_network, OldActor
+from utils import normStateDict
+
 sys.path.append("..")
 
 
-class PPOAgent():
+class PPOAgent:
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         super(PPOAgent, self).__init__()
         self.id = agent_properties["id"]
@@ -19,10 +22,18 @@ class PPOAgent():
 
         self.seed = agent_properties["net_seed"]
         torch.manual_seed(self.seed)
-        self.actor_net = Actor(num_state=num_state, num_action=num_action, layers = config_dict["PPO_prop"]["actor_layers"])
-        self.actor_net.load_state_dict(torch.load(os.path.join(self.actor_path, 'actor.pth'), map_location=torch.device('cpu')))
+        self.actor_net = Actor(
+            num_state=num_state,
+            num_action=num_action,
+            layers=config_dict["PPO_prop"]["actor_layers"],
+        )
+        self.actor_net.load_state_dict(
+            torch.load(
+                os.path.join(self.actor_path, "actor.pth"),
+                map_location=torch.device("cpu"),
+            )
+        )
         self.actor_net.eval()
-
 
     def act(self, obs_dict):
         obs_dict = obs_dict[self.id]
@@ -34,7 +45,8 @@ class PPOAgent():
         action = c.sample()
         return action.item()
 
-class DQNAgent():
+
+class DQNAgent:
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         super(DQNAgent, self).__init__()
         self.id = agent_properties["id"]
@@ -44,10 +56,15 @@ class DQNAgent():
 
         self.seed = agent_properties["net_seed"]
         torch.manual_seed(self.seed)
-        self.DQN_net = DQN_network(num_state=num_state, num_action=num_action, layers = config_dict["DQN_prop"]["network_layers"])
-        self.DQN_net.load_state_dict(torch.load(os.path.join(self.agent_path, 'DQN.pth')))
+        self.DQN_net = DQN_network(
+            num_state=num_state,
+            num_action=num_action,
+            layers=config_dict["DQN_prop"]["network_layers"],
+        )
+        self.DQN_net.load_state_dict(
+            torch.load(os.path.join(self.agent_path, "DQN.pth"))
+        )
         self.DQN_net.eval()
-
 
     def act(self, obs_dict):
         obs_dict = obs_dict[self.id]
@@ -58,7 +75,8 @@ class DQNAgent():
         action = torch.argmax(qs).item()
         return action
 
-class DDPGAgent():
+
+class DDPGAgent:
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         super(DDPGAgent, self).__init__()
         self.id = agent_properties["id"]
@@ -68,10 +86,15 @@ class DDPGAgent():
 
         self.seed = agent_properties["net_seed"]
         torch.manual_seed(self.seed)
-        self.DDPG_net = DDPG_Network(in_dim=num_state, out_dim=num_action, hidden_dim = config_dict["DDPG_prop"]["actor_hidden_dim"])
-        self.DDPG_net.load_state_dict(torch.load(os.path.join(self.agent_path, 'DDPG.pth')))
+        self.DDPG_net = DDPG_Network(
+            in_dim=num_state,
+            out_dim=num_action,
+            hidden_dim=config_dict["DDPG_prop"]["actor_hidden_dim"],
+        )
+        self.DDPG_net.load_state_dict(
+            torch.load(os.path.join(self.agent_path, "DDPG.pth"))
+        )
         self.DDPG_net.eval()
-
 
     def act(self, obs_dict):
         obs_dict = obs_dict[self.id]
@@ -81,4 +104,3 @@ class DDPGAgent():
             qs = self.DDPG_net(state)
         action = torch.argmax(qs).item()
         return action
-

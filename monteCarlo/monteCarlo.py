@@ -5,15 +5,16 @@ sys.path.append("..")
 
 import argparse
 import copy
+import csv
 import datetime
 import itertools as it
+import json
 import math
 import time
 from datetime import date, timedelta
 
 import pandas as pd
-import json
-import csv
+
 from agents import *
 from config import config_dict
 from env import *
@@ -79,7 +80,17 @@ parameters_dict = {
     "Cm_ratio": [0.9, 1, 1.1],
     "Ca_ratio": [0.9, 1, 1.1],
     "Hm_ratio": [0.9, 1, 1.1],
-    "air_temp": [-4, -2, -1, -0.3, 0, 0.3, 1, 2, 4],  # Setter au debut. Si c'est plus haut, ne fait pas de différence sur 75 time steps.
+    "air_temp": [
+        -4,
+        -2,
+        -1,
+        -0.3,
+        0,
+        0.3,
+        1,
+        2,
+        4,
+    ],  # Setter au debut. Si c'est plus haut, ne fait pas de différence sur 75 time steps.
     "mass_temp": [-4, -2, 0, 2, 4],  # Setter au debut, ajouter au conf dict
     "OD_temp": [1, 3, 5, 7, 9, 11, 13, 15],  # fixé
     "HVAC_power": [10000, 15000],
@@ -113,11 +124,24 @@ parameters_dict["date"] = [
 ]
 parameters_dict["hour"] = [x * SECOND_IN_A_HOUR for x in parameters_dict["hour"]]
 
-with open('interp_parameters_dict.json', 'w') as fp:
+with open("interp_parameters_dict.json", "w") as fp:
     json.dump(parameters_dict, fp)
-with open('interp_dict_keys.csv', 'w') as f:
+with open("interp_dict_keys.csv", "w") as f:
     write = csv.writer(f)
-    write.writerow(["Ua_ratio", "Cm_ratio", "Ca_ratio", "Hm_ratio", "air_temp", "mass_temp", "OD_temp", "HVAC_power", "hour", "date"])
+    write.writerow(
+        [
+            "Ua_ratio",
+            "Cm_ratio",
+            "Ca_ratio",
+            "Hm_ratio",
+            "air_temp",
+            "mass_temp",
+            "OD_temp",
+            "HVAC_power",
+            "hour",
+            "date",
+        ]
+    )
 
 keys = parameters_dict.keys()
 combinations = it.product(*(parameters_dict[Name] for Name in keys))
@@ -131,7 +155,16 @@ def number_of_combination(dict):
 
 
 def eval_parameters_bangbang_average_consumption(
-    Ua_ratio, Cm_ratio, Ca_ratio, Hm_ratio, air_temp, mass_temp, OD_temp, HVAC_power, hour, date
+    Ua_ratio,
+    Cm_ratio,
+    Ca_ratio,
+    Hm_ratio,
+    air_temp,
+    mass_temp,
+    OD_temp,
+    HVAC_power,
+    hour,
+    date,
 ):
 
     config = copy.deepcopy(config_dict)
@@ -169,7 +202,7 @@ def eval_parameters_bangbang_average_consumption(
     config["default_env_prop"]["cluster_prop"]["temp_parameters"]["constant"][
         "night_temp"
     ] = (config["default_house_prop"]["target_temp"] + OD_temp)
-    
+
     config["default_env_prop"]["power_grid_prop"]["base_power_mode"] = "constant"
 
     env = MADemandResponseEnv(config)
@@ -194,10 +227,12 @@ def eval_parameters_bangbang_average_consumption(
         obs_dict, _, _, info = env.step(actions)
         total_cluster_hvac_power += info["cluster_hvac_power"]
         if i >= NB_TIME_STEPS_BY_SIM - NB_TIME_STEPS_AVG:
-            average_cluster_hvac_power += total_cluster_hvac_power/((i+1) * NB_TIME_STEPS_AVG) # The average of the NB_TIME_STEPS_AVG last averages (to stabilize)
+            average_cluster_hvac_power += total_cluster_hvac_power / (
+                (i + 1) * NB_TIME_STEPS_AVG
+            )  # The average of the NB_TIME_STEPS_AVG last averages (to stabilize)
         actions = get_actions(actors, obs_dict)
-        #print("Step {} - Avg power: {} - LastAvg: {} - Power: {}".format(i, total_cluster_hvac_power/(i+1), average, info["cluster_hvac_power"]))
-    #average_cluster_hvac_power = total_cluster_hvac_power / NB_TIME_STEPS_BY_SIM
+        # print("Step {} - Avg power: {} - LastAvg: {} - Power: {}".format(i, total_cluster_hvac_power/(i+1), average, info["cluster_hvac_power"]))
+    # average_cluster_hvac_power = total_cluster_hvac_power / NB_TIME_STEPS_BY_SIM
     return average_cluster_hvac_power
 
 

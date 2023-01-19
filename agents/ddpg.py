@@ -1,17 +1,19 @@
 import logging
+import os
+import time
+from typing import List
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import wandb
+from torch import Tensor, nn
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-import os
-import time
-import wandb
+
 from agents.buffer import DDPGBuffer as Buffer
-from typing import List
-from torch import nn, Tensor
-import numpy as np
 from agents.network import DDPG_Network
 
 

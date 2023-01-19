@@ -49,7 +49,6 @@ config_dict = {
                 "factor_thermo_low": 0.5,  # Lowest random factor for Ua, Cm, Ca, Hm
                 "factor_thermo_high": 1.5,  # Highest random factor for Ua, Cm, Ca, Hm
             },
-
             "small_noise": {
                 "std_start_temp": 3,  # Std noise on starting temperature
                 "std_target_temp": 1,  # Std Noise on target temperature
@@ -138,7 +137,10 @@ config_dict = {
                 # "factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
             },
             "small_noise": {
-                "cooling_capacity_list": {10000: [9000, 10000, 11000], 15000: [12500, 15000, 17500]}
+                "cooling_capacity_list": {
+                    10000: [9000, 10000, 11000],
+                    15000: [12500, 15000, 17500],
+                }
                 # "std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
                 # "factor_COP_low": 0.95,   # Lowest random factor for COP
                 # "factor_COP_high": 1.05,   # Highest random factor for COP
@@ -333,13 +335,13 @@ config_dict = {
                     "period": 400,
                 },
                 "amplitude+_perlin": {
-                    "amplitude_ratios": 0.9*1.1,
+                    "amplitude_ratios": 0.9 * 1.1,
                     "nb_octaves": 5,
                     "octaves_step": 5,
                     "period": 400,
                 },
                 "amplitude++_perlin": {
-                    "amplitude_ratios": 0.9*1.3,
+                    "amplitude_ratios": 0.9 * 1.3,
                     "nb_octaves": 5,
                     "octaves_step": 5,
                     "period": 400,
@@ -418,7 +420,7 @@ config_dict = {
         "learn_interval": 100,
         "random_steps": 100,
         "gumbel_softmax_tau": 1,
-        "DDPG_shared": True
+        "DDPG_shared": True,
     },
     "DQN_prop": {
         "network_layers": [100, 100],

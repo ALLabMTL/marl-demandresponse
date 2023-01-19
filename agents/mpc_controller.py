@@ -1,11 +1,14 @@
 import sys
 
 sys.path.append("../marl-demandresponse")
-from numpy import roll
-from .MPC import *
-import pandas as pd
 import time
+
+import pandas as pd
+from numpy import roll
+
 from utils import house_solar_gain
+
+from .MPC import *
 
 global_mpc_memory = [None, None]
 
@@ -29,7 +32,9 @@ class MPCController(object):
                 "signal_parameters"
             ]["sinusoidals"]
         self.solar_gain = config_dict["default_house_prop"]["solar_gain_bool"]
-        self.norm_signal_normalization = config_dict["default_env_prop"]["reward_prop"]["norm_reg_sig"]
+        self.norm_signal_normalization = config_dict["default_env_prop"]["reward_prop"][
+            "norm_reg_sig"
+        ]
 
     def act(self, obs):
         self.time_step += 1
@@ -50,21 +55,17 @@ class MPCController(object):
             remaining_lockout = (
                 df["hvac_lockout_duration"] - df["hvac_seconds_since_off"]
             ) * df["hvac_turned_on"]
-        
+
             rolling_horizon = self.rolling_horizon
             if self.solar_gain:
                 solar_gain = [
-
                     house_solar_gain(
                         df["datetime"][0], self.window_area, self.shading_coeff
                     )
                 ] * rolling_horizon
-            else: 
-                solar_gain = [
-                    0
-                ] * rolling_horizon
-       
-          
+            else:
+                solar_gain = [0] * rolling_horizon
+
             time_step_duration = self.time_step_duration
             lockout_duration = df["hvac_lockout_duration"][0]
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
@@ -73,7 +74,7 @@ class MPCController(object):
             HVAC_cooling = df["hvac_cooling_capacity"] / (
                 1 + df["hvac_latent_cooling_fraction"]
             )
-           
+
             global_mpc_memory[1] = best_MPC_action(
                 nb_agents,
                 HVAC_cooling,
@@ -92,9 +93,9 @@ class MPCController(object):
                 rolling_horizon,
                 time_step_duration,
                 lockout_duration,
-                self.norm_signal_normalization
+                self.norm_signal_normalization,
             )
-          
+
             global_mpc_memory[0] = self.time_step
-           
+
         return global_mpc_memory[1][self.id]

@@ -1,14 +1,14 @@
 #%% Imports
 
-import numpy as np
 import os
 import random
-import torch
-import matplotlib.pyplot as plt
-from perlin_noise import PerlinNoise
-
 from copy import deepcopy
-from datetime import datetime, timedelta, time
+from datetime import datetime, time, timedelta
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from perlin_noise import PerlinNoise
 
 from wandb_setup import wandb_setup
 
@@ -77,8 +77,8 @@ def adjust_config_train(opt, config_dict):
     if opt.hvac_noise_mode != "config":
         config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
     if opt.hvac_lockout_noise != -1:
-  
-        config_dict["default_hvac_prop"]["lockout_noise"] = opt.hvac_lockout_noise 
+
+        config_dict["default_hvac_prop"]["lockout_noise"] = opt.hvac_lockout_noise
     if opt.hvac_noise_mode_test == "train":
         config_dict["noise_hvac_prop_test"]["noise_mode"] = config_dict[
             "noise_hvac_prop_test"
@@ -122,7 +122,6 @@ def adjust_config_train(opt, config_dict):
         else:
             raise ValueError("Invalid value for state_hour")
 
-
     if opt.state_day != "config":
         print("Setting state day to {}".format(opt.state_day))
         if opt.state_day == "True":
@@ -161,7 +160,6 @@ def adjust_config_train(opt, config_dict):
             config_dict["default_env_prop"]["message_properties"]["hvac"] = False
         else:
             raise ValueError("Invalid value for message_hvac")
-
 
     ### Agent
 
@@ -336,7 +334,6 @@ def adjust_config_deploy(opt, config_dict):
         else:
             raise ValueError("Invalid value for state_hour")
 
-
     if opt.state_day != "config":
         print("Setting state day to {}".format(opt.state_day))
         if opt.state_day == "True":
@@ -376,7 +373,6 @@ def adjust_config_deploy(opt, config_dict):
             config_dict["default_env_prop"]["message_properties"]["hvac"] = False
         else:
             raise ValueError("Invalid value for message_hvac")
-
 
     config_dict["default_env_prop"]["power_grid_prop"][
         "artificial_ratio"
@@ -547,12 +543,11 @@ def superDict2List(SDict, id):
 def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
     default_hvac_prop = config_dict["default_hvac_prop"]
- 
+
     default_env_prop = config_dict["default_env_prop"]
     state_prop = default_env_prop["state_properties"]
 
     result = {}
-
 
     k_temp = ["house_temp", "house_mass_temp", "house_target_temp"]
     k_div = ["hvac_cooling_capacity"]
@@ -565,13 +560,13 @@ def normStateDict(sDict, config_dict, returnDict=False):
             "house_Ca",
             "house_Hm",
         ]
-    
+
     if state_prop["hvac"]:
         k_div += [
             "hvac_COP",
             "hvac_latent_cooling_fraction",
         ]
-       
+
     # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
     for k in k_temp:
         # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
@@ -635,16 +630,21 @@ def normStateDict(sDict, config_dict, returnDict=False):
             message["hvac_max_consumption"]
             / default_env_prop["reward_prop"]["norm_reg_sig"]
         )
-        
+
         if config_dict["default_env_prop"]["message_properties"]["thermal"]:
             r_message["house_Ua"] = message["house_Ua"] / default_house_prop["Ua"]
             r_message["house_Cm"] = message["house_Cm"] / default_house_prop["Cm"]
             r_message["house_Ca"] = message["house_Ca"] / default_house_prop["Ca"]
             r_message["house_Hm"] = message["house_Hm"] / default_house_prop["Hm"]
         if config_dict["default_env_prop"]["message_properties"]["hvac"]:
-            r_message["hvac_COP"] = message["hvac_COP"] / default_hvac_prop["COP"] 
-            r_message["hvac_latent_cooling_fraction"] = message["hvac_latent_cooling_fraction"] / default_hvac_prop["latent_cooling_fraction"] 
-            r_message["hvac_cooling_capacity"] = message["hvac_cooling_capacity"] / default_hvac_prop["cooling_capacity"]
+            r_message["hvac_COP"] = message["hvac_COP"] / default_hvac_prop["COP"]
+            r_message["hvac_latent_cooling_fraction"] = (
+                message["hvac_latent_cooling_fraction"]
+                / default_hvac_prop["latent_cooling_fraction"]
+            )
+            r_message["hvac_cooling_capacity"] = (
+                message["hvac_cooling_capacity"] / default_hvac_prop["cooling_capacity"]
+            )
         temp_messages.append(r_message)
     if returnDict:
         result["message"] = temp_messages

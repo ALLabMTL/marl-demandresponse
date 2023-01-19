@@ -1,9 +1,10 @@
 #%% Imports
 
+import json
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import json
 
 #%% Classes
 
@@ -121,5 +122,3 @@ class DDPG_Network(nn.Module):
 
     def forward(self, x):
         return self.net(x)
-
-

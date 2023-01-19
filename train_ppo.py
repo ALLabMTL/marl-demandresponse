@@ -1,23 +1,24 @@
 #%% Imports
 
-from config import config_dict
-from cli import cli_train
+import os
+import random
+from collections import namedtuple
+
+import numpy as np
+import wandb
+
 from agents.ppo import PPO
+from cli import cli_train
+from config import config_dict
 from env.MA_DemandResponse import MADemandResponseEnv
 from metrics import Metrics
 from utils import (
     adjust_config_train,
     normStateDict,
-    saveActorNetDict,
     render_and_wandb_init,
+    saveActorNetDict,
     test_ppo_agent,
 )
-
-import os
-import random
-import numpy as np
-from collections import namedtuple
-import wandb
 
 #%% Functions
 
@@ -84,7 +85,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
                     normStateDict(next_obs_dict[k], config_dict),
                     done,
                 ),
-                k
+                k,
             )
             # Update metrics
             metrics.update(k, obs_dict, next_obs_dict, rewards_dict, env)
