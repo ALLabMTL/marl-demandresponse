@@ -17,6 +17,11 @@
     python main.py --exp 10 --agent_type ppo --no_wandb --render
     ```
 
+## Quickstart (VSCode)
+0. Ignore errors related to missing packages such as pylint, mypy or pydocstyle. 
+1. Open command palette (F1) and choose Python: Create environnement > Venv. Choose Python version 3.9. This will take a while as it installs all the reqiurements (5 minutes on a two core laptop with no cached packages)
+2. Open a new terminal, make sure the prompt says `.venv`
+
 ## Development
 VScode is recommended for development. Default settings are provided in the `.vscode` folder, most notably the following settings are provided:
 - `"python.formatting.provider": "black"` and `"editor.formatOnSave": true` to format the code on save with black
