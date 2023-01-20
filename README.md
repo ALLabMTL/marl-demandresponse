@@ -27,6 +27,13 @@ VScode is recommended for development. Default settings are provided in the `.vs
 python -m pytest
 ```
 
+### Debug the code
+
+```bash
+python -m debugpy --listen localhost:5678 --wait-for-client main.py --exp 10 --agent_type ppo --no_wandb
+# then attach the debugger in VScode (F5)
+```
+
 ### Run linters
 
 ```bash
