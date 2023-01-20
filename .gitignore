@@ -32,3 +32,7 @@ monteCarlo/results/
 path*
 log_gurobi*
 save_ckpt/*/*.pt
+
+
+docs/build/
+docs/source/api/*
