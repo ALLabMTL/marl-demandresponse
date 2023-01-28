@@ -1,5 +1,4 @@
 import pandas as pd
-from torch import Tensor
 
 global_myopic_memory = [None, None]
 

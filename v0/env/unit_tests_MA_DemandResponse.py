@@ -1,29 +1,7 @@
-import random
-import sys
 import unittest
-import warnings
-from copy import deepcopy
-from datetime import datetime, time, timedelta
-from typing import Any, Dict, List, Tuple
+from datetime import datetime, timedelta
 
-import gym
-import numpy as np
-import ray
-from MA_DemandResponse import (
-    HVAC,
-    ClusterHouses,
-    MADemandResponseEnv,
-    PowerGrid,
-    SingleHouse,
-)
-from ray.rllib.env.multi_agent_env import MultiAgentEnv
-from ray.rllib.utils.annotations import PublicAPI, override
-from ray.rllib.utils.typing import AgentID, MultiAgentDict
-
-sys.path.insert(1, "../marl-demandresponse")
-sys.path.append("..")
-
-from utils import applyPropertyNoise
+from ..env.MA_DemandResponse import HVAC, SingleHouse
 
 
 class TestHVAC(unittest.TestCase):

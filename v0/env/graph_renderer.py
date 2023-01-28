@@ -1,10 +1,5 @@
-from re import S
-
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
 import numpy as np
-from matplotlib.pyplot import axis
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 def make_graph(

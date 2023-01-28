@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import env.graph_renderer as graph_renderer
-import env.rendering as rendering
-import env.turbo as turbo
+from . import graph_renderer, rendering, turbo
 
 WIDTH = 1600
 HEIGHT = 960

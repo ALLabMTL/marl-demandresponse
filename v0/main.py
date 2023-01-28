@@ -3,18 +3,18 @@
 import os
 import random
 
-from agents.ddpg import MADDPG
-from agents.dqn import DQN
-from agents.mappo import MAPPO
-from agents.ppo import PPO
-from cli import cli_train
-from config import config_dict
-from env.MA_DemandResponse import MADemandResponseEnv
-from train_ddpg import train_ddpg
-from train_dqn import train_dqn
-from train_mappo import train_mappo
-from train_ppo import train_ppo
-from utils import adjust_config_train, normStateDict, render_and_wandb_init
+from .agents.ddpg import MADDPG
+from .agents.dqn import DQN
+from .agents.mappo import MAPPO
+from .agents.ppo import PPO
+from .cli import cli_train
+from .config import config_dict
+from .env.MA_DemandResponse import MADemandResponseEnv
+from .train_ddpg import train_ddpg
+from .train_dqn import train_dqn
+from .train_mappo import train_mappo
+from .train_ppo import train_ppo
+from .utils import adjust_config_train, normStateDict, render_and_wandb_init
 
 os.environ["WANDB_SILENT"] = "true"
 

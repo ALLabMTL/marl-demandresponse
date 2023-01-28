@@ -1,11 +1,9 @@
 import csv
-import datetime
 import json
 import unittest
 from copy import deepcopy
 
 import numpy as np
-import pandas as pd
 from interpolation import PowerInterpolator
 
 SECOND_IN_A_HOUR = 3600
@@ -57,8 +55,6 @@ class TestPowerInterpolator(unittest.TestCase):
 
         self.power_interp = PowerInterpolator(path, parameters_dict, self.dict_keys)
 
-        dates_nb = []
-
         self.num_comb = 1
         self.num_comb_lower = {}
         for key in reversed(self.dict_keys):
@@ -89,7 +85,6 @@ class TestPowerInterpolator(unittest.TestCase):
             "hour": 11.0 * SECOND_IN_A_HOUR,
             "date": 79,
         }
-        index = point_to_index(air_8, self.parameters_dict, self.dict_keys)
         gt_power = self.power_data[index_df]
         interp_value = self.power_interp.interpolateGridFast(point)
         self.assertEqual(gt_power, interp_value)

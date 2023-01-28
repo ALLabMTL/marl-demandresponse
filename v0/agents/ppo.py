@@ -1,17 +1,11 @@
-import os
-import pprint
-from time import perf_counter
-
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import wandb
+from agents.network import Actor, Critic
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-
-from agents.network import Actor, Critic, OldActor, OldCritic
 
 
 class PPO:

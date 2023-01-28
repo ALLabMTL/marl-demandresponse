@@ -1,35 +1,20 @@
 import csv
 import json
 import random
-import sys
 import time
 import warnings
 from copy import deepcopy
 from datetime import datetime, time, timedelta
-from distutils.command.config import config
-from typing import Any, Dict, List, Tuple
 
-import gym
 import numpy as np
-import ray
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
-from ray.rllib.utils.annotations import PublicAPI, override
-from ray.rllib.utils.typing import AgentID, MultiAgentDict
-from sympy import octave_code
 
-from utils import Perlin, applyPropertyNoise, deadbandL2
-
-# import noise
-# import wandb
-
-
-sys.path.append("..")
-sys.path.append("./monteCarlo")
-from interpolation import PowerInterpolator
-
-from utils import (
+from ..monteCarlo.interpolation import PowerInterpolator
+from ..utils import (
+    Perlin,
     applyPropertyNoise,
     clipInterpolationPoint,
+    deadbandL2,
     house_solar_gain,
     sortDictKeys,
 )
@@ -342,7 +327,6 @@ class MADemandResponseEnv(MultiAgentEnv):
         temp_penalty_dict = {}
         # Temperature penalties
         for house_id in self.agent_ids:
-            house = self.cluster.houses[house_id]
             temp_penalty_dict[house_id] = self.compute_temp_penalty(house_id)
 
         for agent_id in self.agent_ids:
@@ -694,7 +678,6 @@ class SingleHouse(object):
         A4 = r2 * Ca / Hm + (Ua + Hm) / Hm
 
         # Updating the temperature
-        old_temp_K = current_temp_K
         new_current_temp_K = (
             A1 * np.exp(r1 * time_step_sec) + A2 * np.exp(r2 * time_step_sec) + d / c
         )

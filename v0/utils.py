@@ -3,13 +3,12 @@
 import os
 import random
 from copy import deepcopy
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
-
 from wandb_setup import wandb_setup
 
 #%% Functions

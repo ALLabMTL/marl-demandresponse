@@ -6,9 +6,6 @@ import os
 import sys
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg
-from numpy.lib.function_base import gradient
-from pyglet import window
-from torch import fake_quantize_per_channel_affine
 
 if "Apple" in sys.version:
     if "DYLD_FALLBACK_LIBRARY_PATH" in os.environ:
@@ -30,7 +27,40 @@ except ImportError as e:
     )
 
 try:
-    from pyglet.gl import *
+    from pyglet.gl import (
+        GL_BLEND,
+        GL_LINE_LOOP,
+        GL_LINE_STIPPLE,
+        GL_LINE_STRIP,
+        GL_LINES,
+        GL_NEAREST,
+        GL_ONE_MINUS_SRC_ALPHA,
+        GL_POINTS,
+        GL_POLYGON,
+        GL_QUADS,
+        GL_SRC_ALPHA,
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MAG_FILTER,
+        GL_TRIANGLES,
+        gl,
+        glBegin,
+        glBlendFunc,
+        glClearColor,
+        glColor4f,
+        glDisable,
+        glEnable,
+        glEnd,
+        glLineStipple,
+        glLineWidth,
+        glPopMatrix,
+        glPushMatrix,
+        glRotatef,
+        glScalef,
+        glTexParameteri,
+        glTranslatef,
+        glVertex2f,
+        glVertex3f,
+    )
 except ImportError as e:
     raise ImportError(
         """
