@@ -1,14 +1,11 @@
 import sys
 
 sys.path.append("../marl-demandresponse")
-import time
 
 import pandas as pd
-from numpy import roll
-
 from utils import house_solar_gain
 
-from .MPC import *
+from .MPC import best_MPC_action
 
 global_mpc_memory = [None, None]
 
@@ -42,7 +39,6 @@ class MPCController(object):
         if self.time_step % 5 == 0:
             print("current_timestep : ", self.time_step)
         if global_mpc_memory[0] != self.time_step:
-            start = time.time()
             df = pd.DataFrame(obs).transpose()
             nb_agents = len(df.index)
             Ua = df["house_Ua"].to_list()

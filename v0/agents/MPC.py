@@ -1,6 +1,5 @@
 import numpy as np
 import cvxpy as cp
-import time
 import sys
 import os
 
@@ -28,7 +27,6 @@ def best_MPC_action(
     lockout_duration,
     norm_sign_regulation,
 ):
-    start = time.time()
     path = "./log_gurobi" + unique_ID + ".txt"
     sys.stdout = open(path, "w")
 
@@ -170,6 +168,5 @@ def best_MPC_action(
 
     os.remove(path)
     sys.stdout = sys.__stdout__
-    end = time.time()
 
     return (HVAC_state.value > 0.5)[lockout_duration, :]

@@ -4,11 +4,7 @@ import os
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torch.distributions import Categorical
-from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-
 from agents.buffer import ReplayBuffer, Transition
 from agents.network import DQN_network
 

@@ -8,12 +8,12 @@ from copy import deepcopy
 import numpy as np
 import wandb
 
-from agents.ppo import PPO
-from cli import cli_train
-from config import config_dict
-from env.MA_DemandResponse import MADemandResponseEnv
-from metrics import Metrics
-from utils import (
+from .agents.ppo import PPO
+from .cli import cli_train
+from .config import config_dict
+from .env.MA_DemandResponse import MADemandResponseEnv
+from .metrics import Metrics
+from .utils import (
     adjust_config_train,
     normStateDict,
     render_and_wandb_init,
@@ -31,7 +31,7 @@ def train_mappo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
     # Initialize render, if applicable
     if render:
-        from env.renderer import Renderer
+        from .env.renderer import Renderer
 
         renderer = Renderer(env.nb_agents)
 

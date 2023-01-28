@@ -1,8 +1,3 @@
-import sys
-
-sys.path.insert(1, "../marl-demandresponse")
-sys.path.append("..")
-
 import argparse
 import copy
 import csv
@@ -14,11 +9,11 @@ import time
 from datetime import date, timedelta
 
 import pandas as pd
-
-from agents import *
 from config import config_dict
-from env import *
 from utils import get_actions
+
+from ..agents import BangBangController
+from ..env import MADemandResponseEnv
 
 SECOND_IN_A_HOUR = 3600
 NB_TIME_STEPS_BY_SIM = 75

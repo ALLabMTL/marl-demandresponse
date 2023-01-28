@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 
-from utils import normStateDict
+from .utils import normStateDict
 
 #%% Functions
 
@@ -23,7 +23,6 @@ def plot_env_test(env, action_type="off", n_steps=1000):
     action_types = {"on": 1, "off": 0, "random": 0}
 
     # Reset environment
-    obs_dict = env.reset()
 
     # Initialize arrays
     reward = np.empty(n_steps)

@@ -2,11 +2,8 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+from agents.network import Actor, DDPG_Network, DQN_network
 from torch.distributions import Categorical
-
-from agents.network import Actor, DDPG_Network, DQN_network, OldActor
 from utils import normStateDict
 
 sys.path.append("..")
