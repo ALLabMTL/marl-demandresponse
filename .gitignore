@@ -34,5 +34,5 @@ log_gurobi*
 save_ckpt/*/*.pt
 
 
-v1/docs/build/
-v1/docs/source/api/*
+v0/docs/build/
+v0/docs/source/api/*
