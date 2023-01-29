@@ -1,1 +1,25 @@
-<p>sidebar works!</p>
+<div class ="sidebar">
+    <div class="temp_filter">
+        <mat-checkbox class="temp_checkbox">Temprature difference</mat-checkbox>
+        <mat-slider min="-1" max="1" step="0.1" showTickMarks discrete [displayWith]="formatLabel">
+            <input matSliderThumb>
+        </mat-slider>
+    </div>
+    <div class="floor_filter">
+        <mat-checkbox class="floor_checkbox">Number of floors</mat-checkbox>
+        <mat-slider min="0" max="4" step="1" showTickMarks discrete [displayWith]="formatLabel">
+            <input matSliderThumb>
+        </mat-slider>
+    </div>
+    <br />
+    <br />
+    <mat-form-field appearance="fill">
+    <mat-label>Filter by</mat-label>
+    <mat-select>
+        <mat-option value="one">First option</mat-option>
+        <mat-option value="two">Second option</mat-option>
+    </mat-select>
+    </mat-form-field>
+
+  
+</div>
