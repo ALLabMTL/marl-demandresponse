@@ -48,3 +48,12 @@ mypy $(git ls-files '*.py') --ignore-missing-imports --install-types
 black $(git ls-files '*.py')
 ```
 
+### Documentation
+
+```bash
+sphinx-apidoc -f -o docs/source/api/ .
+cd docs
+make html
+python -m http.server -d build/html
+python -m webbrowser -t "http://localhost:8000"
+```
