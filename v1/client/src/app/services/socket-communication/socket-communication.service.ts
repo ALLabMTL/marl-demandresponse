@@ -32,13 +32,14 @@ export class SocketCommunicationService {
         this.snackBarService.openSuccessSnackBar('Serveur connecté', '');
     });
 
+    this.socketService.on('pong', () => {
+      this.snackBarService.openSuccessSnackBar('Serveur pong', '');
+  });
   }
 
   pingServer() {
     this.socketService.send('ping');
     this.snackBarService.openSuccessSnackBar('Pinging server...', '');
 }
-
-
 
 }

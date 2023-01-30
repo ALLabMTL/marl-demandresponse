@@ -1,1 +1,13 @@
 <p>informations works!</p>
+<!-- 
+    Button to test socket connection with server
+    Should be removed later
+-->
+<button
+mat-flat-button
+class="scan-btn"
+color="primary"
+(click)="this.socketService.pingServer()"
+>
+PING
+</button>
