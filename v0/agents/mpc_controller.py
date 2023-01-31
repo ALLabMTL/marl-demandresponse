@@ -10,7 +10,7 @@ from .MPC import best_MPC_action
 global_mpc_memory = [None, None]
 
 
-class MPCController(object):
+class MPCController:
     """MPC Controller"""
 
     def __init__(self, agent_properties, config_dict, num_state):

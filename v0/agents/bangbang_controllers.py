@@ -1,4 +1,4 @@
-class AlwaysOnController(object):
+class AlwaysOnController:
     """Bang bang controller taking deadband into account: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):
@@ -9,7 +9,7 @@ class AlwaysOnController(object):
         return True
 
 
-class DeadbandBangBangController(object):
+class DeadbandBangBangController:
     """Bang bang controller taking deadband into account: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):
@@ -36,7 +36,7 @@ class DeadbandBangBangController(object):
         return action
 
 
-class BangBangController(object):
+class BangBangController:
     """
     Cools when temperature is hotter than target (no interest for deadband). Limited on the hardware side by lockout (but does not know about it)
     """
@@ -59,7 +59,7 @@ class BangBangController(object):
         return action
 
 
-class BasicController(object):
+class BasicController:
     """Not really a bang bang controller but: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):

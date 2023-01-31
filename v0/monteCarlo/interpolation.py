@@ -13,7 +13,7 @@ SECOND_IN_A_HOUR = 3600
 NB_TIME_STEPS_BY_SIM = 450
 
 
-class PowerInterpolator(object):
+class PowerInterpolator:
     def __init__(self, path, parameters_dict, dict_keys):
 
         self.parameters_dict = parameters_dict  # All parameters used in the dataframe

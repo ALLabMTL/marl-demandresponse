@@ -120,7 +120,7 @@ def get_window(width, height, display, **kwargs):
     return w
 
 
-class Viewer(object):
+class Viewer:
     def __init__(self, width, height, display=None):
         display = get_display(display)
         self.legend = False
@@ -334,7 +334,7 @@ def _add_attrs(geom, attrs):
         geom.set_linewidth(attrs["linewidth"])
 
 
-class Geom(object):
+class Geom:
     def __init__(self):
         self._color = Color((0, 0, 0, 1.0))
         self.attrs = [self._color]
@@ -356,7 +356,7 @@ class Geom(object):
         self._color.vec4 = (r, g, b, 1)
 
 
-class Attr(object):
+class Attr:
     def enable(self):
         raise NotImplementedError
 
@@ -548,7 +548,7 @@ class Image(Geom):
 # ================================================================
 
 
-class SimpleImageViewer(object):
+class SimpleImageViewer:
     def __init__(self, display=None, maxwidth=500):
         self.window = None
         self.isopen = False
