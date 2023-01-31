@@ -358,7 +358,7 @@ class MADemandResponseEnv(MultiAgentEnv):
         return dones_dict
 
 
-class HVAC(object):
+class HVAC:
     """
     Simulator of HVAC object (air conditioner)
 
@@ -493,7 +493,7 @@ class HVAC(object):
         return power_cons
 
 
-class SingleHouse(object):
+class SingleHouse:
     """
     Single house simulator.
     **Attention** Although the infrastructure could support more, each house can currently only have one HVAC (several HVAC/house not implemented yet)
@@ -692,7 +692,7 @@ class SingleHouse(object):
         self.current_mass_temp = new_current_mass_temp_K - 273
 
 
-class ClusterHouses(object):
+class ClusterHouses:
     """
     A cluster contains several houses, with the same outdoors temperature.
 
@@ -1019,7 +1019,7 @@ class ClusterHouses(object):
         return temperature
 
 
-class PowerGrid(object):
+class PowerGrid:
     """
     Simulated power grid outputting the regulation signal.
 

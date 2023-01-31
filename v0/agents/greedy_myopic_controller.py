@@ -3,7 +3,7 @@ import pandas as pd
 global_myopic_memory = [None, None]
 
 
-class GreedyMyopic(object):
+class GreedyMyopic:
     """Try to distribute the energy budget among all the agents prioritizing the agents
     with a high temperature compared to the target temperature in a greedy way"""
 

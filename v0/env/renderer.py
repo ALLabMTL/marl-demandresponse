@@ -12,7 +12,7 @@ TEMPERATURE_SCALE = 10
 GRAPH_MEMORY = 5000
 
 
-class Renderer(object):
+class Renderer:
     def __init__(self, nb_agents):
         self.i = 0
         self.house_poly = []
