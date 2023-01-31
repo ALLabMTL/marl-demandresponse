@@ -1,1 +1,22 @@
-<p>grid-footer works!</p>
+<div class="pagination">
+    <div>
+        <button class="prev-page" (click)="decrementPage()">
+            <mat-icon>arrow_back_ios</mat-icon>
+        </button>
+
+        <div class="page-input">
+            <input class="input" id="myNumber" type="number" min="1" max="{{maxPage}}" step="1" value={{currentPage}}>
+        </div>
+
+        <span class="max-pages">
+            / {{maxPage}}
+        </span>
+
+        <button class="next-page" (click)="incrementPage()">
+            <mat-icon>arrow_forward_ios</mat-icon>
+        </button>
+    </div>
+    <div>
+        
+    </div>
+</div>

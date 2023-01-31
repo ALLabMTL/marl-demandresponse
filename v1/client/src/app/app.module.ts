@@ -11,6 +11,7 @@ import { GridFooterComponent } from './components/grid-footer/grid-footer.compon
 import { InformationsComponent } from './components/informations/informations.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { TimestampComponent } from './components/timestamp/timestamp.component';
+import { MatIconModule } from '@angular/material/icon';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { TimestampComponent } from './components/timestamp/timestamp.component';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    MatToolbarModule
+    MatToolbarModule,
+    MatIconModule
   ],
   providers: [],
   bootstrap: [AppComponent]
