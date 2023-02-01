@@ -2,3 +2,74 @@ mat-slider {
     margin-left: 30px;
 }
 
+.scale {
+    position: relative;
+    bottom: 0;
+}
+
+.scale .scale_gradient{
+    width: 200px;
+    height: 50px;
+    margin-left: 15px;
+    background: linear-gradient(to right, rgba(0,18, 107, 100), rgba(90, 255, 250, 100), rgba(98, 253, 109, 100), rgba(255, 162, 0, 100), rgba(144, 4, 4, 100));
+}
+
+.scale .scale_chart {
+    margin-left: 8px;
+}
+
+.scale .scale_text {
+    margin-left: 25px;
+}
+
+.scale .input_precision {
+    padding-left: 10px;
+    padding-right: 10px;
+    size: 30px;
+}
+
+.precisionScale {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.scale .midmin, .mid, .midmax, .max {
+    padding-left: 20px;
+}
+
+.hvac_status {
+    padding-left: 20px;
+}
+
+.hvac_status p {
+    padding-left: 50px;
+    padding-top: 5px;
+}
+
+.circle_lockout {
+    width: 30px;
+    height: 30px;
+    background-color: grey;
+    border-radius: 50%;
+}
+
+.circle_hvac_on {
+    margin-top: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: green;
+    border-radius: 50%;
+}
+.circle_hvac_off {
+    margin-top: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: red;
+    border-radius: 50%;
+}
+  
+  
+  
+  
+  
+
