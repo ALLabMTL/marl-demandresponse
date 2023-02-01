@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Color:
     PURPLE = "\033[95m"

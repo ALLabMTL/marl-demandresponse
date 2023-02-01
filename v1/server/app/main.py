@@ -1,5 +1,6 @@
 import os
 import sys
+
 import socketio
 from dependency_injector.wiring import Provide, inject
 from fastapi import FastAPI
@@ -80,9 +81,4 @@ def shutdown() -> None:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=5678,
-        log_level="debug"
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=5678, log_level="debug")

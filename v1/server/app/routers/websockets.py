@@ -1,9 +1,8 @@
-from typing import List
-
 from dependency_injector.wiring import Provide, inject
 
 from app.services.socket_manager_service import SocketManager
 from app.utils.logger import logger
+
 
 @inject
 def register_endpoints(
@@ -16,7 +15,7 @@ def register_endpoints(
     @sio.on("connect")
     async def connect(sid, *args) -> None:
         logger.debug(f"Client connected with sid {sid}")
-        await sio.emit("connected", {"message": f"Client connecté avec le sid: {sid}"})
+        await sio.emit("connected", {"message": f"Client connected with sid: {sid}"})
 
     @sio.on("disconnect")
     async def disconnect(sid):
@@ -29,4 +28,3 @@ def register_endpoints(
     async def ping(sid, *args) -> None:
         logger.debug(f"Client ping with sid {sid}")
         await sio.emit("pong", args)
-

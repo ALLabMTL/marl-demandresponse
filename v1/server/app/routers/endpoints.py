@@ -9,4 +9,3 @@ endpointRoute = APIRouter()
 async def read_root():
     logger.debug("Root endpoint called!")
     return {"Hello": "World"}
-

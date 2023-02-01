@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SnackbarService } from '@app/services/snackbar/snackbar.service';
+import { NotificationService } from '@app/services/notification/notification.service';
 import { SocketService } from '@app/services/socket/socket.service';
 
 @Injectable({
@@ -9,7 +9,7 @@ export class SocketCommunicationService {
 
   constructor(        
     public socketService: SocketService,
-    private snackBarService: SnackbarService,
+    private snackBarService: NotificationService,
   ) { }
 
   connect(): void {
@@ -18,7 +18,7 @@ export class SocketCommunicationService {
         const timeout = 2000;
         setTimeout(() => {
             if (!this.socketService.isSocketAlive()) {
-                const message = 'Erreur: Echec de connexion au serveur';
+                const message = 'Error: Connection with server failed';
                 const action = '';
                 this.snackBarService.openFailureSnackBar(message, action);
             }
@@ -29,11 +29,11 @@ export class SocketCommunicationService {
 
   configureSocket() {
     this.socketService.on('connect', () => {
-        this.snackBarService.openSuccessSnackBar('Serveur connecté', '');
+        this.snackBarService.openSuccessSnackBar('Connected to server', '');
     });
 
     this.socketService.on('pong', () => {
-      this.snackBarService.openSuccessSnackBar('Serveur pong', '');
+      this.snackBarService.openSuccessSnackBar('Server pong', '');
   });
   }
 
