@@ -1,0 +1,135 @@
+{
+    "environment": {
+        "start_datetime": "2021-01-01 00:00:00",
+        "start_datetime_mode": "random",
+        "time_step": 4,
+        "state_properties": {
+            "hour": false,
+            "day": false,
+            "solar_gain": false,
+            "thermal": false,
+            "hvac": false
+        },
+        "message_properties": {
+            "thermal": false,
+            "hvac": false
+        },
+        "power_grid_properties": {
+            "base_power_mode": "interpolation",  
+            "artificial_signal_ratio_range": 1,
+            "artificial_ratio": 1.0,
+            "signal_mode": "regular_steps"
+        },
+        "reward_properties": {
+            "temperature_alpha": 1,  
+            "signal_alpha": 1,  
+            "norm_reg_sig": 7500, 
+            "temperature_penalty_mode": "individual_L2",
+            "signal_penalty_mode": "common_L2"
+        }        
+    },
+
+    "cluster":{
+        "temperature_mode": "noisy_sinusoidal", 
+        "max_nb_agents_communication": 10, 
+        "agents_comm_mode": "neighbours",
+        "buildings": [
+            {
+                "building_type": "house",
+                "id": 1,
+                "init_air_temp": 20,
+                "init_mass_temp": 20,
+                "target_temp": 20,
+                "deadband": 0,
+                "Ua": 2.18e02,  
+                "Cm": 3.45e06,  
+                "Ca": 9.08e05,  
+                "window_area": 7.175,  
+                "shading_coeff": 0.67,  
+                "solar_gain": true,  
+                "noise_mode": "small_noise",
+                "simulated_objects": [
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    },
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    },
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    }
+                ]  
+            },
+            {
+                "building_type": "house",
+                "id": 2,
+                "init_air_temp": 20,
+                "init_mass_temp": 20,
+                "target_temp": 20,
+                "deadband": 0,
+                "Ua": 2.18e02,  
+                "Cm": 3.45e06,  
+                "Ca": 9.08e05,  
+                "window_area": 7.175,  
+                "shading_coeff": 0.67,  
+                "solar_gain_bool": true,  
+                "noise_mode": "small_noise",
+                "simulated_objects": [
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    },
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    },
+                    {
+                        "object": "hvac",
+                        "id": 1,
+                        "COP": 2.5,  
+                        "cooling_capacity": 15000,  
+                        "latent_cooling_fraction": 0.35,  
+                        "lockout_duration": 40,  
+                        "lockout_noise": 0,
+                        "noise_mode": "small_noise"
+                    }
+                ]  
+            }
+        ]
+        
+    }
+}
+           

@@ -10,4 +10,5 @@ class Settings(BaseSettings):
     BASE_URL = "http://localhost:5678"
     VERBOSE = os.environ.get("VERBOSE") is not None
 
+
 settings = Settings()

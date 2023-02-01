@@ -1,0 +1,56 @@
+{
+    "no_noise": {
+        "std_start_temp": 0,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 1,  
+        "factor_thermo_high": 1
+    },
+    "dwarf_noise": {
+        "std_start_temp": 0.05,  
+        "std_target_temp": 0.05,  
+        "factor_thermo_low": 1,  
+        "factor_thermo_high": 1
+    },
+    "house_small_noise": {
+        "std_start_temp": 0,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 0.9,  
+        "factor_thermo_high": 1.1
+    },
+    "house_medium_noise": {
+        "std_start_temp": 0,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 0.8,  
+        "factor_thermo_high": 1.2
+    },
+    "house_big_noise": {
+        "std_start_temp": 0,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 0.5,  
+        "factor_thermo_high": 1.5
+    },
+    "small_noise": {
+        "std_start_temp": 3,  
+        "std_target_temp": 1,  
+        "factor_thermo_low": 0.9,  
+        "factor_thermo_high": 1.1
+    },
+    "big_noise": {
+        "std_start_temp": 5,  
+        "std_target_temp": 2,  
+        "factor_thermo_low": 0.8,  
+        "factor_thermo_high": 1.2
+    },
+    "small_start_temp": {
+        "std_start_temp": 3,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 1,  
+        "factor_thermo_high": 1
+    },
+    "big_start_temp": {
+        "std_start_temp": 5,  
+        "std_target_temp": 0,  
+        "factor_thermo_low": 1,  
+        "factor_thermo_high": 1
+    }
+}

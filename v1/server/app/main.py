@@ -1,5 +1,6 @@
 import os
 import sys
+
 import socketio
 from dependency_injector.wiring import Provide, inject
 from fastapi import FastAPI
@@ -7,11 +8,11 @@ from fastapi import FastAPI
 # We do this to be able to have app as the main directory regardless of where we run the code
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.const import Color
 from app.containers import Container
 from app.routers.endpoints import endpointRoute
 from app.routers.websockets import register_endpoints
 from app.services.socket_manager_service import SocketManager
+from app.utils.const import Color
 from app.utils.logger import logger
 from app.utils.settings import settings
 
@@ -80,9 +81,4 @@ def shutdown() -> None:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=5678,
-        log_level="debug"
-    )
+    uvicorn.run("main:app", host="0.0.0.0", port=5678, log_level="debug")

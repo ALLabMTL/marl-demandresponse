@@ -1,0 +1,86 @@
+{
+    "constant": {
+        "day_temp": 26.5, 
+        "night_temp": 26.5,  
+        "temp_std": 0, 
+        "random_phase_offset": false
+    },
+    "sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "sinusoidal_hot": {
+        "day_temp": 30,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "sinusoidal_hot_heatwave": {
+        "day_temp": 38,
+        "night_temp": 32,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "sinusoidal_cold_heatwave": {
+        "day_temp": 30,
+        "night_temp": 24,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "sinusoidal_cold": {
+        "day_temp": 24,
+        "night_temp": 22,
+        "temp_std": 0,
+        "random_phase_offset": false
+    },
+    "noisy_sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0.5,
+        "random_phase_offset": false
+    },
+    "noisy_sinusoidal_hot": {
+        "day_temp": 30,
+        "night_temp": 28,
+        "temp_std": 0.5,
+        "random_phase_offset": false
+    },
+    "noisy_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0.5,
+        "random_phase_offset": false
+    },
+    "noisier_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 2,
+        "random_phase_offset": false
+    },
+    "noisy_sinusoidal_cold": {
+        "day_temp": 24,
+        "night_temp": 22,
+        "temp_std": 0.5,
+        "random_phase_offset": false
+    },
+    "shifting_sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0,
+        "random_phase_offset": true
+    },
+    "shifting_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": true
+    }
+}

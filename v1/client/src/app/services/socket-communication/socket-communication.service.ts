@@ -18,28 +18,27 @@ export class SocketCommunicationService {
         const timeout = 2000;
         setTimeout(() => {
             if (!this.socketService.isSocketAlive()) {
-                const message = 'Erreur: Echec de connexion au serveur';
+                const message = 'Error: cannot connect to server';
                 const action = '';
                 this.snackBarService.openFailureSnackBar(message, action);
             }
         }, timeout);
         this.configureSocket();
     }
-}
+  }
 
   configureSocket() {
     this.socketService.on('connect', () => {
-        this.snackBarService.openSuccessSnackBar('Serveur connecté', '');
+      this.snackBarService.openSuccessSnackBar('Connected to server', '');
     });
 
     this.socketService.on('pong', () => {
-      this.snackBarService.openSuccessSnackBar('Serveur pong', '');
-  });
+      this.snackBarService.openSuccessSnackBar('Pong from server', '');
+    });
   }
 
   pingServer() {
     this.socketService.send('ping');
     this.snackBarService.openSuccessSnackBar('Pinging server...', '');
-}
-
+  }
 }
