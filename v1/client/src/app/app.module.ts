@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
+import { AppMaterialModule } from './modules/material.module';
 import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AppRoutingModule } from './modules/app-routing.module';
 import { HeaderComponent } from './components/header/header.component';
-import {MatToolbarModule} from '@angular/material/toolbar';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { GridComponent } from './components/grid/grid.component';
 import { GridFooterComponent } from './components/grid-footer/grid-footer.component';
@@ -26,7 +26,8 @@ import { TimestampComponent } from './components/timestamp/timestamp.component';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    MatToolbarModule
+    AppMaterialModule,
+    AppRoutingModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
