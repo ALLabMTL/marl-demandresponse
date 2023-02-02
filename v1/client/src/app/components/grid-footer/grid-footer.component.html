@@ -5,7 +5,7 @@
         </button>
 
         <div class="page-input">
-            <input class="input" id="myNumber" type="number" min="1" max="{{maxPage}}" step="1" value="{{currentPage}}">
+            <input class="input" id="myNumber" (keyup.enter)="setPageInput()" (blur)="setPageInput()" type="number" min="1" max="{{maxPage}}" step="1" value="{{currentPage}}">
         </div>
 
         <span class="max-pages">

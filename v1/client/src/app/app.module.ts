@@ -12,6 +12,7 @@ import { InformationsComponent } from './components/informations/informations.co
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { TimestampComponent } from './components/timestamp/timestamp.component';
 import { MatIconModule } from '@angular/material/icon';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { MatIconModule } from '@angular/material/icon';
     BrowserModule,
     BrowserAnimationsModule,
     MatToolbarModule,
-    MatIconModule
+    MatIconModule,
+    MatGridListModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

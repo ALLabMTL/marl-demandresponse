@@ -19,10 +19,13 @@ export class GridFooterComponent {
   //   super();
   // }
 
+  setPageInput(): void {
+    var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
+    this.currentPage = parseInt(page);
+  }
+
   incrementPage(): void {
     if(this.currentPage < this.maxPage){
-      var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-      this.currentPage = parseInt(page);
       this.currentPage += 1;
       console.log(this.currentPage);
     }
@@ -32,15 +35,11 @@ export class GridFooterComponent {
 
   decrementPage(): void {
     if(this.currentPage > 1) {
-      var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-      this.currentPage = parseInt(page);
       this.currentPage -= 1;
       console.log(this.currentPage);
     }
     // let decrementValue = -1;
     // this.pageChangeFromFooter.emit(decrementValue);
-
-    //(<HTMLInputElement>document.getElementById("myNumber")).value = "16";
   }
   
 

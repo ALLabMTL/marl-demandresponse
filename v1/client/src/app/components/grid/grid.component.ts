@@ -1,8 +1,9 @@
 import { Component, HostListener, Input, OnInit} from '@angular/core';
+import { IconService } from '@visurel/iconify-angular';
 
 interface PageData {
   id: number;
-  content: string;
+  content: string[100];
 }
 
 @Component({
@@ -12,6 +13,7 @@ interface PageData {
 })
 
 export class GridComponent implements OnInit {
+
 
   @Input() pages: PageData[];
   currentPage: number = 1;
@@ -35,7 +37,7 @@ export class GridComponent implements OnInit {
   // }
 
   switchPage(id: number) {
-    this.currentPage = id;
+    this.currentPage += 1;
   }
 
 }

@@ -1,0 +1,26 @@
+// .container{
+//     width: 100vw;
+//     height: 100vh;
+//     display: grid;
+//     grid-template-columns: repeat(10, 1fr);
+//     grid-template-rows: 50px 1fr 4fr 50px;
+// }
+
+.grid{
+    position: relative;
+    
+}
+
+mat-grid-tile {
+    background: #424242;
+}
+
+.HVACStatus {
+    height: 15%;
+    width: 10%;
+    top: 10%;
+    right: 10%;
+    background-color: #bbb;
+    border-radius: 50%;
+    position: absolute;
+}
