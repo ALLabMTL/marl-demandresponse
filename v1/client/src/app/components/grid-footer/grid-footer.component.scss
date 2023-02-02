@@ -12,23 +12,23 @@
         background-color: transparent;
         border-radius: 25px;
         border: none;
-        margin-left: 10px;
+        //margin-left: 10px;
         justify-content: center;
         font-size:0;
         transform: translateY(2px);
     }
 
-    .prev-page:hover{
+    .prev-page:hover:enabled{
         background-color: rgb(192, 215, 223);
     }
 
-    .prev-page:active{
+    .prev-page:active:enabled{
         background-color: rgb(128, 162, 173);
         //box-shadow: 0 5px #666;
     }
     .page-input{
         display: inline-block;
-        padding-left: 70px;
+        padding-left: 75px;
         margin-bottom: 50px;
         transform: translateY(-5px);
 
@@ -65,7 +65,7 @@
     .next-page{
         background-color: transparent ;
         float:right;
-        margin-right: 10px;
+        //margin-right: 10px;
         justify-content: center;
         display: inline;
         border: none;
@@ -74,11 +74,11 @@
         transform: translateY(2px);
     }
 
-    .next-page:hover{
+    .next-page:hover:enabled{
         background-color: rgb(192, 215, 223);
     }
 
-    .next-page:active{
+    .next-page:active:enabled{
         background-color: rgb(128, 162, 173);
     }
 
