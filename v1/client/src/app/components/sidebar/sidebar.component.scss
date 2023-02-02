@@ -1,0 +1,99 @@
+mat-slider {
+  margin-left: 30px;
+  width: 190px;
+}
+
+.scale {
+  position: absolute;
+  bottom: 0;
+}
+
+.scale .scale_gradient {
+  width: 200px;
+  height: 50px;
+  margin-left: 1.3rem;
+  background: linear-gradient(
+    to right,
+    rgba(0, 18, 107, 100),
+    rgba(90, 255, 250, 100),
+    rgba(98, 253, 109, 100),
+    rgba(255, 162, 0, 100),
+    rgba(144, 4, 4, 100)
+  );
+  border: 1px solid black;
+}
+
+.scale_chart {
+  display: table;
+  width: 15.3rem;
+  table-layout: fixed;
+  margin-bottom: 2rem;
+}
+
+.scale_chart span {
+  display: table-cell;
+  text-align: center;
+}
+
+.scale .scale_text {
+  text-align: center;
+}
+
+.scale .input_precision {
+  padding-left: 10px;
+  padding-right: 10px;
+  size: 30px;
+}
+
+.precisionScale {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.hvac_status {
+  padding-left: 20px;
+  margin-bottom: 2rem;
+}
+
+.hvac_status p {
+  padding-left: 50px;
+  padding-top: 5px;
+}
+
+.circle_lockout {
+  width: 30px;
+  height: 30px;
+  background-color: grey;
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.circle_hvac_on {
+  margin-top: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: green;
+  border-radius: 50%;
+  border: 1px solid black;
+}
+.circle_hvac_off {
+  margin-top: 10px;
+  width: 30px;
+  height: 30px;
+  background-color: red;
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.precision {
+  margin: 0 1rem 0.5rem 1rem;
+}
+
+.filter {
+  margin: 1rem 1rem 0 1rem;
+}
+
+.floor_filter {
+  display: flex;
+  flex-direction: column;
+}
