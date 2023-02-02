@@ -7,12 +7,12 @@ from collections import namedtuple
 import numpy as np
 import wandb
 
-from .agents.ppo import PPO
-from .cli import cli_train
-from .config import config_dict
-from .env.MA_DemandResponse import MADemandResponseEnv
-from .metrics import Metrics
-from .utils import (
+from v0.agents.ppo import PPO
+from v0.cli import cli_train
+from v0.config import config_dict
+from v0.env.MA_DemandResponse import MADemandResponseEnv
+from v0.metrics import Metrics
+from v0.utils import (
     adjust_config_train,
     normStateDict,
     render_and_wandb_init,
@@ -30,7 +30,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
 
     # Initialize render, if applicable
     if render:
-        from .env.renderer import Renderer
+        from v0.env.renderer import Renderer
 
         renderer = Renderer(env.nb_agents)
 
