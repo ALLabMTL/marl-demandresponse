@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import wandb
 
-from .utils import normStateDict
+from v0.utils import normStateDict
 
 #%% Functions
 

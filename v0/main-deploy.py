@@ -7,7 +7,7 @@ from cmath import nan
 import numpy as np
 import pandas as pd
 
-from .agents import (
+from v0.agents import (
     AlwaysOnController,
     BangBangController,
     BasicController,
@@ -18,11 +18,11 @@ from .agents import (
     MPCController,
     PPOAgent,
 )
-from .cli import cli_deploy
-from .config import config_dict
-from .env.MA_DemandResponse import MADemandResponseEnv
-from .utils import adjust_config_deploy, get_actions, normStateDict
-from .wandb_setup import wandb_setup
+from v0.cli import cli_deploy
+from v0.config import config_dict
+from v0.env.MA_DemandResponse import MADemandResponseEnv
+from v0.utils import adjust_config_deploy, get_actions, normStateDict
+from v0.wandb_setup import wandb_setup
 
 os.environ["WANDB_SILENT"] = "true"
 

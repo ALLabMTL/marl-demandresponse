@@ -5,7 +5,7 @@ sys.path.append("../marl-demandresponse")
 import pandas as pd
 from utils import house_solar_gain
 
-from .MPC import best_MPC_action
+from v0.agents.MPC import best_MPC_action
 
 global_mpc_memory = [None, None]
 

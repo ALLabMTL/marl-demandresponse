@@ -8,8 +8,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch import Tensor
 
-from .buffer import DDPGBuffer as Buffer
-from .network import DDPG_Network
+from v0.agents.buffer import DDPGBuffer as Buffer
+from v0.agents.network import DDPG_Network
 
 
 def copy_model(src, dst):

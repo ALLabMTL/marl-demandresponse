@@ -1,1 +1,1 @@
-from .interpolation import PowerInterpolator
+from v0.monteCarlo.interpolation import PowerInterpolator
