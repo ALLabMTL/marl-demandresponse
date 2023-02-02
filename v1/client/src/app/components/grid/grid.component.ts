@@ -1,5 +1,5 @@
 import { Component, HostListener, Input, OnInit} from '@angular/core';
-import { IconService } from '@visurel/iconify-angular';
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 interface PageData {
   id: number;

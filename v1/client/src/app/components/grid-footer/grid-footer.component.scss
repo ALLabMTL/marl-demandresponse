@@ -1,5 +1,5 @@
 .pagination{
-    background-color: lightblue;
+    background-color: #DDDDDD;
     width: 300px;
     height: 30px;
     border-radius: 25px;
@@ -7,6 +7,7 @@
     margin-bottom: 10px;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid black;
 
     .prev-page{
         background-color: transparent;
@@ -19,7 +20,8 @@
     }
 
     .prev-page:hover:enabled{
-        background-color: rgb(192, 215, 223);
+        background-color: #9AC999;
+        opacity: 50%;
     }
 
     .prev-page:active:enabled{
@@ -75,7 +77,8 @@
     }
 
     .next-page:hover:enabled{
-        background-color: rgb(192, 215, 223);
+        background-color: #9AC999;
+        opacity: 50%;
     }
 
     .next-page:active:enabled{
