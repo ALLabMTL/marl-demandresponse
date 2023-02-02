@@ -5,10 +5,7 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './modules/app-routing.module';
 import { HeaderComponent } from './components/header/header.component';
-<<<<<<< HEAD
 import { MatToolbarModule } from '@angular/material/toolbar';
-=======
->>>>>>> develop
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { GridComponent } from './components/grid/grid.component';
 import { GridFooterComponent } from './components/grid-footer/grid-footer.component';
