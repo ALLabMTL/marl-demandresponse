@@ -24,6 +24,7 @@ pytest # test runner
 pydocstyle # docstring linter
 codespell # spell checker
 mypy # type checker
-# sphinx # documentation generator
-# sphinx-autodoc-typehints # type hinting for sphinx
-# sphinx-rtd-theme # readthedocs theme for sphinx
+sphinx # documentation generator
+sphinx-autodoc-typehints # type hinting for sphinx
+insipid-sphinx-theme # sphinx theme
+sphinx-apidoc # api documentation generator
