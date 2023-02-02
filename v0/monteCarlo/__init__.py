@@ -1,1 +1,0 @@
-from .interpolation import PowerInterpolator
