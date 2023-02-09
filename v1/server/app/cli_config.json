@@ -1,0 +1,65 @@
+{
+    "experiment_name": "Test",
+    "wandb": true,
+    "interface": true,
+    "log_metrics_path": "",
+    "nb_time_steps": "",
+    "save_actor_name": "PPO",
+    "nb_inter_saving_actor": 0,
+
+    "state_properties": {
+        "hour": false,
+        "day" : false,
+        "solar_gain": false,
+        "thermal": false,
+        "hvac": false
+    },
+    
+    "solar_gain": false,
+
+    "environment_properties" : {
+        "nb_agents": 10,
+        "env_seed": 1,
+        "time_step": 1,
+        "outdoor_temperature_mode": "fixed",
+        "compute_solar_gain": true
+    },
+
+    "test_policy": {
+        "hvac_noise_mode": 2
+    },
+
+    "hvac_properties": {
+        "cooling_capacity": 15000,
+        "lockout_duration": 40,
+        "noise_mode": "no_noise",
+        "noise_mode_test": "no_noise",
+        "lockout_noise": 0
+    },
+
+
+    "building_properties": 2 ,
+
+    "reward_properties": {
+        "alpha_temp": 1,
+        "alpha_sig": 1,
+        "norm_reg_signal": 7500,
+        "temp_penalty_mode": "individual_L2",
+        "signal_penalty_mode": "common_L2",
+        "penalty_parameters": {
+            "alpha_ind_L2": 1,
+            "alpha_common_L2": 1,
+            "alpha_common_max": 0            
+        }
+    },
+
+    "training_properties" : {
+        "episodes": 1000,
+        "epochs": 20,
+        "logs": 100,
+        "nb_time_steps": 40
+    }
+
+
+
+}

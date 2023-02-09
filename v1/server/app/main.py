@@ -1,9 +1,15 @@
 import os
+import random
 import sys
 
 import socketio
 from dependency_injector.wiring import Provide, inject
 from fastapi import FastAPI
+
+from core.environment.environment import Environment
+from utils.utils import normStateDict
+from core.agents.ppo import PPO
+from train_ppo import train_ppo
 
 # We do this to be able to have app as the main directory regardless of where we run the code
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,6 +21,7 @@ from app.services.socket_manager_service import SocketManager
 from app.utils.const import Color
 from app.utils.logger import logger
 from app.utils.settings import settings
+from config import config_dict
 
 
 class ExtendedFastAPI(FastAPI):
@@ -38,7 +45,13 @@ def create_app(
 
 @inject
 def app_setup() -> bool:
-    # TODO: Connect and setup wandb
+    random.seed(1)
+    env = Environment()
+    obs_dict = env._reset()
+    num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
+    logger.info(f"Number of states: {num_state}")
+    agent = PPO(config_dict, num_state)
+    train_ppo(env, agent)
     return True
 
 
@@ -62,9 +75,6 @@ app.container = container
 @app.on_event("startup")
 async def startup() -> None:
     logger.info(f"Started backend on port {Color.BOLD}{settings.PORT}{Color.END}")
-    logger.info(
-        f"HTTP Endpoint available at {Color.BOLD}http://localhost:{settings.PORT}/api/{Color.END}"
-    )
     logger.info(
         f"WS Endpoint available at {Color.BOLD}ws://localhost:{settings.PORT}/{Color.END}"
     )
