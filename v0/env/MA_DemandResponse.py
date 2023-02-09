@@ -25,7 +25,7 @@ from utils import Perlin, applyPropertyNoise, deadbandL2
 
 sys.path.append("..")
 sys.path.append("./monteCarlo")
-from interpolation import PowerInterpolator
+from monteCarlo.interpolation import PowerInterpolator
 
 from utils import (
     applyPropertyNoise,
@@ -1279,3 +1279,4 @@ class PowerGrid(object):
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 
         return self.current_signal
+
