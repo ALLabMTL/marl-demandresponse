@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
-import { GridComponent } from '../grid/grid.component';
+import { SharedService } from '@app/services/shared/shared.service';
 
 
 @Component({
@@ -10,42 +10,34 @@ import { GridComponent } from '../grid/grid.component';
 })
 export class GridFooterComponent {
   
+  
   @Output() pageChangeFromFooter:EventEmitter<any> = new EventEmitter;
   
   currentPage: number = 1;
   maxPage: number = 35;
 
-  // constructor(public gridComponent:GridComponent){
-  //   super();
-  // }
+  constructor(private sharedService: SharedService){}
+
+  ngOnInit() {
+    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+  }
 
   setPageInput(): void {
     var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-    this.currentPage = parseInt(page);
+    this.sharedService.changeCount(parseInt(page));
   }
 
   incrementPage(): void {
     if(this.currentPage < this.maxPage){
-      this.currentPage += 1;
-      console.log(this.currentPage);
+      this.sharedService.changeCount(this.currentPage + 1);
     }
-    // let decrementValue = 1;
-    // this.pageChangeFromFooter.emit(decrementValue);
   }
 
   decrementPage(): void {
     if(this.currentPage > 1) {
-      this.currentPage -= 1;
-      console.log(this.currentPage);
+      this.sharedService.changeCount(this.currentPage - 1);
     }
-    // let decrementValue = -1;
-    // this.pageChangeFromFooter.emit(decrementValue);
   }
   
-
-
-}
-function output() {
-  throw new Error('Function not implemented.');
 }
 

@@ -1,4 +1,6 @@
 import { Component, HostListener, Input, OnInit} from '@angular/core';
+import { SharedService } from '@app/services/shared/shared.service';
+import { GridFooterComponent } from '../grid-footer/grid-footer.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
 interface PageData {
@@ -14,12 +16,11 @@ interface PageData {
 
 export class GridComponent implements OnInit {
 
-
   @Input() pages: PageData[];
   currentPage: number = 1;
   maxPage: number = 35;
 
-  constructor(){
+  constructor(private sharedService: SharedService){
     this.pages = [
       { id: 1, content: "Page 1" },
       { id: 2, content: "Page 2" },
@@ -28,6 +29,7 @@ export class GridComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
     this.currentPage = this.pages[0].id;
   }
 
