@@ -36,3 +36,5 @@ save_ckpt/*/*.pt
 
 v0/docs/build/
 v0/docs/source/api/*
+v1/server/v0/docs/build/
+v1/server/v0/docs/source/api/*
