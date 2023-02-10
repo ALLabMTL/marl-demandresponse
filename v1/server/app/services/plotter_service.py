@@ -1,165 +1,160 @@
-import random
-import matplotlib.colors as clr
 import matplotlib.pyplot as plt
 import numpy as np
 
-from app.utils.utils import normStateDict
-from app.utils.logger import logger
+
+GRAPH_MEMORY = 5000
+
 class PlotterService:
-    def plot_env_test(env, action_type="off", n_steps=1000):
-        assert action_type in [
-            "off",
-            "on",
-            "random",
-        ], "Action types available: off/on/random"
-        action_types = {"on": 1, "off": 0, "random": 0}
+    
+    def make_graph(
+    temp_diff,
+    temp_err,
+    air_temp,
+    mass_temp,
+    target_temp,
+    OD_temp,
+    signal,
+    consumption,
+    timestep,
+    ):
+        start_point_graph = max(0, timestep - len(temp_diff))
 
-        # Reset environment
-        obs_dict = env.reset()
+        if len(temp_diff) < 50:
+            array_step = 2
+        elif len(temp_diff) < 100:
+            array_step = 4
+        elif len(temp_diff) < 200:
+            array_step = 10
+        elif len(temp_diff) < 500:
+            array_step = 40
+        elif len(temp_diff) < 2000:
+            array_step = 100
+        elif len(temp_diff) < 5000:
+            array_step = 400
+        elif len(temp_diff) < 20000:
+            array_step = 1000
+        elif len(temp_diff) < 50000:
+            array_step = 4000
+        else:
+            array_step = 10000
 
-        # Initialize arrays
-        reward = np.empty(n_steps)
-        hvac = np.empty(n_steps)
-        temp = np.empty(n_steps)
+        if start_point_graph % array_step != 0:
+            return None
+        # find the mean
+        nb_of_ignored_timestep = len(temp_diff) % array_step
 
-        # Act on environment and save reward, hvac status and temperature
-        for t in range(n_steps):
-            if action_type == "random":
-                action = {"0_1": random.randint(0, 1)}
-            else:
-                action = {"0_1": action_types[action_type]}
-            next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
+        recent_signal = signal[max(-50, -len(signal)) :]
+        recent_consumption = consumption[max(-50, -len(consumption)) :]
 
-            # Save data in arrays
-            reward[t] = rewards_dict["0_1"]
-            hvac[t] = next_obs_dict["0_1"]["hvac_turned_on"]
-            temp[t] = next_obs_dict["0_1"]["house_temp"]
+        if nb_of_ignored_timestep > 0:
+            temp_diff = temp_diff[:-nb_of_ignored_timestep]
+            temp_err = temp_err[:-nb_of_ignored_timestep]
+            air_temp = air_temp[:-nb_of_ignored_timestep]
+            mass_temp = mass_temp[:-nb_of_ignored_timestep]
+            target_temp = target_temp[:-nb_of_ignored_timestep]
+            OD_temp = OD_temp[:-nb_of_ignored_timestep]
+            signal = signal[:-nb_of_ignored_timestep]
+            consumption = consumption[:-nb_of_ignored_timestep]
+        temp_diff = np.mean(temp_diff.reshape(-1, array_step), axis=1)
+        temp_err = np.mean(temp_err.reshape(-1, array_step), axis=1)
+        air_temp = np.mean(air_temp.reshape(-1, array_step), axis=1)
+        mass_temp = np.mean(mass_temp.reshape(-1, array_step), axis=1)
+        target_temp = np.mean(target_temp.reshape(-1, array_step), axis=1)
+        OD_temp = np.mean(OD_temp.reshape(-1, array_step), axis=1)
+        signal = np.mean(signal.reshape(-1, array_step), axis=1)
+        consumption = np.mean(consumption.reshape(-1, array_step), axis=1)
 
-        plt.scatter(np.arange(len(hvac)), hvac, s=1, marker=".", c="orange")
-        plt.plot(reward)
-        plt.title("HVAC state vs. Reward")
-        plt.show()
-        plt.plot(temp)
-        plt.title("Temperature")
-        plt.show()
+        x = [
+            i + start_point_graph
+            for i in range(
+                start_point_graph,
+                start_point_graph + len(temp_diff) * array_step,
+                array_step,
+            )
+        ]
 
+        fig = plt.figure(facecolor="#252525")
 
-    def plot_agent_test(env, agent, config_dict, n_steps=1000):
-        # Reset environment
-        obs_dict = env.reset()
-        cumul_avg_reward = 0
-
-        # Initialize arrays
-        reward = np.empty(n_steps)
-        hvac = np.empty(n_steps)
-        actions = np.empty(n_steps)
-        temp = np.empty(n_steps)
-
-        # Act on environment and save reward, hvac status and temperature
-        for t in range(n_steps):
-            action = {
-                "0_1": agent.select_action(normStateDict(obs_dict["0_1"], config_dict))
-            }
-            next_obs_dict, rewards_dict, dones_dict, info_dict = env.step(action)
-
-            # Save data in arrays
-            actions[t] = action["0_1"]
-            reward[t] = rewards_dict["0_1"]
-            hvac[t] = next_obs_dict["0_1"]["hvac_turned_on"]
-            temp[t] = next_obs_dict["0_1"]["house_temp"]
-
-            cumul_avg_reward += rewards_dict["0_1"] / env.nb_agents
-
-            obs_dict = next_obs_dict
-
-        logger.info(cumul_avg_reward / n_steps)
-
-        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
-        ax1.plot(actions)
-        ax1.plot(hvac)
-        ax1.title.set_text("HVAC state vs. Agent action")
-        ax2.plot(reward)
-        ax2.title.set_text("Reward")
-        ax3.plot(temp)
-        ax3.title.set_text("Temperature")
-        plt.show()
-
-
-#%%
-
-
-def colorPlotTestAgentHouseTemp(
-    prob_on_per_training_on,
-    prob_on_per_training_off,
-    low_temp,
-    high_temp,
-    time_steps_test_log,
-    log_wandb,
-):
-    """
-    Makes a color plot of the probability of the agent to turn on given indoors temperature, with the training
-    """
-    prob_on_per_training_on = prob_on_per_training_on[1:]
-    prob_on_per_training_off = prob_on_per_training_off[1:]
-
-    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(8, 8.5), dpi=80)
-    logger.info(axes)
-
-    normalizer = clr.Normalize(vmin=0, vmax=1)
-    map0 = axes[0].imshow(
-        np.transpose(prob_on_per_training_on),
-        extent=[
-            0,
-            np.size(prob_on_per_training_on, 1) * time_steps_test_log,
-            high_temp,
-            low_temp,
-        ],
-        norm=normalizer,
-    )
-    map1 = axes[1].imshow(
-        np.transpose(prob_on_per_training_off),
-        extent=[
-            0,
-            np.size(prob_on_per_training_off, 1) * time_steps_test_log,
-            high_temp,
-            low_temp,
-        ],
-        norm=normalizer,
-    )
-    # axes[0] = plt.gca()
-    axes[0].invert_yaxis()
-    axes[1].invert_yaxis()
-
-    forceAspect(axes[0], aspect=2.0)
-    forceAspect(axes[1], aspect=2.0)
-
-    axes[0].set_xlabel("Training time steps")
-    axes[1].set_xlabel("Training time steps")
-    axes[0].set_ylabel("Indoors temperature")
-    axes[1].set_ylabel("Indoors temperature")
-    axes[0].set_title("Power: ON")
-    axes[1].set_title("Power: OFF")
-
-    cb = fig.colorbar(map0, ax=axes[:], shrink=0.6)
-
-    if log_wandb:
-        name = uuid.uuid1().hex + "probTestAgent.png"
-        plt.savefig(name)
-        wandb.log(
-            {
-                "Probability of agent vs Indoor temperature vs Episode ": wandb.Image(
-                    name
-                )
-            }
+        gs = fig.add_gridspec(4, hspace=0)
+        axs = gs.subplots(sharex=False)
+        fig.suptitle(
+            "Evolution of the temperature and \nthe energy consumption for the last timesteps",
+            color="white",
         )
-        os.remove(name)
+        fig.set_size_inches(6.4, 7.2)
+        plt.xticks(x)
+        axs[0].plot(recent_signal, color="dodgerblue")
+        axs[0].plot(recent_consumption, color="yellow")
+        axs[0].legend(
+            ["Most recent signal", "Most recent consumption"],
+            loc="lower right",
+            framealpha=0.3,
+        )
+        axs[0].set_ylabel("Recent RS", color="white")
+        axs[0].set_ylim(ymin=0)
 
-    else:
-        plt.show()
-    return 0
+        axs[1].plot(x, signal, color="dodgerblue")
+        axs[1].plot(x, consumption, color="yellow")
+        # axs[0].plot(signal , color="orange")
+        axs[1].set_ylabel("Regulation signal", color="white")
+        axs[1].legend(
+            ["Target Signal", "Current consumption"],
+            loc="lower right",
+            framealpha=0.3,
+        )
 
+        axs[2].plot(x, temp_diff, color="orangered")
+        axs[2].plot(x, temp_err, color="darkblue")
+        axs[2].legend(
+            ["Mean temperature difference", "Mean temperature error"],
+            loc="lower right",
+            framealpha=0.3,
+        )
 
-def forceAspect(ax, aspect):
-    im = ax.get_images()
-    extent = im[0].get_extent()
-    ax.set_aspect(abs((extent[1] - extent[0]) / (extent[3] - extent[2])) / aspect)
+        axs[2].set_ylabel("Average temperature difference", color="white")
+
+        axs[3].plot(x, air_temp, color="lightblue")
+        axs[3].plot(x, mass_temp, color="maroon")
+        axs[3].plot(x, target_temp, color="gold")
+        axs[3].plot(x, OD_temp, color="forestgreen")
+        axs[3].legend(
+            ["Air", "Mass", "Target", "Outdoors"], loc="lower right", framealpha=0.3
+        )
+
+        axs[3].set_ylabel("Temperature", color="white")
+
+        # cax = divider.append_axes("bottom", size="100%", pad=0.05)
+
+        # Hide x labels and tick labels for all but bottom plot.
+        for ax in axs[:4]:
+            ax.grid(color="0.3")
+            ax.label_outer()
+            ax.set_facecolor("#252525")
+            ax.tick_params(axis="x", colors="white")
+            ax.tick_params(axis="y", colors="white")
+            ax.spines["left"].set_color("white")
+            ax.spines["right"].set_color("white")
+            ax.spines["bottom"].set_color("white")
+            ax.spines["top"].set_color("white")
+
+        return fig
+
+    def draw_graph(self):
+        fig = self.make_graph(
+            self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
+            self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :],
+            self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
+            self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
+            self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
+            self.OD_temp[max(-GRAPH_MEMORY, -len(self.OD_temp)) :],
+            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
+            self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :],
+            self.time,
+        )
+
+        if fig != None:
+            rendered_figure = rendering.render_figure(fig)
+            plt.close(fig)
+            self.graph_data = rendered_figure
+
+        return

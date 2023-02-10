@@ -58,9 +58,10 @@ class PowerGrid(Simulatable):
         self.power_step(date_time, time_step)
         self.signal_step(date_time)
         
+        # Artificial_ratio should be 1. Only change for experimental purposes.
         self.current_signal = (
             self.current_signal * self.initial_properties.artificial_ratio
-        )  # Artificial_ratio should be 1. Only change for experimental purposes.
+        )  
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 
         return self.current_signal
@@ -71,14 +72,17 @@ class PowerGrid(Simulatable):
     def apply_noise(self) -> None:
         return super().apply_noise()
 
-
+    # TODO: move all this
     def power_step(self, date_time: datetime, time_step: timedelta) -> None:
         mode = {
             "constant" : self.constant_base_power(),
             # "interpolation" : self.interpolated_base_power(date_time, time_step)
         }
         mode.get(self.initial_properties.base_power_props.mode)
-
+    
+    def constant_base_power(self) -> None :
+        self.base_power = self.initial_properties.base_power_props.avg_power_per_hvac * self.nb_hvacs
+    
     def signal_step(self, date_time: datetime) -> None:
         if "perlin" in (self.initial_properties.base_power_props.mode):
             self.initial_properties.base_power_props.mode = "perlin"
@@ -94,6 +98,7 @@ class PowerGrid(Simulatable):
     def flat_signal(self) -> None:
         self.current_signal = self.base_power
     
+
     # def sinusoidals_signal(self, date_time: datetime) -> None:
     #     """Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals"""
     #     amplitudes = [
@@ -141,9 +146,7 @@ class PowerGrid(Simulatable):
     #     self.nb_steps += 1
     #     self.current_signal = np.maximum(0, signal + (signal * amplitude * perlin))
     
-    def constant_base_power(self) -> None :
-        self.base_power = self.initial_properties.base_power_props.avg_power_per_hvac * self.nb_hvacs
-    
+
     # def interpolated_base_power(self, date_time: datetime, time_step: timedelta) -> None:
     #     self.time_since_last_interp += time_step.seconds
     #     if self.time_since_last_interp >= self.initial_properties.base_power_props.interp_update_period:
@@ -155,7 +158,7 @@ class PowerGrid(Simulatable):
     #     pass
 
     # def init_power_interpolator(self) -> None:
-    #     # TODO: maybe move it in parser service?
+    #     
     #     with open(
     #         self.initial_properties.base_power_props.path_parameter_dict
     #     ) as json_file:

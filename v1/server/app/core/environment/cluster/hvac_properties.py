@@ -24,7 +24,7 @@ class HvacProperties(BaseModel):
     cop: float = 2.5
     # cooling capacity (W)
     cooling_capacity: int = 15000
-    # craction of latent cooling w.r.t. sensible cooling
+    # fraction of latent cooling w.r.t. sensible cooling
     latent_cooling_fraction: float = 0.35
     # in seconds
     lockout_duration: int = 40

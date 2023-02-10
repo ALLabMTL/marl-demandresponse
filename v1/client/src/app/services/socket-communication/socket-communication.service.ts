@@ -28,17 +28,21 @@ export class SocketCommunicationService {
   }
 
   configureSocket() {
-    this.socketService.on('connect', () => {
+    this.socketService.on('connected', () => {
       this.snackBarService.openSuccessSnackBar('Connected to server', '');
     });
 
     this.socketService.on('pong', () => {
       this.snackBarService.openSuccessSnackBar('Pong from server', '');
     });
+
+    this.socketService.on('dataChange', (data) => {
+      console.log(data);
+    });
   }
 
   pingServer() {
-    this.socketService.send('ping');
-    this.snackBarService.openSuccessSnackBar('Pinging server...', '');
+    this.socketService.send('connected');
+    // this.snackBarService.openSuccessSnackBar('Pinging server...', '');
   }
 }

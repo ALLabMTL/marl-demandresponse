@@ -1,15 +1,11 @@
 import os
 import random
 import sys
+from time import sleep
 
 import socketio
 from dependency_injector.wiring import Provide, inject
 from fastapi import FastAPI
-
-from core.environment.environment import Environment
-from utils.utils import normStateDict
-from core.agents.ppo import PPO
-from train_ppo import train_ppo
 
 # We do this to be able to have app as the main directory regardless of where we run the code
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,6 +14,7 @@ from app.containers import Container
 from app.routers.endpoints import endpointRoute
 from app.routers.websockets import register_endpoints
 from app.services.socket_manager_service import SocketManager
+from app.services.training_service import TrainingService
 from app.utils.const import Color
 from app.utils.logger import logger
 from app.utils.settings import settings
@@ -44,18 +41,11 @@ def create_app(
 
 
 @inject
-def app_setup() -> bool:
-    random.seed(1)
-    env = Environment()
-    obs_dict = env._reset()
-    num_state = len(normStateDict(obs_dict[next(iter(obs_dict))], config_dict))
-    logger.info(f"Number of states: {num_state}")
-    agent = PPO(config_dict, num_state)
-    train_ppo(env, agent)
-    return True
+def app_setup() -> None:
+    # TODO: setup parser service, wandb...
+    pass
 
 
-# Container must always be declared before the actual app!
 container = Container()
 
 # Wiring allows us to declare where we need to inject dependencies
@@ -78,7 +68,6 @@ async def startup() -> None:
     logger.info(
         f"WS Endpoint available at {Color.BOLD}ws://localhost:{settings.PORT}/{Color.END}"
     )
-
     app_setup()
 
 
@@ -90,5 +79,4 @@ def shutdown() -> None:
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("main:app", host="0.0.0.0", port=5678, log_level="debug")

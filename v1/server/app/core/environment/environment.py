@@ -8,7 +8,7 @@ from core.environment.cluster.cluster import Cluster
 from core.environment.cluster.cluster_properties import TemperatureProperties
 from core.environment.power_grid.power_grid import PowerGrid
 from utils.utils import deadbandL2
-from core.environment.cluster.building.building import Building
+from core.environment.cluster.building import Building
 from core.environment.environment_properties import EnvironmentProperties
 
 
@@ -25,7 +25,6 @@ class Environment:
         self.date_time = self.init_props.start_datetime
         # TODO: compute phase inside TemperatureProperties dataclass
         # TODO: get properties from parser_service, needs to be changed
-        # ASAP
         self.temp_properties = TemperatureProperties()
         self.cluster = Cluster()
         self.power_grid = PowerGrid(
@@ -41,7 +40,6 @@ class Environment:
 
     def _step(self, action_dict: Dict[int, dict]) :
         self.date_time += self.init_props.time_step
-        
         # Cluster step
         self.cluster._step(
             self.current_od_temp, 
@@ -62,6 +60,7 @@ class Environment:
         return self._get_obs(), rewards_dict
 
     def _get_obs(self) -> Dict[int, dict]:
+        ""
         obs_dict = self.cluster._get_obs()
         for i in range(self.cluster.nb_hvacs):
             obs_dict[i].update({
@@ -71,7 +70,7 @@ class Environment:
             })
         return obs_dict
 
-    def build_environment(self):
+    def build_environment(self) -> None:
         self.init_props = EnvironmentProperties()
         self.temp_properties = TemperatureProperties()
         self.cluster = Cluster()

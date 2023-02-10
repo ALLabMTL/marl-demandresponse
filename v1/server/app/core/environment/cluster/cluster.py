@@ -3,13 +3,13 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.environment.cluster.building.building import Building
+from core.environment.cluster.building import Building
 from core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
     MessageProperties,
 )
 from core.environment.simulatable import Simulatable
-
+from utils.logger import logger
 
 class Cluster(Simulatable):
     # TODO: maybe we should put them in same model (static properties) 
@@ -46,14 +46,14 @@ class Cluster(Simulatable):
     def _step(self, od_temp: float, action_dict:Dict[int, bool], date_time: datetime, time_step: timedelta) -> None:
         self.current_power_consumption = 0
         
+        # TODO: we need to change this if we are doing multiple hvacs
         for building_id, building in enumerate(self.buildings):            
             if building_id in action_dict.keys():
                 command = action_dict[building_id]
             else:
-                # TODO: Log warning
+                logger.warn("")
                 command = False
             building._step(od_temp, time_step, date_time, command)
-            # TODO: put power consumption in building
             self.current_power_consumption += building.get_power_consumption()
 
 
