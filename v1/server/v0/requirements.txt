@@ -1,0 +1,30 @@
+# project requriements
+wandb
+numpy
+pandas
+torch
+ray[rllib]
+gym
+sympy
+pyglet==1.5.*
+matplotlib
+perlin_noise
+cvxpy
+dm_tree
+scikit-image # for rllib
+
+# dev requirements
+black # code formatter
+isort # code formatter
+pylint # code linter
+pytest # test runner
+# pytest-cov # test coverage
+# pytest-mock # mock testing
+# pytest-xdist # parallel testing
+pydocstyle # docstring linter
+codespell # spell checker
+mypy # type checker
+sphinx # documentation generator
+sphinx-autodoc-typehints # type hinting for sphinx
+insipid-sphinx-theme # sphinx theme
+sphinx-apidoc # api documentation generator

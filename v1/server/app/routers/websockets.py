@@ -5,6 +5,7 @@ from app.utils.logger import logger
 from app.services.training_service import TrainingService
 
 
+
 @inject
 def register_endpoints(
     sio: SocketManager = Provide["socket_manager_service"],
@@ -18,7 +19,7 @@ def register_endpoints(
     async def connect(sid, *args) -> None:
         logger.debug(f"Client connected with sid {sid}")
         logger.debug("starting experiment")
-        await sio.emit("connected", {"message": f"Client connecté avec le sid: {sid}"})
+        await sio.emit("connected", {"message": f"Client connected with sid: {sid}"})
         await training_service.train_ppo()
 
     @sio.on("disconnect")

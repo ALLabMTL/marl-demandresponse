@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SnackbarService } from '@app/services/snackbar/snackbar.service';
+import { NotificationService } from '@app/services/notification/notification.service';
 import { SocketService } from '@app/services/socket/socket.service';
 
 @Injectable({
@@ -9,7 +9,7 @@ export class SocketCommunicationService {
 
   constructor(        
     public socketService: SocketService,
-    private snackBarService: SnackbarService,
+    private snackBarService: NotificationService,
   ) { }
 
   connect(): void {

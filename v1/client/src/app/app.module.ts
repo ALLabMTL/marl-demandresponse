@@ -5,12 +5,20 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppRoutingModule } from './modules/app-routing.module';
 import { HeaderComponent } from './components/header/header.component';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { GridComponent } from './components/grid/grid.component';
 import { GridFooterComponent } from './components/grid-footer/grid-footer.component';
 import { InformationsComponent } from './components/informations/informations.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { TimestampComponent } from './components/timestamp/timestamp.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -26,8 +34,17 @@ import { TimestampComponent } from './components/timestamp/timestamp.component';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    AppMaterialModule,
+    MatToolbarModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatSliderModule,
+    MatInputModule,
+    MatIconModule,
+    FormsModule, 
+    ReactiveFormsModule,
     AppRoutingModule,
+    AppMaterialModule
   ],
   providers: [],
   bootstrap: [AppComponent]

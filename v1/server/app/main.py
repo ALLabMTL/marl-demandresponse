@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+
 from time import sleep
 
 import socketio
@@ -79,4 +80,5 @@ def shutdown() -> None:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=5678, log_level="debug")
