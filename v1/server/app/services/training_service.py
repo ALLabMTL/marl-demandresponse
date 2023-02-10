@@ -4,6 +4,7 @@
 from copy import deepcopy
 from collections import namedtuple
 import random
+from time import sleep
 import numpy as np
 import torch
 from core.environment.environment import Environment
@@ -102,6 +103,7 @@ class TrainingService():
         for t in range(nb_time_steps):
 
             await self.client_manager_service.emit_data_change(obs_dict)
+            sleep(2)
             # Select action with probabilities
             action_and_prob = {
                 k: agent.select_action(normStateDict(obs_dict[k], config_dict))

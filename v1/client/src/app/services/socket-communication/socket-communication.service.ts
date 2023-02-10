@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { SidenavData } from '@app/classes/sidenav-data';
 import { NotificationService } from '@app/services/notification/notification.service';
 import { SocketService } from '@app/services/socket/socket.service';
+import { SimulationManagerService } from '../simulation-manager.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +12,7 @@ export class SocketCommunicationService {
   constructor(        
     public socketService: SocketService,
     private snackBarService: NotificationService,
+    private simulationManager: SimulationManagerService
   ) { }
 
   connect(): void {
@@ -24,25 +27,27 @@ export class SocketCommunicationService {
             }
         }, timeout);
         this.configureSocket();
+
     }
   }
 
   configureSocket() {
     this.socketService.on('connected', () => {
       this.snackBarService.openSuccessSnackBar('Connected to server', '');
+      this.startTraining()
     });
 
     this.socketService.on('pong', () => {
       this.snackBarService.openSuccessSnackBar('Pong from server', '');
     });
 
-    this.socketService.on('dataChange', (data) => {
-      console.log(data);
+    this.socketService.on('dataChange', (data: SidenavData) => {
+      this.simulationManager.addTimeStep(data)
+
     });
   }
 
-  pingServer() {
-    this.socketService.send('connected');
-    // this.snackBarService.openSuccessSnackBar('Pinging server...', '');
+  startTraining() {
+    this.socketService.send('train');
   }
 }
