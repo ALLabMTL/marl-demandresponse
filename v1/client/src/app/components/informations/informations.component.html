@@ -1,14 +1,17 @@
-<p>informations works!</p>
-<!-- 
-    DELETEME: 
-    Button to test socket connection with server
-    Should be removed later
--->
-<button
-mat-flat-button
-class="scan-btn"
-color="primary"
-(click)="this.socketService.pingServer()"
->
-PING
-</button>
+<div class="container">
+    <div class="box">
+        <p class="title">Description:</p>
+        <ul class="text">
+            <li>Number of HVAC : </li>
+            <li>Number of locked HVAC : </li>
+            <li>Outdoor temperature : </li>
+            <li>Average indoor temperature : </li>
+            <li>Average temperature difference : </li>
+            <li>Tegulation signal : </li>
+            <li>Current consumption : </li>
+            <li>Consumption error (%) : </li>
+            <li>RMSE : </li>
+            <li>Cumulative average offset : </li>
+        </ul>  
+    </div>
+</div>

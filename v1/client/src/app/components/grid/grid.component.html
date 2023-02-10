@@ -2,8 +2,7 @@
 <div id="container">
     <div *ngFor="let page of pages">
       <div [id]="page.id" [hidden]="currentPage !== page.id">
-        {{ page.content }}
-        <!-- <mat-grid-list class="grid" cols="10" rowHeight="fit">
+        <mat-grid-list class="grid" cols="10" rowHeight="fit">
             <mat-grid-tile *ngFor="let _ of [].constructor(100)">
                 <span class="HVACStatus"></span>
                 <div>
@@ -19,8 +18,7 @@
                 </div>
 
             </mat-grid-tile>
-        </mat-grid-list> -->
-          
+        </mat-grid-list> 
       </div>
     </div>
 </div>

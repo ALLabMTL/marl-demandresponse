@@ -1,0 +1,26 @@
+.container{
+    position: relative;
+    background-color: #DDDDDD;
+    max-width: 30rem;
+    max-height: fit-content;
+    border-radius: 1rem;
+    margin: 1rem 2rem;
+    display: flex;
+}
+
+.box{
+    padding-left: 1rem;
+    padding-top: 1rem;
+}
+
+.title{
+    font-weight: bold;
+    font-size: medium;
+    margin-bottom: 0.2rem;
+}
+
+.text{
+    font-size: small;
+    margin-top: 0;
+    line-height: 1.2em;
+}
