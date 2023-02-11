@@ -1,7 +1,7 @@
-import { Component, HostListener, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit} from '@angular/core';
 import { SharedService } from '@app/services/shared/shared.service';
-import { GridFooterComponent } from '../grid-footer/grid-footer.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
+import {MatDialog} from '@angular/material/dialog';
+import { DialogComponent } from '../dialog/dialog.component';
 
 interface PageData {
   id: number;
@@ -20,7 +20,7 @@ export class GridComponent implements OnInit {
   currentPage: number = 1;
   maxPage: number = 35;
 
-  constructor(private sharedService: SharedService){
+  constructor(private sharedService: SharedService, public dialog: MatDialog){
     this.pages = [
       { id: 1, content: "Page 1" },
       { id: 2, content: "Page 2" },
@@ -33,13 +33,12 @@ export class GridComponent implements OnInit {
     this.currentPage = this.pages[0].id;
   }
 
-  // pageChangeFromFooter(data:any){
-  //   console.log(data);
-  //   this.currentPage = this.currentPage - data;
-  // }
-
   switchPage(id: number) {
     this.currentPage += 1;
+  }
+
+  openDialog() {
+    this.dialog.open(DialogComponent);
   }
 
 }

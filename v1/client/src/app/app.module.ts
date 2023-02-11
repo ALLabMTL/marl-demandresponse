@@ -20,6 +20,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DialogComponent } from './components/dialog/dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -30,7 +32,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     GridFooterComponent,
     InformationsComponent,
     GraphsComponent,
-    TimestampComponent
+    TimestampComponent,
+    DialogComponent
   ],
   imports: [
     BrowserModule,
@@ -48,7 +51,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     FormsModule, 
     ReactiveFormsModule,
     AppRoutingModule,
-    AppMaterialModule
+    AppMaterialModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
