@@ -6,10 +6,13 @@
 //     grid-template-rows: 50px 1fr 4fr 50px;
 // }
 
+.container{
+    // width: auto;
+    max-height: 100vh !important;
+}
+
 .grid{
-    position: relative;
-    height: 868px;
-    
+    height: 54.45rem;
 }
 
 mat-grid-tile {

@@ -1,5 +1,5 @@
-<div class="pagination">
-    <div>
+<div class="container">
+    <div class="pagination">
         <button class="prev-page" (click)="decrementPage()" [disabled]="currentPage == 1">
             <mat-icon>chevron_left</mat-icon>
         </button>
@@ -15,8 +15,5 @@
         <button class="next-page" (click)="incrementPage()" [disabled]="currentPage == maxPage" >
             <mat-icon>chevron_right</mat-icon>
         </button>
-    </div>
-    <div>
-        
     </div>
 </div>
