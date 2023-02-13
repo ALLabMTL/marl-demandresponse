@@ -1262,3 +1262,4 @@ class PowerGrid:
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 
         return self.current_signal
+

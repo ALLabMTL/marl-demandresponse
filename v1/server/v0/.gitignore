@@ -32,3 +32,5 @@ monteCarlo/results/
 path*
 log_gurobi*
 save_ckpt/*/*.pt
+
+.env
