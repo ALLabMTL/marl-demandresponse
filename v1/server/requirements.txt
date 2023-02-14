@@ -35,3 +35,4 @@ python-socketio==5.7.*
 fastapi==0.92.*
 uvicorn==0.20.*
 dependency_injector==4.*
+websockets
