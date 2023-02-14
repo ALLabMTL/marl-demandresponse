@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
 @Component({
   selector: 'app-graphs',
@@ -6,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./graphs.component.scss']
 })
 export class GraphsComponent {
-
+  constructor(public simulationManager: SimulationManagerService){}
 }

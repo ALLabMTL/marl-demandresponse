@@ -1,0 +1,209 @@
+
+Pour l'environnement (data dans la sidenav a droite):
+{
+    nb houses: int
+    nb hvacs: int
+    nb locked hvac: int
+    outdoor temperature: float
+    avg_indoor_temperature: float
+    avg temp difference: float 
+    regulation signal: float
+    current consumption: float
+    consumption error: %
+    RMSE: int
+    Cumulative avg offset: int
+}
+
+pour chaque maison (dans la modale)
+{
+    current consumption: float
+    indoor temp: float 
+    target_temp_difference: float 
+    nb_hvacs: int
+    hvacs: [
+        { 
+            0: { hvac_status: (on, off, lockout) }
+        },
+    ]
+}
+
+
+}
+
+"penalty_modes": {
+    "signal_penalty_modes":["common_L2"],
+    "temperature_penalty_modes": [
+        {
+            "mode": "individual_L2"
+            "parameters": {}
+        },
+        {
+            "mode": "common_L2"
+            "parameters": {}
+        },
+        {
+            "mode": "common_max_error"
+            "parameters": {}
+        },
+        {
+            "mode": "mixture"
+            "parameters": {
+                "alpha_ind_L2": 1,
+                "alpha_common_L2": 1,
+                "alpha_common_max": 0                
+            }
+        },
+
+    ]
+}
+
+"signal_modes": [
+    "flat":{},
+    "sinusoidals": {
+        "periods": [400, 1200],  # In seconds
+        "amplitude_ratios": [0.1, 0.3],             
+    },
+    "regular_steps":{
+        "amplitude_per_hvac": 6000,  # In watts
+        "period": 300,  # In seconds
+    },
+    "perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400,            
+    },
+    "amplitude+_perlin": {
+        "amplitude_ratios": 0.9 * 1.1,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400,
+    },
+    "amplitude++_perlin": {
+        "amplitude_ratios": 0.9 * 1.3,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400,
+    },
+    "fast+_perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 300,
+    },
+    "fast++_perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 200,
+    },
+
+temperature_modes: [
+    "constant": {
+        "day_temp": 26.5,  # Day temperature
+        "night_temp": 26.5,  # Night temperature
+        "temp_std": 0,  # Noise std dev on the temperature
+        "random_phase_offset": False,
+    },
+    "sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "sinusoidal_hot": {
+        "day_temp": 30,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "sinusoidal_hot_heatwave": {
+        "day_temp": 38,
+        "night_temp": 32,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "sinusoidal_cold_heatwave": {
+        "day_temp": 30,
+        "night_temp": 24,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "sinusoidal_cold": {
+        "day_temp": 24,
+        "night_temp": 22,
+        "temp_std": 0,
+        "random_phase_offset": False,
+    },
+    "noisy_sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0.5,
+        "random_phase_offset": False,
+    },
+    "noisy_sinusoidal_hot": {
+        "day_temp": 30,
+        "night_temp": 28,
+        "temp_std": 0.5,
+        "random_phase_offset": False,
+    },
+    "noisy_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0.5,
+        "random_phase_offset": False,
+    },
+    "noisier_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 2,
+        "random_phase_offset": False,
+    },
+    "noisy_sinusoidal_cold": {
+        "day_temp": 24,
+        "night_temp": 22,
+        "temp_std": 0.5,
+        "random_phase_offset": False,
+    },
+    "shifting_sinusoidal": {
+        "day_temp": 30,
+        "night_temp": 23,
+        "temp_std": 0,
+        "random_phase_offset": True,
+    },
+    "shifting_sinusoidal_heatwave": {
+        "day_temp": 34,
+        "night_temp": 28,
+        "temp_std": 0,
+        "random_phase_offset": True,
+    },
+]
+
+hvac_noise_modes: [
+    "no_noise": {
+        "cooling_capacity_list": {10000: [10000], 15000: [15000]}
+    },
+    "small_noise": {
+        "cooling_capacity_list": {
+            10000: [9000, 10000, 11000],
+            15000: [12500, 15000, 17500],
+        }
+    },
+    "big_noise": {
+        "cooling_capacity_list": {
+            10000: [7500, 9000, 10000, 11000, 12500],
+            15000: [10000, 12500, 15000, 17500, 20000],
+        }
+    },    
+]
+
+hvac_test_noise_modes: [
+
+]
+

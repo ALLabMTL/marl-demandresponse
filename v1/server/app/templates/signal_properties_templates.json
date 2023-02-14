@@ -1,0 +1,41 @@
+{
+    "flat": {},
+    "sinusoidals": {
+        "periods": 400,  
+        "amplitude": [0.1, 0.3] 
+    },
+    "regular_steps": {
+        "amplitude": 6000,  
+        "period": 300
+    },
+    "perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400
+    },
+    "amplitude+_perlin": {
+        "amplitude_ratios": 0.99,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400
+    },
+    "amplitude++_perlin": {
+        "amplitude_ratios": 1.17,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 400
+    },
+    "fast+_perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 300
+    },
+    "fast++_perlin": {
+        "amplitude_ratios": 0.9,
+        "nb_octaves": 5,
+        "octaves_step": 5,
+        "period": 200
+    }
+}
