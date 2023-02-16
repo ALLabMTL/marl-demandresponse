@@ -45,6 +45,10 @@ export class SocketCommunicationService {
       this.simulationManager.addTimeStep(data)
 
     });
+
+    this.socketService.on('houseChange', (data) => {
+      console.log(data);
+    })
   }
 
   startTraining() {
