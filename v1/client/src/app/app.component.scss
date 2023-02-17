@@ -1,6 +1,8 @@
 .container{
-    width: 100vw;
-    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
     display: grid;
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: 50px 1fr 4fr 50px;
@@ -10,14 +12,14 @@
     grid-column-start: 1;
     grid-column-end: 8;
     border: 1px solid black;
-    background-color: #EEEEEE;
+    background-color: #212121;
 }
 
 .sidebar{
     grid-row-start: 2;
     grid-row-end: 5;
     border: 1px solid black;
-    background-color: #DDDDDD;
+    background-color: #212121;
 }
 
 .grid{
@@ -26,7 +28,7 @@
     grid-row-start: 2;
     grid-row-end: 4;
     border: 1px solid black;
-    background-color: #424242;
+    background-color: #212121;
 }
 
 .grid-footer{
@@ -35,7 +37,9 @@
     grid-row-start: 4;
     grid-row-end: 5;
     border: 1px solid black;
-    background-color: #9AC999;
+    background-color: #212121;
+    display: grid;
+    place-items: center;
 }
 
 .informations{
@@ -44,7 +48,9 @@
     grid-row-start: 1;
     grid-row-end: 3;
     border: 1px solid black;
-    background-color: #9AC999;
+    background-color: #212121;
+    display: grid;
+    // place-items: center;
 }
 
 .graphs{
@@ -53,7 +59,7 @@
     grid-row-start: 3;
     grid-row-end: 4;
     border: 1px solid black;
-    background-color: #9AC999;
+    background-color: #212121;
 }
 
 .timestamp{
@@ -62,5 +68,5 @@
     grid-row-start: 4;
     grid-row-end: 5;
     border: 1px solid black;
-    background-color: #9AC999;
+    background-color: #212121;
 }

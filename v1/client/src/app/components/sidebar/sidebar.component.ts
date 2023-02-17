@@ -13,7 +13,7 @@ import { AbstractControl, FormControl, Validators } from '@angular/forms';
 })
 export class SidebarComponent {
   isTempChecked = false;
-  isFloorChecked = false;
+  isHvacChecked = false;
   precisionValueSelected = 0.5;
   negMin = -0.5;
   negMidMin = -0.25;
@@ -31,9 +31,9 @@ export class SidebarComponent {
     this.isTempChecked = !this.isTempChecked;
   }
 
-  floorCheckbox(): void {
-    this.isFloorChecked = !this.isFloorChecked;
-  }
+  // floorCheckbox(): void {
+  //   this.isFloorChecked = !this.isFloorChecked;
+  // }
 
   scaleChartPrecision(): void {
     if(this.precisionValueSelected >= 0){

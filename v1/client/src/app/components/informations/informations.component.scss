@@ -1,0 +1,28 @@
+.container{
+    position: relative;
+    // background-color: #DDDDDD;
+    min-width: fit-content;
+    min-height: fit-content;
+    margin: 0.8rem 0rem 2rem 2rem;
+    // border-radius: 1rem;
+}
+
+// .box{
+//     padding-left: 1rem;
+//     padding-top: 1rem;
+//     padding-right: 10rem;
+// }
+
+.title{
+    // font-weight: bold;
+    // font-size: medium;
+    margin-bottom: 0.5rem;
+    color: #76FF03;
+}
+
+.text{
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+    line-height: 1.3em;
+    color: white;
+}
