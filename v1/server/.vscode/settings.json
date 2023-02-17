@@ -12,4 +12,12 @@
         "--ignored-modules=pydantic",
         "--extension-pkg-whitelist=pydantic"
     ],
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/MARLconfig.json"
+            ],
+            "url": "./MARLconfig.schema.json"
+        }
+    ]
 }
