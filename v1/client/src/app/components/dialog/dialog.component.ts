@@ -1,4 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { HouseData } from '@app/classes/sidenav-data';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
+
 
 @Component({
   selector: 'app-dialog',
@@ -6,5 +10,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./dialog.component.scss']
 })
 export class DialogComponent {
-
+  id: number
+  // TODO: Do this in a prettier way
+  constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService) {
+    this.id = data;
+  }
 }

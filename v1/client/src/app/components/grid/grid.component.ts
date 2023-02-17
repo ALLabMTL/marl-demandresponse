@@ -2,6 +2,8 @@ import { Component, Input, OnInit} from '@angular/core';
 import { SharedService } from '@app/services/shared/shared.service';
 import {MatDialog} from '@angular/material/dialog';
 import { DialogComponent } from '../dialog/dialog.component';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
+
 
 interface PageData {
   id: number;
@@ -20,7 +22,7 @@ export class GridComponent implements OnInit {
   currentPage: number = 1;
   maxPage: number = 35;
 
-  constructor(private sharedService: SharedService, public dialog: MatDialog){
+  constructor(private sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService){
     this.pages = [
       { id: 1, content: "Page 1" },
       { id: 2, content: "Page 2" },
@@ -37,8 +39,11 @@ export class GridComponent implements OnInit {
     this.currentPage += 1;
   }
 
-  openDialog() {
-    this.dialog.open(DialogComponent);
+  openDialog(index: number) {
+    this.dialog.open(DialogComponent, {
+      data :index
+    });
+
   }
 
 }

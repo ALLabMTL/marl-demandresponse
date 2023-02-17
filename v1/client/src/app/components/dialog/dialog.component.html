@@ -1,6 +1,6 @@
 <div class="dialog">
   <div class="info">
-    <p>House #</p>
+    <p>House # {{this.simulationManager.housesData[this.id].id + 1}}</p>
     <div class="house">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -20,12 +20,14 @@
     </div>
     <p>House information :</p>
     <ul>
-        <li>Number of Floors :</li>
-        <li>Actual Temperature :</li>
-        <li>Expected Temperature :</li>
-        <li>Temperature difference :</li>
-        <li>HVAC Status :</li>
-    </ul>
+      <li>Actual temperature : {{this.simulationManager.housesData[this.id].indoorTemp}}</li>
+      <li>Target temperature : {{this.simulationManager.housesData[this.id].targetTemp}}</li>
+      <li>Temperature difference : {{this.simulationManager.housesData[this.id].tempDifference}}</li>
+      <li>HVAC status : {{this.simulationManager.housesData[this.id].hvacStatus}}</li>
+      <li *ngIf="this.simulationManager.housesData[this.id].secondsSinceOff">
+        Seconds since off : {{this.simulationManager.housesData[this.id].secondsSinceOff}}
+      </li>
+  </ul>
   </div>
   <div class="graphs">
     <p>Graphs :</p>

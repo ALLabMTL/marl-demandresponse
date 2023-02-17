@@ -1,17 +1,8 @@
 <div class="container">
     <div class="box">
         <p class="title">Description:</p>
-        <ul class="text">
-            <li>Number of HVAC : </li>
-            <li>Number of locked HVAC : </li>
-            <li>Outdoor temperature : </li>
-            <li>Average indoor temperature : </li>
-            <li>Average temperature difference : </li>
-            <li>Tegulation signal : </li>
-            <li>Current consumption : </li>
-            <li>Consumption error (%) : </li>
-            <li>RMSE : </li>
-            <li>Cumulative average offset : </li>
+        <ul class="text" *ngFor="let attribute of this.simulationManager.propertyNames; let i=index;">
+            <li>{{attribute}}: {{this.simulationManager.propertyValues[i]}}</li>
         </ul>  
     </div>
 </div>

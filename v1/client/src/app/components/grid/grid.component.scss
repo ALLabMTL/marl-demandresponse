@@ -1,10 +1,10 @@
 .container{
     // width: auto;
-    max-height: 100vh !important;
+    // max-height: 100vh !important;
 }
 
 .grid{
-    height: 54.45rem;
+    // height: 54.45rem;
 }
 
 .dialog{
@@ -13,6 +13,8 @@
 
 mat-grid-tile {
     background: #424242;
+    min-width: 100%/10;
+    min-height: 100%/10;
 }
 
 .HVACStatus {

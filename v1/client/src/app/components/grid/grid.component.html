@@ -2,10 +2,10 @@
 <div id="container">
     <div *ngFor="let page of pages">
       <div [id]="page.id" [hidden]="currentPage !== page.id">
-        <mat-grid-list class="grid" cols="10" rowHeight="fit">
-            <mat-grid-tile *ngFor="let _ of [].constructor(100)">
+        <mat-grid-list class="grid" cols="10">
+            <mat-grid-tile *ngFor="let _ of [].constructor(100); let i=index">
                 <span class="HVACStatus"></span>
-                <div class="dialog" (click)="openDialog()">
+                <div class="dialog" (click)="openDialog(i)">
                     <svg xmlns="http://www.w3.org/2000/svg" 
                     width="4rem" 
                     height="4rem" 

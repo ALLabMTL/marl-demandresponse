@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SidenavData } from '@app/classes/sidenav-data';
+import { SidenavData, HouseData } from '@app/classes/sidenav-data';
 import { NotificationService } from '@app/services/notification/notification.service';
 import { SocketService } from '@app/services/socket/socket.service';
 import { SimulationManagerService } from '../simulation-manager.service';
@@ -46,8 +46,8 @@ export class SocketCommunicationService {
 
     });
 
-    this.socketService.on('houseChange', (data) => {
-      console.log(data);
+    this.socketService.on('houseChange', (data: HouseData[]) => {
+      this.simulationManager.updateHousesData(data)
     })
   }
 

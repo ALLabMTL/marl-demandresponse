@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict
+from typing import List, Dict, Union
 import numpy as np
 import pandas as pd
 from utils.logger import logger
@@ -20,25 +20,25 @@ class ClientManagerService():
         self.OD_temp = np.array([])
         self.signal = np.array([])
         self.consumption = np.array([])
-        self.houses_messages: Dict[int, dict] =  {}
+        self.houses_messages: List[Dict[Union[str, float]]] =  []
     
     async def emit_data_change(self, obs_dict: Dict[int, dict]) -> pd.DataFrame:
         df = pd.DataFrame(obs_dict).transpose()
         self.update_data(df)
-
+        self.houses_messages = []
         for house_id in obs_dict.keys():
-            self.houses_messages[house_id] = {}
+            self.houses_messages.append({"id": house_id})
+            # self.houses_messages[house_id] = {}
             if obs_dict[house_id]["turned_on"]:
-                self.houses_messages[house_id].update({"HVAC status" : "ON"})
+                self.houses_messages[house_id].update({"hvacStatus": "ON"})
             elif obs_dict[house_id]["lockout"]:
-                self.houses_messages[house_id].update({"HVAC status" : "Lockout", "Seconds since off" : obs_dict[house_id]["seconds_since_off"]})
+                self.houses_messages[house_id].update({"hvacStatus":"Lockout", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
             else:
-                self.houses_messages[house_id].update({"HVAC status" : "OFF", "Seconds since off" : obs_dict[house_id]["seconds_since_off"]})
+                self.houses_messages[house_id].update({"hvacStatus" : "OFF", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
 
-            self.houses_messages[house_id]["Indoor temperature"] = obs_dict[house_id]["indoor_temp"]
-            self.houses_messages[house_id]["Target temperature"] = obs_dict[house_id]["target_temp"]
-            self.houses_messages[house_id]["Difference to target"] = obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
-
+            self.houses_messages[house_id]["indoorTemp"] = obs_dict[house_id]["indoor_temp"]
+            self.houses_messages[house_id]["targetTemp"] = obs_dict[house_id]["target_temp"]
+            self.houses_messages[house_id]["tempDifference"] = obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
 
 
 
