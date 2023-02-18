@@ -35,6 +35,16 @@ export class GridComponent implements OnInit {
     this.currentPage = this.pages[0].id;
   }
 
+  cells = new Array(100).fill(null);
+
+  getColumnWidths() {
+    return `repeat(10, ${100 / 10}%)`;
+  }
+
+  getRowHeights() {
+    return `repeat(10, ${100 / 10}%)`;
+  }
+
   switchPage(id: number) {
     this.currentPage += 1;
   }

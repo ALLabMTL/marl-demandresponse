@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { GridCellComponent } from './components/grid-cell/grid-cell/grid-cell.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { MatDialogModule } from '@angular/material/dialog';
     InformationsComponent,
     GraphsComponent,
     TimestampComponent,
-    DialogComponent
+    DialogComponent,
+    GridCellComponent
   ],
   imports: [
     BrowserModule,

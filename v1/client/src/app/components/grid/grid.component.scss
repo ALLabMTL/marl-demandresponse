@@ -1,28 +1,32 @@
-.container{
-    // width: auto;
-    // max-height: 100vh !important;
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.grid{
-    // height: 54.45rem;
+.grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
 }
 
-.dialog{
-    cursor: pointer;
+.dialog {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 mat-grid-tile {
-    background: #424242;
-    min-width: 100%/10;
-    min-height: 100%/10;
+  background: #424242;
 }
 
 .HVACStatus {
-    height: 15%;
-    width: 10%;
-    top: 10%;
-    right: 10%;
-    background-color: #bbb;
-    border-radius: 50%;
-    position: absolute;
+  height: 15%;
+  width: 10%;
+  top: 10%;
+  right: 10%;
+  background-color: #bbb;
+  border-radius: 50%;
+  position: absolute;
 }
