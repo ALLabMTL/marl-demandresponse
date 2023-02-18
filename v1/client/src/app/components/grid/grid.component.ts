@@ -48,6 +48,18 @@ export class GridComponent implements OnInit {
     return `repeat(10, ${100 / 10}%)`;
   }
 
+  getHvacColor(i: number): string {
+    if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
+      return 'green';
+    } 
+    else if(this.simulationManager.housesData[i].hvacStatus === 'OFF'){
+      return 'red';
+    }
+    else{
+      return 'gray';
+    }
+  }
+
   switchPage(id: number) {
     this.currentPage += 1;
   }
