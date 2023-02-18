@@ -30,3 +30,23 @@ mat-grid-tile {
   border-radius: 50%;
   position: absolute;
 }
+
+.cell {
+  border: 1px solid black;
+  background-color: #424242;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position:relative;
+}
+
+.circle {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 10%;
+  height: 10%;
+  border-radius: 50%;
+  background-color: gray;
+}

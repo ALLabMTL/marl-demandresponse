@@ -33,6 +33,9 @@ export class GridComponent implements OnInit {
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
     this.currentPage = this.pages[0].id;
+    for (let i = 0; i < this.simulationManager.housesData.length; i++) {
+      console.log (this.simulationManager.housesData[i]);
+    }
   }
 
   cells = new Array(100).fill(null);
