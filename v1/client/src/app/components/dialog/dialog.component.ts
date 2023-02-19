@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HouseData } from '@app/classes/sidenav-data';
+import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { GridComponent } from '../grid/grid.component';
 
@@ -11,12 +12,11 @@ import { GridComponent } from '../grid/grid.component';
   styleUrls: ['./dialog.component.scss']
 })
 export class DialogComponent {
-  id: number
+  id: number;
   
   // TODO: Do this in a prettier way
-  constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService, public sharedService: SharedService) {
     this.id = data;
-
   }
 
 }

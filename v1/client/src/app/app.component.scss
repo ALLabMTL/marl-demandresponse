@@ -6,11 +6,12 @@
 
 app-header {
     grid-column-start: 1;
-    grid-column-end: 8;
+    grid-column-end: 11;
     grid-row-start: 1;
     grid-row-end: 2;
-    border: 1px solid black;
-    background-color: #EEEEEE;
+    // border: 1px solid black;
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: rgb(245, 245, 245);
 }
 
 app-sidebar {
@@ -18,8 +19,9 @@ app-sidebar {
     grid-column-end: 2;     
     grid-row-start: 2;
     grid-row-end: 21;
-    border: 1px solid black;
-    background-color: #DDDDDD;
+    // border: 1px solid black;
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #bac7be;
 }
 
 app-grid {
@@ -27,8 +29,9 @@ app-grid {
     grid-column-end: 8;
     grid-row-start: 2;
     grid-row-end: 20;
-    border: 1px solid black;
-    background-color: #ffffff;
+    // border: 1px solid black;
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #709775;
 }
 
 app-grid-footer {
@@ -36,8 +39,10 @@ app-grid-footer {
     grid-column-end: 8;
     grid-row-start: 20;
     grid-row-end: 21;
-    border: 1px solid black;
-    background-color: #9AC999;
+    // border: 1px solid black;
+    // border-right: 1px solid rgba(0,0,0,.12);
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #c2e1c2;
     display: grid;
     place-items: center;
 }
@@ -45,10 +50,12 @@ app-grid-footer {
 app-informations {
     grid-column-start: 8;
     grid-column-end: 11;
-    grid-row-start: 1;
-    grid-row-end: 6;
-    border: 1px solid black;
-    background-color: #9AC999;
+    grid-row-start: 2;
+    grid-row-end: 7;
+    // border: 1px solid black;
+    // border-bottom: 1px solid rgba(0,0,0,.12);
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #c2e1c2;
     display: grid;
     place-items: center;
 }
@@ -56,10 +63,12 @@ app-informations {
 app-graphs {
     grid-column-start: 8;
     grid-column-end: 11;
-    grid-row-start: 6;
+    grid-row-start: 7;
     grid-row-end: 20;
-    border: 1px solid black;
-    background-color: #9AC999;
+    // border: 1px solid black;
+    // border-bottom: 1px solid rgba(0,0,0,.12);
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #c2e1c2;
 }
 
 app-timestamp {
@@ -67,6 +76,7 @@ app-timestamp {
     grid-column-end: 11;
     grid-row-start: 20;
     grid-row-end: 21;
-    border: 1px solid black;
-    background-color: #9AC999;
+    // border: 1px solid black;
+    border: 1px solid rgba(0,0,0,.12);
+    background-color: #c2e1c2;
 }
