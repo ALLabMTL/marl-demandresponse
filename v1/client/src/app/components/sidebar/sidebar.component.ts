@@ -43,6 +43,8 @@ export class SidebarComponent {
   }
 
   scaleChartPrecision(): void {
+    var precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
+    this.sharedService.changePrecisionValue(parseFloat(precisionValue));
     if(this.precisionValueSelected >= 0){
       this.negMin = -(this.precisionValueSelected);
       this.negMidMin = this.negMin / 2;
