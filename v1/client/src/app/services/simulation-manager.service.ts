@@ -10,6 +10,8 @@ export class SimulationManagerService {
   propertyNames: string[];
   propertyValues: string[];
   housesData: HouseData[];
+  houseDataFiltered: HouseData[];
+  originalHousesData: HouseData[];
 
 
 
@@ -18,6 +20,8 @@ export class SimulationManagerService {
     this.propertyNames = [];
     this.propertyValues = [];
     this.housesData = [];
+    this.houseDataFiltered = [];
+    this.originalHousesData = [];
   }
 
 
