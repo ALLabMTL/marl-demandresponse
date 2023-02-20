@@ -146,6 +146,13 @@ export class SidebarComponent {
     this.filters.push({id: 5, type: "tempDiffValue", value: this.tempDiffValue});
   }
 
+
+  resetActivityFilters(): void {
+    this.isSortingSelected = false;
+    this.isHvacChecked = false;
+    this.isTempChecked = false;
+  }
+
   // called when toggle turned off and form field no sorting selected
   restoreHousesData(): void {
     //if()
@@ -154,6 +161,9 @@ export class SidebarComponent {
 
     if(this.isSortingSelected && this.isHvacChecked) {
       if (filterTypes.includes('hvacStatus') && filterTypes.includes(this.sortingOptionSelected)) {
+        
+        this.resetActivityFilters();
+
          const hvacFilter = this.filters.find(filter => filter.type === 'hvacStatus');
          this.hvacStatus = hvacFilter?.value;
          this.filterByHvacStatus();
