@@ -17,6 +17,16 @@
   align-items: center;
 }
 
+.house-id{
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25%;
+  font-size: calc(min(2vw, 2vh));
+  font-weight: bold;
+}
+
 mat-grid-tile {
   background: #424242;
 }
