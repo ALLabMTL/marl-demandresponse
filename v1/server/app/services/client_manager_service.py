@@ -1,16 +1,16 @@
 from copy import deepcopy
-from typing import List, Dict, Union
+from typing import List, Dict, Tuple, Union
 import numpy as np
 import pandas as pd
-from utils.logger import logger
-from .socket_manager_service import SocketManager
 
 GRAPH_MEMORY = 5000
 
 class ClientManagerService():
 
-    def __init__(self, socket_manager_service: SocketManager) -> None:
-        self.socket_manager_service = socket_manager_service
+    def __init__(self) -> None:
+        self.initialize_data()
+
+    def initialize_data(self) -> None:
         self.data_messages = {}
         self.temp_diff = np.array([])
         self.temp_err = np.array([])
@@ -20,9 +20,10 @@ class ClientManagerService():
         self.OD_temp = np.array([])
         self.signal = np.array([])
         self.consumption = np.array([])
+        # TODO: Make pydantic model
         self.houses_messages: List[Dict[Union[str, float]]] =  []
-    
-    async def emit_data_change(self, obs_dict: Dict[int, dict]) -> pd.DataFrame:
+
+    def update_data_change(self, obs_dict: Dict[int, dict]) -> Tuple[dict, dict]:
         df = pd.DataFrame(obs_dict).transpose()
         self.update_data(df)
         self.houses_messages = []
@@ -41,9 +42,7 @@ class ClientManagerService():
             self.houses_messages[house_id]["tempDifference"] = obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
 
 
-
-        await self.socket_manager_service.emit("dataChange", self.data_messages)
-        await self.socket_manager_service.emit("houseChange", self.houses_messages)
+        return self.data_messages, self.houses_messages
 
 
     def update_data(self, df: pd.DataFrame) -> None:

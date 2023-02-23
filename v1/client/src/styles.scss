@@ -7,7 +7,7 @@
 
 $default-theme-primary: mat-palette($mat-light-green, 800);
 $default-theme-accent: mat-palette($mat-light-green, 300);
-// $default-theme-warn: mat-palette($mat-red, 400);
+$default-theme-warn: mat-palette($mat-red, 400);
 
 $default-theme: mat-light-theme($default-theme-primary, $default-theme-accent);
 
@@ -43,11 +43,4 @@ body { margin: 0; font-family: 'Rubik', serif !important; }
     background-color: #ff6700;
     color: white;
     border: none;
-}
-
-.mat-snack-bar-container {
-    margin-bottom: 3% !important;
-    margin-left: 3% !important;
-    width: 8% !important;
-    max-width: 2px !important;
 }
