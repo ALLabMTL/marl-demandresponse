@@ -1,0 +1,24 @@
+services:
+  frontend:
+    image: frontend
+    build:
+      context: v1/client/
+      dockerfile: Dockerfile
+    networks:
+      - mynetwork
+    ports:
+      - "4200:4200"
+
+  backend:
+    image: backend
+    build:
+      context: v1/server/
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    name: mynetwork
