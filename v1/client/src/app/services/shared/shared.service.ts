@@ -23,12 +23,12 @@ export class SharedService {
   }
 
   houseColor(data: number) {
-    const upperBound = this.precisionValueSelected.value;
-    const middleUpperBound = upperBound / 2;
-    const center = 0
-    const middleLowerBound = -middleUpperBound;
-    const lowerBound = -upperBound;
-    const boundRange = upperBound - middleUpperBound;
+    let upperBound = this.precisionValueSelected.value;
+    let middleUpperBound = upperBound / 2;
+    let center = 0
+    let middleLowerBound = -middleUpperBound;
+    let lowerBound = -upperBound;
+    let boundRange = upperBound - middleUpperBound;
     console.log(data);
     console.log(upperBound);
     console.log(middleUpperBound);
@@ -41,23 +41,23 @@ export class SharedService {
       return "rgba(0, 0, 255, 100)";
     }
     else if (lowerBound <= data && data < middleLowerBound) {
-      const temp = -(lowerBound - data) / boundRange;
-      const color = temp * 255;
+      let temp = -(lowerBound - data) / boundRange;
+      let color = temp * 255;
       return "rgba(0," + color + ", 255, 100)";
     }
     else if (middleLowerBound <= data && data < center) {
-      const temp = (boundRange + (middleLowerBound - data)) / boundRange;
-      const color = temp * 255;
+      let temp = (boundRange + (middleLowerBound - data)) / boundRange;
+      let color = temp * 255;
       return "rgba(0, 255," + color + ", 100)";
     }
     else if (center <= data && data < middleUpperBound) {
-      const temp = (boundRange - (middleUpperBound - data)) / boundRange;
-      const color = temp * 255;
+      let temp = (boundRange - (middleUpperBound - data)) / boundRange;
+      let color = temp * 255;
       return "rgba(" + color + ",255, 0, 100)";
     }
     else if (middleUpperBound <= data && data <= upperBound) {
-      const temp = (upperBound - data) / boundRange;
-      const color = temp * 255;
+      let temp = (upperBound - data) / boundRange;
+      let color = temp * 255;
       return "rgba(255," + color + ", 0, 100)";
     }
     else {
