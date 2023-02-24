@@ -54,6 +54,7 @@ class PowerGrid(Simulatable):
                 self.initial_properties.signal_properties.nb_octaves,
                 self.initial_properties.signal_properties.octaves_step,
                 self.initial_properties.signal_properties.period,
+                random.random(),
             )
 
     def _step(self, date_time: datetime, time_step: timedelta) -> None:
