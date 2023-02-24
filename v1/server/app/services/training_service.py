@@ -1,26 +1,26 @@
-
-
-
-from copy import deepcopy
-from collections import namedtuple
-from datetime import datetime
 import random
+from collections import namedtuple
+from copy import deepcopy
+from datetime import datetime
 from time import sleep
-from typing import Dict, Union, List
+from typing import Dict, List, Union
+
 import numpy as np
 import torch
+
+from app.config import config_dict
 from app.core.agents.agent import Agent
-from .socket_manager_service import SocketManager
+from app.core.agents.ppo import PPO
 from app.core.environment.environment import Environment
+from app.utils.logger import logger
 from app.utils.metrics import Metrics
 from app.utils.utils import normStateDict
-from app.core.agents.ppo import PPO
-from app.config import config_dict
-from app.utils.logger import logger
+
 from .client_manager_service import ClientManagerService
+from .socket_manager_service import SocketManager
 
 
-class TrainingService():
+class TrainingService:
     env: Environment
     obs_dict: Dict[int, List[Union[float, str, bool, datetime]]]
     nb_time_steps: int
@@ -30,17 +30,21 @@ class TrainingService():
     agent: Agent
     num_state: int
     metrics: Metrics
-    time_steps_per_episode: int 
+    time_steps_per_episode: int
     time_steps_per_epoch: int
     time_steps_train_log: int
     time_steps_test_log: int
     transition = namedtuple(
-            "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
-        )
-    
+        "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
+    )
+
     stop: bool
 
-    def __init__(self, socket_manager_service: SocketManager, client_manager_service: ClientManagerService) -> None:
+    def __init__(
+        self,
+        socket_manager_service: SocketManager,
+        client_manager_service: ClientManagerService,
+    ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.stop = False
@@ -55,7 +59,9 @@ class TrainingService():
         self.nb_tr_logs = 100
         self.nb_tr_epochs = 20
         self.obs_dict = self.env._reset()
-        self.num_state = len(normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict))
+        self.num_state = len(
+            normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
+        )
         # TODO: Get agent from config file
         self.agent = PPO(config_dict, self.num_state)
         self.time_steps_per_episode = int(self.nb_time_steps / self.nb_tr_epochs)
@@ -64,36 +70,42 @@ class TrainingService():
         self.time_steps_test_log = int(self.nb_time_steps / self.nb_test_logs)
         logger.info(f"Number of states: {self.num_state}")
 
-
     async def train(self):
-        
         # Initialize training variables
         logger.info(f"Initializing environment...")
-        await self.socket_manager_service.emit("success", {"message": "Initializing environment..."})
+        await self.socket_manager_service.emit(
+            "success", {"message": "Initializing environment..."}
+        )
 
         self.initialize()
         self.client_manager_service.initialize_data()
-        
-        await self.socket_manager_service.emit("success", {"message": "Starting simulation"})
+
+        await self.socket_manager_service.emit(
+            "success", {"message": "Starting simulation"}
+        )
         self.obs_dict = self.env._reset()
 
         for t in range(self.nb_time_steps):
-
             if self.stop:
                 logger.info(f"Training stopped at time {t}")
                 await self.socket_manager_service.emit("stopped", {})
                 break
 
-            data_messages, houses_messages = self.client_manager_service.update_data_change(self.obs_dict)
-            
-            await self.socket_manager_service.emit("houseChange", houses_messages)            
+            (
+                data_messages,
+                houses_messages,
+            ) = self.client_manager_service.update_data_change(self.obs_dict)
+
+            await self.socket_manager_service.emit("houseChange", houses_messages)
             await self.socket_manager_service.emit("dataChange", data_messages)
-            
+
             sleep(2)
-            
+
             # Select action with probabilities
             action_and_prob = {
-                k: self.agent.select_action(normStateDict(self.obs_dict[k], config_dict))
+                k: self.agent.select_action(
+                    normStateDict(self.obs_dict[k], config_dict)
+                )
                 for k in self.obs_dict.keys()
             }
             action = {k: action_and_prob[k][0] for k in self.obs_dict.keys()}
@@ -119,7 +131,9 @@ class TrainingService():
                     k,
                 )
                 # Update metrics
-                self.metrics.update(k, self.obs_dict, next_obs_dict, rewards_dict, self.env)
+                self.metrics.update(
+                    k, self.obs_dict, next_obs_dict, rewards_dict, self.env
+                )
 
             # Set next state as current state
             self.obs_dict = next_obs_dict
@@ -127,7 +141,9 @@ class TrainingService():
             # New episode, reset environment
             if done:
                 logger.info(f"New episode at time {t}")
-                await self.socket_manager_service.emit("success", {"message": f"New episode at time {t}"})
+                await self.socket_manager_service.emit(
+                    "success", {"message": f"New episode at time {t}"}
+                )
 
                 self.obs_dict = self.env._reset()
 
@@ -137,14 +153,20 @@ class TrainingService():
                 and len(self.agent.buffer[0]) >= self.agent.batch_size
             ):
                 logger.info(f"Updating agent at time {t}")
-                await self.socket_manager_service.emit("success", {"message": f"Updating agent at time {t}"})
+                await self.socket_manager_service.emit(
+                    "success", {"message": f"Updating agent at time {t}"}
+                )
 
                 self.agent.update(t)
 
             # Log train statistics
-            if t % self.time_steps_train_log == self.time_steps_train_log - 1:  # Log train statistics
+            if (
+                t % self.time_steps_train_log == self.time_steps_train_log - 1
+            ):  # Log train statistics
                 logger.info(f"Logging stats at time {t}")
-                await self.socket_manager_service.emit("success", {"message": f"Logging stats at time {t}"})
+                await self.socket_manager_service.emit(
+                    "success", {"message": f"Logging stats at time {t}"}
+                )
 
                 logged_metrics = self.metrics.log(t, self.time_steps_train_log)
                 logger.info(f"Stats : {logged_metrics}")
@@ -152,16 +174,22 @@ class TrainingService():
                 self.metrics.reset()
 
             # Test policy
-            if t % self.time_steps_test_log == self.time_steps_test_log - 1:  # Test policy
+            if (
+                t % self.time_steps_test_log == self.time_steps_test_log - 1
+            ):  # Test policy
                 logger.info(f"Testing at time {t}")
-                await self.socket_manager_service.emit("success", {"message": f"Testing at time {t}"})
+                await self.socket_manager_service.emit(
+                    "success", {"message": f"Testing at time {t}"}
+                )
                 # metrics_test = self.test_ppo_agent(t)
                 # logger.info(f"Metrics test: {metrics_test}")
                 # logger.info("Training step - {}".format(t))
-            
+
         logger.info("Simulation ended")
         await self.socket_manager_service.emit("stopped", {})
-        await self.socket_manager_service.emit("success", {"message": "Simulation ended"})
+        await self.socket_manager_service.emit(
+            "success", {"message": "Simulation ended"}
+        )
 
     def test_agent(self, tr_time_steps) -> dict:
         """
@@ -201,7 +229,7 @@ class TrainingService():
             "Test mean signal error": mean_signal_error,
             "Training steps": tr_time_steps,
         }
-    
+
     async def train_ppo(self):
         random.seed(1)
         env = Environment()
@@ -216,7 +244,8 @@ class TrainingService():
         nb_tr_epochs = 20
         # Initialize variables
         Transition = namedtuple(
-            "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
+            "Transition",
+            ["state", "action", "a_log_prob", "reward", "next_state", "done"],
         )
         time_steps_per_episode = int(nb_time_steps / nb_tr_epochs)
         time_steps_per_epoch = int(nb_time_steps / nb_tr_epochs)
@@ -228,7 +257,6 @@ class TrainingService():
         obs_dict = env._reset()
 
         for t in range(nb_time_steps):
-
             await self.client_manager_service.emit_data_change(obs_dict)
             sleep(2)
             # Select action with probabilities
@@ -278,7 +306,9 @@ class TrainingService():
                 agent.update(t)
 
             # Log train statistics
-            if t % time_steps_train_log == time_steps_train_log - 1:  # Log train statistics
+            if (
+                t % time_steps_train_log == time_steps_train_log - 1
+            ):  # Log train statistics
                 logger.info("Logging stats at time {}".format(t))
                 logged_metrics = metrics.log(t, time_steps_train_log)
                 logger.info(f"Stats : {logged_metrics}")
@@ -291,5 +321,5 @@ class TrainingService():
                 # metrics_test = self.test_ppo_agent(agent, env, t)
                 # logger.info(f"Metrics test: {metrics_test}")
                 # logger.info("Training step - {}".format(t))
-            
+
         logger.info("Simulation ended")

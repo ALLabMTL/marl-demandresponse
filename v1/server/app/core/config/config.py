@@ -1,24 +1,27 @@
-from pydantic import BaseModel, Extra, validator, Field
-from app.core.environment.cluster.building_properties import BuildingNoiseProperties
-from app.core.environment.cluster.hvac_properties import HvacNoiseProperties
-from app.core.environment.environment_properties import EnvironmentProperties
-from app.core.environment.cluster.hvac_properties import HvacProperties
-from app.core.environment.cluster.building_properties import BuildingProperties
-from app.config import config_dict
-
 from typing import Union
+
+from pydantic import BaseModel, Extra, Field, validator
+
+from app.config import config_dict
+from app.core.environment.cluster.building_properties import (
+    BuildingNoiseProperties,
+    BuildingProperties,
+)
+from app.core.environment.cluster.hvac_properties import (
+    HvacNoiseProperties,
+    HvacProperties,
+)
+from app.core.environment.environment_properties import EnvironmentProperties
 
 
 class Contained(BaseModel):
     nums: list[int]
 
 
-
-
 class Container(BaseModel):
     noise_param: Contained
     noise_mode: str
-    noise_resolved : Contained
+    noise_resolved: Contained
 
     @property
     def noise_resolved(self):
@@ -45,16 +48,16 @@ print(ctr.json(indent=4))
 ctr = Container(contained="small_noise")
 print(ctr.json(indent=4))
 import json
+import typing as t
 
 # ctr = Container(**json.loads('{"contained": "big_noise"}'))
 # print(ctr.json(indent=4))
 # # ctr = Container(contained="sdklhghklsdglhk")
 # # print(ctr.json(indent=4))
 
-# print(Container.schema_json(indent=4)) 
+# print(Container.schema_json(indent=4))
 
 
-import typing as t
 class NoiseHouseProp(BaseModel):
     noise_mode: str = "small_noise"
     noise_parameters: t.Dict[str, BuildingNoiseProperties]
@@ -112,7 +115,9 @@ class PPOProp(BaseModel):
 
 class MAPPOProp(PPOProp):
     """Properties for MAPPO agent."""
+
     pass
+
 
 class DDPGProp(BaseModel):
     """Properties for MAPPO agent."""
@@ -177,12 +182,11 @@ class DDPGProp(BaseModel):
         True,
         # description="Whether to use the shared DDPG network.",
     )
-    
 
 
 class DQNProp(BaseModel):
     """Properties for DQN agent."""
-    
+
     network_layers: list[int] = Field(
         [100, 100],
         description="List of layer sizes for the DQN network.",
@@ -216,8 +220,10 @@ class DQNProp(BaseModel):
         description="Minimum epsilon for the DQN agent.",
     )
 
+
 class MPCProp(BaseModel):
     """Properties for MPC agent."""
+
     rolling_horizon: int = Field(
         15,
         description="Rolling horizon for the MPC agent.",
@@ -268,6 +274,7 @@ class MarlConfig(BaseModel, extra=Extra.forbid):
     DDPG_prop: DDPGProp
     DQN_prop: DQNProp
     MPC_prop: MPCProp
+
 
 if __name__ == "__main__":
     # TODO: Name config and config module name conflict

@@ -148,7 +148,7 @@ class DDQN(DQN):
         self.policy_optimizer.step()
 
 
-#%% Testing
+# %% Testing
 
 if __name__ == "__main__":
     pass
