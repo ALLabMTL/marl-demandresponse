@@ -17,10 +17,15 @@ author = "Polytechnique Montréal"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc"]
+extensions = ["sphinx.ext.autodoc", "sphinxcontrib.autodoc_pydantic"]
 sys.path.insert(0, os.path.abspath("../../.."))
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath("../app/**"))
+sys.path.insert(0, os.path.abspath("../v0/**"))
+sys.path.insert(0, os.path.abspath("./app/**"))
+sys.path.insert(0, os.path.abspath("./v0/**"))
+sys.path.insert(0, os.path.abspath("."))
 autodoc_typehints = "both"
 
 templates_path = ["_templates"]
