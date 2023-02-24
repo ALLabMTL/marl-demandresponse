@@ -270,6 +270,8 @@ class MarlConfig(BaseModel, extra=Extra.forbid):
     MPC_prop: MPCProp
 
 if __name__ == "__main__":
+    # TODO: Name config and config module name conflict
+    # TODO: remove script part here, config should be at runtime
     print(config_dict)
     my_config = MarlConfig(**config_dict)
     with open("schema.json", "wb") as sche_file:
