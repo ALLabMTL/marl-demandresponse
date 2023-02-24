@@ -27,12 +27,12 @@ export class SidebarComponent {
   mid = 0;
   posMidMax = 0.25;
   posMax = 0.5;
-  hvacStatus: string = "ON";
-  isSortingSelected: boolean = false;
+  hvacStatus = "ON";
+  isSortingSelected = false;
   tempDiffValue = -1;
   filters: Filter[] = [];
   isFilteredSorted = false; // for the grid 
-  sortingOptionSelected: string = " ";
+  sortingOptionSelected = " ";
 
   numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
   
@@ -200,7 +200,7 @@ export class SidebarComponent {
   // }
 
   scaleChartPrecision(): void {
-    var precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
+    const precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
     this.sharedService.changePrecisionValue(parseFloat(precisionValue));
     if(this.precisionValueSelected >= 0){
       this.negMin = -(this.precisionValueSelected);

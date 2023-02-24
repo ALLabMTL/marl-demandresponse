@@ -20,9 +20,9 @@ interface PageData {
 export class GridComponent implements OnInit {
 
   @Input() pages: PageData[];
-  currentPage: number = 1;
-  maxPage: number = 35;
-  precisionValueSelected: number = 0;
+  currentPage = 1;
+  maxPage = 35;
+  precisionValueSelected = 0;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService){
     this.pages = [

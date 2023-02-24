@@ -13,8 +13,8 @@ export class GridFooterComponent {
   
   @Output() pageChangeFromFooter:EventEmitter<any> = new EventEmitter;
   
-  currentPage: number = 1;
-  maxPage: number = 35;
+  currentPage = 1;
+  maxPage = 35;
 
   constructor(private sharedService: SharedService){}
 
@@ -23,7 +23,7 @@ export class GridFooterComponent {
   }
 
   setPageInput(): void {
-    var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
+    const page = (<HTMLInputElement>document.getElementById("myNumber")).value;
     this.sharedService.changeCount(parseInt(page));
   }
 
