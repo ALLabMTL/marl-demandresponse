@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -7,7 +6,7 @@ import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
-from core.agents.network import Actor, Critic
+from app.core.agents.network import Actor, Critic
 
 
 class MAPPO:
@@ -155,7 +154,6 @@ class MAPPO:
                 self.training_step += 1
 
         if self.log_wandb:
-
             max_ratio = np.max(ratios)
             mean_ratio = np.mean(ratios)
             median_ratio = np.median(ratios)

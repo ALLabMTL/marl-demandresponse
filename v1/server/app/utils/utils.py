@@ -11,8 +11,9 @@ def deadbandL2(target, deadband, value):
 
     return deadband_L2
 
+
 # TODO: change this method to something better to nromalize state dict
-# maybe by making normalization in each class of the environment 
+# maybe by making normalization in each class of the environment
 # (hvac, building, cluster...)
 def normStateDict(sDict, config_dict, returnDict=False):
     default_house_prop = config_dict["default_house_prop"]
@@ -69,12 +70,8 @@ def normStateDict(sDict, config_dict, returnDict=False):
     result["turned_on"] = 1 if sDict["turned_on"] else 0
     result["lockout"] = 1 if sDict["lockout"] else 0
 
-    result["seconds_since_off"] = (
-        sDict["seconds_since_off"] / sDict["lockout_duration"]
-    )
-    result["lockout_duration"] = (
-        sDict["lockout_duration"] / sDict["lockout_duration"]
-    )
+    result["seconds_since_off"] = sDict["seconds_since_off"] / sDict["lockout_duration"]
+    result["lockout_duration"] = sDict["lockout_duration"] / sDict["lockout_duration"]
 
     result["reg_signal"] = sDict["reg_signal"] / (
         default_env_prop["reward_prop"]["norm_reg_sig"]

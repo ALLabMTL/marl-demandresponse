@@ -1,9 +1,9 @@
 from matplotlib import pyplot as plt
 from perlin_noise import PerlinNoise
 
+
 class Perlin:
     def __init__(self, amplitude, nb_octaves, octaves_step, period, seed):
-
         self.amplitude = amplitude
         self.nb_octaves = nb_octaves
         self.octaves_step = octaves_step

@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import random
 from collections import deque, namedtuple
@@ -6,7 +6,7 @@ from collections import deque, namedtuple
 import numpy as np
 import torch
 
-#%% Classes
+# %% Classes
 
 Transition = namedtuple("Transition", ("state", "action", "reward", "next_state"))
 
@@ -95,7 +95,7 @@ class DDPGBuffer:
         return self._size
 
 
-#%% Testing
+# %% Testing
 
 if __name__ == "__main__":
     state = np.ones((10, 1))

@@ -1,21 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 GRAPH_MEMORY = 5000
 
+
 class PlotterService:
-    
     def make_graph(
-    temp_diff,
-    temp_err,
-    air_temp,
-    mass_temp,
-    target_temp,
-    OD_temp,
-    signal,
-    consumption,
-    timestep,
+        temp_diff,
+        temp_err,
+        air_temp,
+        mass_temp,
+        target_temp,
+        OD_temp,
+        signal,
+        consumption,
+        timestep,
     ):
         start_point_graph = max(0, timestep - len(temp_diff))
 

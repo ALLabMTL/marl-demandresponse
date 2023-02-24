@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
 from typing import Dict
 
 import numpy as np
-from core.environment.cluster.cluster import Cluster
 
-from core.environment.cluster.cluster_properties import TemperatureProperties
-from core.environment.power_grid.power_grid import PowerGrid
-from utils.utils import deadbandL2
-from core.environment.cluster.building import Building
-from core.environment.environment_properties import EnvironmentProperties
+from app.core.environment.cluster.building import Building
+from app.core.environment.cluster.cluster import Cluster
+from app.core.environment.cluster.cluster_properties import TemperatureProperties
+from app.core.environment.environment_properties import EnvironmentProperties
+from app.core.environment.power_grid.power_grid import PowerGrid
+from app.utils.utils import deadbandL2
 
 
 class Environment:
@@ -28,24 +28,21 @@ class Environment:
         self.temp_properties = TemperatureProperties()
         self.cluster = Cluster()
         self.power_grid = PowerGrid(
-            self.cluster.max_power, 
+            self.cluster.max_power,
             self.cluster.nb_hvacs,
-            self.cluster.buildings[0].initial_properties.solar_gain
+            self.cluster.buildings[0].initial_properties.solar_gain,
         )
         self.compute_od_temp()
-    
+
     def _reset(self) -> dict:
         self.build_environment()
         return self._get_obs()
 
-    def _step(self, action_dict: Dict[int, dict]) :
+    def _step(self, action_dict: Dict[int, dict]):
         self.date_time += self.init_props.time_step
         # Cluster step
         self.cluster._step(
-            self.current_od_temp, 
-            action_dict, 
-            self.date_time, 
-            self.init_props.time_step
+            self.current_od_temp, action_dict, self.date_time, self.init_props.time_step
         )
 
         self.compute_od_temp()
@@ -56,18 +53,19 @@ class Environment:
         # Power grid step
         self.power_grid._step(self.date_time, self.init_props.time_step)
 
-
         return self._get_obs(), rewards_dict
 
     def _get_obs(self) -> Dict[int, dict]:
-        ""
+        """"""
         obs_dict = self.cluster._get_obs()
         for i in range(self.cluster.nb_hvacs):
-            obs_dict[i].update({
-                "OD_temp": self.current_od_temp,
-                "datetime": self.date_time,
-                "reg_signal": self.power_grid.current_signal
-            })
+            obs_dict[i].update(
+                {
+                    "OD_temp": self.current_od_temp,
+                    "datetime": self.date_time,
+                    "reg_signal": self.power_grid.current_signal,
+                }
+            )
         return obs_dict
 
     def build_environment(self) -> None:
@@ -78,9 +76,9 @@ class Environment:
         self.date_time = self.init_props.start_datetime
         self.compute_od_temp()
         self.power_grid = PowerGrid(
-            self.cluster.max_power, 
+            self.cluster.max_power,
             self.cluster.nb_hvacs,
-            self.cluster.buildings[0].initial_properties.solar_gain
+            self.cluster.buildings[0].initial_properties.solar_gain,
         )
         self.power_grid._step(self.date_time, self.init_props.start_datetime)
         # TODO: compute OD_temp after step of cluster
@@ -120,7 +118,7 @@ class Environment:
         temp_penalty_dict = {}
         for building_id, _ in enumerate(self.cluster.buildings):
             temp_penalty_dict[building_id] = self.compute_temp_penalty(building_id)
-            
+
             rewards_dict[building_id] = -1 * (
                 self.init_props.reward_properties.alpha_temp
                 * temp_penalty_dict[building_id]
@@ -145,7 +143,9 @@ class Environment:
         if temp_penalty_mode == "individual_L2":
             building = self.cluster.buildings[one_house_id]
             temperature_penalty = deadbandL2(
-                building.initial_properties.target_temp , building.initial_properties.deadband, building.indoor_temp
+                building.initial_properties.target_temp,
+                building.initial_properties.deadband,
+                building.indoor_temp,
             )
 
             # temperature_penalty = np.clip(temperature_penalty, 0, 20)
@@ -154,9 +154,13 @@ class Environment:
             ## Mean of all houses L2
             for building in self.cluster.buildings:
                 building_temperature_penalty = deadbandL2(
-                    building.initial_properties.target_temp, building.initial_properties.deadband, building.indoor_temp
+                    building.initial_properties.target_temp,
+                    building.initial_properties.deadband,
+                    building.indoor_temp,
                 )
-                temperature_penalty += building_temperature_penalty / len(self.cluster.buildings)
+                temperature_penalty += building_temperature_penalty / len(
+                    self.cluster.buildings
+                )
 
         # elif temp_penalty_mode == "common_max":
         #     temperature_penalty = 0
@@ -216,7 +220,11 @@ class Environment:
 
         if sig_penalty_mode == "common_L2":
             penalty = (
-                (self.cluster.current_power_consumption - self.power_grid.current_signal) / self.cluster.nb_agents
+                (
+                    self.cluster.current_power_consumption
+                    - self.power_grid.current_signal
+                )
+                / self.cluster.nb_agents
             ) ** 2
         else:
             raise ValueError(f"Unknown signal penalty mode: {sig_penalty_mode}")
@@ -237,7 +245,9 @@ class Environment:
         """
 
         # Sinusoidal model
-        amplitude = (self.temp_properties.day_temp - self.temp_properties.night_temp) / 2
+        amplitude = (
+            self.temp_properties.day_temp - self.temp_properties.night_temp
+        ) / 2
         bias = (self.temp_properties.day_temp + self.temp_properties.night_temp) / 2
         delay = -6 + self.temp_properties.phase  # Temperature is coldest at 6am
         time_day = self.date_time.hour + self.date_time.minute / 60.0
@@ -251,11 +261,13 @@ class Environment:
     def apply_noise(self) -> None:
         self.randomize_date()
         self.cluster.apply_noise()
-    
+
     def randomize_date(self):
         if self.init_props.start_datetime_mode == "random":
             DAYS_IN_YEAR = 364
             SECONDS_IN_DAY = 60 * 60 * 24
             random_days = random.randrange(DAYS_IN_YEAR)
             random_seconds = random.randrange(SECONDS_IN_DAY)
-            self.date_time = self.init_props.start_datetime + timedelta(days=random_days, seconds=random_seconds)
+            self.date_time = self.init_props.start_datetime + timedelta(
+                days=random_days, seconds=random_seconds
+            )
