@@ -2,20 +2,20 @@
 
 // TODO: Setup a custom Angular Material Theme
 
-// @import '~@angular/material/theming';
-// @include mat-core();
+@import '@angular/material/theming';
+@include mat-core();
 
-// $default-theme-primary: mat-palette($mat-pink, 300);
-// $default-theme-accent: mat-palette($mat-light-blue, 400);
+$default-theme-primary: mat-palette($mat-light-green, 800);
+$default-theme-accent: mat-palette($mat-light-green, 300);
 // $default-theme-warn: mat-palette($mat-red, 400);
 
-// $default-theme: mat-dark-theme($default-theme-primary, $default-theme-accent, $default-theme-warn);
+$default-theme: mat-light-theme($default-theme-primary, $default-theme-accent);
 
-// @include angular-material-theme($default-theme);
+@include angular-material-theme($default-theme);
 
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: 'Rubik', serif !important; }
 
 .green-snackbar {
     background: #9AC999;

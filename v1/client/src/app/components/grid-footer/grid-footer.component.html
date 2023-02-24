@@ -1,1 +1,19 @@
-<p>grid-footer works!</p>
+<div class="container">
+    <div class="pagination">
+        <button class="prev-page" (click)="decrementPage()" [disabled]="currentPage == 1">
+            <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="page-input">
+            <input class="input" id="myNumber" (keyup.enter)="setPageInput()" (blur)="setPageInput()" type="number" min="1" max="{{maxPage}}" step="1" value="{{currentPage}}">
+        </div>
+
+        <span class="max-pages">
+            / {{maxPage}}
+        </span>
+
+        <button class="next-page" (click)="incrementPage()" [disabled]="currentPage == maxPage" >
+            <mat-icon>chevron_right</mat-icon>
+        </button>
+    </div>
+</div>
