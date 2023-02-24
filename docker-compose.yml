@@ -2,7 +2,7 @@ services:
   frontend:
     image: frontend
     build:
-      context: v1/client/
+      context: client/
       dockerfile: Dockerfile
     networks:
       - mynetwork
@@ -12,7 +12,7 @@ services:
   backend:
     image: backend
     build:
-      context: v1/server/
+      context: server/
       dockerfile: Dockerfile
     ports:
       - "8000:8000"

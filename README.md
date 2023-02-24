@@ -47,7 +47,7 @@ python -m debugpy --listen localhost:5600 --wait-for-client app/main.py
 ```
 
 ### Run linters
-
+Inside the `server/` folder, run the following commands:
 ```bash
 isort -i $(git ls-files '*.py')
 pylint $(git ls-files '*.py')
