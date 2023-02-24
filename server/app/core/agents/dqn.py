@@ -80,6 +80,7 @@ class DQN:
         new_params = self.policy_net.state_dict()
         params = self.target_net.state_dict()
         for k in params.keys():
+            # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
             params[k] = (1 - self.tau) * params[k] + self.tau * new_params[k]
         self.target_net.load_state_dict(params)
 

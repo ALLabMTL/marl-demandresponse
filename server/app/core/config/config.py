@@ -1,4 +1,4 @@
-from typing import Union
+import typing as t
 
 from pydantic import BaseModel, Extra, Field, validator
 
@@ -14,48 +14,46 @@ from app.core.environment.cluster.hvac_properties import (
 from app.core.environment.environment_properties import EnvironmentProperties
 
 
-class Contained(BaseModel):
-    nums: list[int]
+# class Contained(BaseModel):
+#     nums: list[int]
 
 
-class Container(BaseModel):
-    noise_param: Contained
-    noise_mode: str
-    noise_resolved: Contained
+# class Container(BaseModel):
+#     noise_param: Contained
+#     noise_mode: str
+#     noise_resolved: Contained
 
-    @property
-    def noise_resolved(self):
-        return self.noise_param
+#     @property
+#     def noise_resolved(self):
+#         return self.noise_param
 
-    get_noise_
-
-    # def __init__(self, **data) -> None:
-    #     if "contained" in data:
-    #         ctd: Union[Contained, str] = data["contained"]
-    #         templates = {
-    #             "big_noise": Contained(nums=[1, 2, 3]),
-    #             "small_noise": Contained(nums=[4, 5, 6]),
-    #         }
-    #         if isinstance(ctd, str):
-    #             data["contained"] = templates[ctd]
-    #         else:
-    #             data["contained"] = ctd
-    #     super().__init__(**data)
+#     # def __init__(self, **data) -> None:
+#     #     if "contained" in data:
+#     #         ctd: Union[Contained, str] = data["contained"]
+#     #         templates = {
+#     #             "big_noise": Contained(nums=[1, 2, 3]),
+#     #             "small_noise": Contained(nums=[4, 5, 6]),
+#     #         }
+#     #         if isinstance(ctd, str):
+#     #             data["contained"] = templates[ctd]
+#     #         else:
+#     #             data["contained"] = ctd
+#     #     super().__init__(**data)
 
 
-ctr = Container(contained="big_noise")
-print(ctr.json(indent=4))
-ctr = Container(contained="small_noise")
-print(ctr.json(indent=4))
-import json
-import typing as t
-
-# ctr = Container(**json.loads('{"contained": "big_noise"}'))
+# ctr = Container(contained="big_noise")
 # print(ctr.json(indent=4))
-# # ctr = Container(contained="sdklhghklsdglhk")
-# # print(ctr.json(indent=4))
+# ctr = Container(contained="small_noise")
+# print(ctr.json(indent=4))
+# import json
+# import typing as t
 
-# print(Container.schema_json(indent=4))
+# # ctr = Container(**json.loads('{"contained": "big_noise"}'))
+# # print(ctr.json(indent=4))
+# # # ctr = Container(contained="sdklhghklsdglhk")
+# # # print(ctr.json(indent=4))
+
+# # print(Container.schema_json(indent=4))
 
 
 class NoiseHouseProp(BaseModel):
