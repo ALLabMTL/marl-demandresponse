@@ -1,0 +1,22 @@
+docker-frontend-build:
+  services:
+    - docker:dind
+  image: docker/compose:1.29.2
+  stage: build
+  tags: ["victor"]
+  variables:
+    DOCKER_DRIVER: overlay
+  script:
+    - docker-compose build frontend 
+
+
+docker-backend-build:
+  services:
+    - docker:dind
+  image: docker/compose:1.29.2
+  stage: test
+  tags: ["victor"]
+  variables:
+    DOCKER_DRIVER: overlay
+  script:
+    - docker-compose up --build --exit-code-from backend backend
