@@ -30,7 +30,7 @@ class Cluster(Simulatable):
         self.agents_comm_properties = AgentsCommunicationProperties()
         self.message_properties = MessageProperties()
         self.nb_agents = 10
-        self.buildings= list([Building()]*self.nb_agents)
+        self.buildings= [Building() for _ in range(self.nb_agents)]
         self.current_power = 0
         self.max_power = 0
         self.agent_communicators = {}

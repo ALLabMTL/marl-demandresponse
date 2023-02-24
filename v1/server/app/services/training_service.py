@@ -76,7 +76,7 @@ class TrainingService():
         self.client_manager_service.initialize_data()
         
         await self.socket_manager_service.emit("success", {"message": "Starting simulation"})
-
+        self.obs_dict = self.env._reset()
 
         for t in range(self.nb_time_steps):
 
@@ -87,8 +87,8 @@ class TrainingService():
 
             data_messages, houses_messages = self.client_manager_service.update_data_change(self.obs_dict)
             
-            await self.socket_manager_service.emit("dataChange", data_messages)
             await self.socket_manager_service.emit("houseChange", houses_messages)            
+            await self.socket_manager_service.emit("dataChange", data_messages)
             
             sleep(2)
             
@@ -161,6 +161,7 @@ class TrainingService():
                 # logger.info("Training step - {}".format(t))
             
         logger.info("Simulation ended")
+        await self.socket_manager_service.emit("stopped", {})
         await self.socket_manager_service.emit("success", {"message": "Simulation ended"})
 
     def test_agent(self, tr_time_steps) -> dict:

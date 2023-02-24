@@ -21,7 +21,7 @@ class ClientManagerService():
         self.signal = np.array([])
         self.consumption = np.array([])
         # TODO: Make pydantic model
-        self.houses_messages: List[Dict[Union[str, float]]] =  []
+        self.houses_messages: List[Dict[str, Union[str, float]]] =  []
 
     def update_data_change(self, obs_dict: Dict[int, dict]) -> Tuple[dict, dict]:
         df = pd.DataFrame(obs_dict).transpose()
@@ -29,7 +29,6 @@ class ClientManagerService():
         self.houses_messages = []
         for house_id in obs_dict.keys():
             self.houses_messages.append({"id": house_id})
-            # self.houses_messages[house_id] = {}
             if obs_dict[house_id]["turned_on"]:
                 self.houses_messages[house_id].update({"hvacStatus": "ON"})
             elif obs_dict[house_id]["lockout"]:
@@ -59,11 +58,12 @@ class ClientManagerService():
         self.update_data_messages(df)
 
     def update_data_messages(self, df: pd.DataFrame):
+        # TODO: refactor this
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
         self.data_messages["Number of locked HVAC"] = str(
             np.where(
-                df["seconds_since_off"] > df["lockout_duration"], 1, 0
+                df["lockout"] & (df["turned_on"] == False), 1, 0
             ).sum()
         )
         self.data_messages["Outdoor temperature"] = (
