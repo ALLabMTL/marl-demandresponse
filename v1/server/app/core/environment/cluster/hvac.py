@@ -57,7 +57,7 @@ class HVAC(Simulatable):
                 self.seconds_since_off + time_step.seconds < self.init_props.lockout_duration
             ):
                 self.lockout = True
-        return self._get_obs()
+        return 
 
     def apply_noise(self) -> None:
         self.init_props.cooling_capacity = random.choices(

@@ -4,7 +4,7 @@ import { NgModule } from '@angular/core';
 // import { MatButtonToggleModule } from '@angular/material/button-toggle';
 // import { MatCardModule } from '@angular/material/card';
 // import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
+// import { MatChipsModule } from '@angular/material/chips';
 // import { MatDatepickerModule } from '@angular/material/datepicker';
 // import { MatDialogModule } from '@angular/material/dialog';
 // import { MatDividerModule } from '@angular/material/divider';
@@ -21,7 +21,7 @@ import { MatListModule } from '@angular/material/list';
 // import { MatRadioModule } from '@angular/material/radio';
 // import { MatSelectModule } from '@angular/material/select';
 // import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+// import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 // import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 // import { MatSortModule } from '@angular/material/sort';
@@ -39,7 +39,7 @@ export const modules = [
     // MatButtonToggleModule,
     //MatCardModule,
     // MatCheckboxModule,
-    MatChipsModule,
+    // MatChipsModule,
     // MatDatepickerModule,
     // MatDialogModule,
     // MatDividerModule,
@@ -57,7 +57,7 @@ export const modules = [
     // MatSelectModule,
     // MatSidenavModule,
     // MatSliderModule,
-    MatSlideToggleModule,
+    // MatSlideToggleModule,
     MatSnackBarModule,
     // MatSortModule,
     // MatStepperModule,
