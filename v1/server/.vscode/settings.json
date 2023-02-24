@@ -8,6 +8,16 @@
     "python.analysis.inlayHints.functionReturnTypes": true,
     "python.linting.pylintArgs": [
         "--generated-members",
-        "torch.*"
+        "torch.*",
+        "--ignored-modules=pydantic",
+        "--extension-pkg-whitelist=pydantic"
+    ],
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/MARLconfig.json"
+            ],
+            "url": "./MARLconfig.schema.json"
+        }
     ]
 }

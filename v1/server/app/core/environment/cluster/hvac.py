@@ -1,7 +1,9 @@
-from datetime import timedelta
 import random
+from datetime import timedelta
+
+from app.core.environment.simulatable import Simulatable
+
 from .hvac_properties import HvacNoiseProperties, HvacProperties
-from core.environment.simulatable import Simulatable
 
 
 class HVAC(Simulatable):
@@ -14,7 +16,7 @@ class HVAC(Simulatable):
 
     def __init__(self) -> None:
         self._reset()
-    
+
     def _reset(self) -> dict:
         # TODO: get properties from parser_service
         self.init_props = HvacProperties()
@@ -24,7 +26,7 @@ class HVAC(Simulatable):
         self.seconds_since_off = 0
         self.lockout = False
         self.turned_on = True
-        
+
         return self._get_obs()
 
     def _step(self, action: bool, time_step: timedelta) -> dict:
@@ -54,24 +56,28 @@ class HVAC(Simulatable):
             if self.turned_on:
                 self.seconds_since_off = 0
             elif (
-                self.seconds_since_off + time_step.seconds < self.init_props.lockout_duration
+                self.seconds_since_off + time_step.seconds
+                < self.init_props.lockout_duration
             ):
                 self.lockout = True
         return self._get_obs()
 
     def apply_noise(self) -> None:
         self.init_props.cooling_capacity = random.choices(
-            self.noise_props.cooling_capacity_list)
+            self.noise_props.cooling_capacity_list
+        )
 
     def _get_obs(self) -> dict:
         obs_dict = self.init_props.dict()
-        obs_dict.update({
-            "turned_on": self.turned_on,
-            "seconds_since_off": self.seconds_since_off,
-            "lockout": self.lockout,
-        })
+        obs_dict.update(
+            {
+                "turned_on": self.turned_on,
+                "seconds_since_off": self.seconds_since_off,
+                "lockout": self.lockout,
+            }
+        )
         return obs_dict
-    
+
     def get_Q(self) -> float:
         """
         Compute the rate of heat transfer produced by the HVAC
@@ -83,7 +89,11 @@ class HVAC(Simulatable):
         self
         """
         if self.turned_on:
-            q_hvac = -1 * self.init_props.cooling_capacity / (1 + self.init_props.latent_cooling_fraction)
+            q_hvac = (
+                -1
+                * self.init_props.cooling_capacity
+                / (1 + self.init_props.latent_cooling_fraction)
+            )
         else:
             q_hvac = 0
 
@@ -102,4 +112,3 @@ class HVAC(Simulatable):
             power_cons = 0
 
         return power_cons
-

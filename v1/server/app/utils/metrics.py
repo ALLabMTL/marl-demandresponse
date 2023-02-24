@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.environment.environment import Environment
+from app.core.environment.environment import Environment
 
 
 class Metrics:
@@ -13,15 +13,13 @@ class Metrics:
         self.cumul_next_signal_offset = 0
         self.cumul_next_signal_error = 0
 
-    def update(self, k, obs_dict, next_obs_dict, rewards_dict, env:Environment):
+    def update(self, k, obs_dict, next_obs_dict, rewards_dict, env: Environment):
         nb_agents = len(env.cluster.buildings)
         self.cumul_temp_offset += (
             next_obs_dict[k]["indoor_temp"] - next_obs_dict[k]["target_temp"]
         ) / len(env.cluster.buildings)
         self.cumul_temp_error += (
-            np.abs(
-                next_obs_dict[k]["indoor_temp"] - next_obs_dict[k]["target_temp"]
-            )
+            np.abs(next_obs_dict[k]["indoor_temp"] - next_obs_dict[k]["target_temp"])
             / nb_agents
         )
         self.cumul_avg_reward += rewards_dict[k] / nb_agents

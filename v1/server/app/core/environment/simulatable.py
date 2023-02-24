@@ -4,8 +4,9 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-T = TypeVar('T')
-U = TypeVar('U')
+T = TypeVar("T")
+U = TypeVar("U")
+
 
 class Simulatable(ABC):
     initial_properties: BaseModel
@@ -14,7 +15,7 @@ class Simulatable(ABC):
     @abstractmethod
     def _reset(self) -> dict:
         pass
-    
+
     @abstractmethod
     def _step(self) -> dict:
         pass
@@ -26,8 +27,3 @@ class Simulatable(ABC):
     @abstractmethod
     def apply_noise(self) -> None:
         pass
-
-
-    
-
-

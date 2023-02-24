@@ -18,3 +18,5 @@ htmlcov/
 .pytest_cache/
 .coverage
 
+
+/docs

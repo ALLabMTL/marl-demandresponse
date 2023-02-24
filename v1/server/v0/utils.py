@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 import random
@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
-from wandb_setup import wandb_setup
+from v0.wandb_setup import wandb_setup
 
-#%% Functions
+# %% Functions
 
 
 def render_and_wandb_init(opt, config_dict):
@@ -76,7 +76,6 @@ def adjust_config_train(opt, config_dict):
     if opt.hvac_noise_mode != "config":
         config_dict["noise_hvac_prop"]["noise_mode"] = opt.hvac_noise_mode
     if opt.hvac_lockout_noise != -1:
-
         config_dict["default_hvac_prop"]["lockout_noise"] = opt.hvac_lockout_noise
     if opt.hvac_noise_mode_test == "train":
         config_dict["noise_hvac_prop_test"]["noise_mode"] = config_dict[
@@ -386,7 +385,6 @@ def applyPropertyNoise(
     default_hvac_prop,
     noise_hvac_prop,
 ):
-
     env_properties = deepcopy(default_env_prop)
     nb_agents = default_env_prop["cluster_prop"]["nb_agents"]
 
@@ -658,7 +656,7 @@ def normStateDict(sDict, config_dict, returnDict=False):
     return result
 
 
-#%% Testing
+# %% Testing
 
 
 def test_dqn_agent(agent, env, config_dict, opt, tr_time_steps):
@@ -845,7 +843,6 @@ def sortDictKeys(point, dict_keys):
 
 class Perlin:
     def __init__(self, amplitude, nb_octaves, octaves_step, period, seed):
-
         self.amplitude = amplitude
         self.nb_octaves = nb_octaves
         self.octaves_step = octaves_step

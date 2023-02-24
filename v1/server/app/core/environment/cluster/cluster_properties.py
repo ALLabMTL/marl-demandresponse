@@ -16,6 +16,7 @@ class AgentsCommunicationProperties(BaseModel):
     max_communication_distance: int = 2
     max_nb_agents_communication: int = 10
 
+
 class MessageProperties(BaseModel):
     thermal: bool = False
     hvac: bool = False
