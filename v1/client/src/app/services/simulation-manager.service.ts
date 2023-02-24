@@ -10,14 +10,17 @@ export class SimulationManagerService {
   propertyNames: string[];
   propertyValues: string[];
   housesData: HouseData[];
-
+  started: boolean;
+  stopped: boolean;
 
 
   constructor() { 
-    this.sidenavData = [];
-    this.propertyNames = [];
-    this.propertyValues = [];
-    this.housesData = [];
+      this.sidenavData = [];
+      this.propertyNames = [];
+      this.propertyValues = [];
+      this.housesData = [];
+      this.started = true;
+      this.stopped = true;
   }
 
 
@@ -31,7 +34,12 @@ export class SimulationManagerService {
     this.housesData = data;
   }
 
-  getHouseData(index: number): void {
-
+  resetSimulation(): void {
+    this.sidenavData = [];
+    this.propertyNames = [];
+    this.propertyValues = [];
+    this.housesData = [];
+    this.started = false;
+    this.stopped = true;
   }
 }

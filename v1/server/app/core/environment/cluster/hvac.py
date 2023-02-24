@@ -71,6 +71,7 @@ class HVAC(Simulatable):
             "lockout": self.lockout,
         })
         return obs_dict
+    
     def get_Q(self) -> float:
         """
         Compute the rate of heat transfer produced by the HVAC

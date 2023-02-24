@@ -21,18 +21,17 @@ def register_endpoints(
         await sio.emit("connected", {"message": f"Client connected with sid: {sid}"})
     
     @sio.on("disconnect")
-    async def disconnect(sid):
+    async def disconnect(sid, *args):
         logger.debug(f"Client disconnected with sid {sid}")
-        # await sio.emit(
-        #     "disconnected", {"message": f"Client disconnected with sid {sid}"}
-        # )
+        training_service.stop = True
 
     @sio.on("train")
     async def train(sid, *args) -> None:
-        logger.debug("starting experiment")
-        await training_service.train_ppo()
+        logger.debug("Starting experiment")
+        training_service.stop = False
+        await training_service.train()
+    
+    @sio.on("stop")
+    async def stop_training(sid, *args) -> None:
+        training_service.stop = True
 
-    @sio.on("ping")
-    async def ping(sid, *args) -> None:
-        logger.debug(f"Client ping with sid {sid}")
-        await sio.emit("pong", args)

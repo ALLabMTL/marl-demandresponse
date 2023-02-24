@@ -3,6 +3,8 @@ import { SidenavData, HouseData } from '@app/classes/sidenav-data';
 import { NotificationService } from '@app/services/notification/notification.service';
 import { SocketService } from '@app/services/socket/socket.service';
 import { SimulationManagerService } from '../simulation-manager.service';
+import { SnackbarMessage } from '@app/classes/snackbar-message';
+
 
 @Injectable({
   providedIn: 'root'
@@ -37,10 +39,6 @@ export class SocketCommunicationService {
       this.startTraining()
     });
 
-    this.socketService.on('pong', () => {
-      this.snackBarService.openSuccessSnackBar('Pong from server', '');
-    });
-
     this.socketService.on('dataChange', (data: SidenavData) => {
       this.simulationManager.addTimeStep(data)
 
@@ -49,9 +47,33 @@ export class SocketCommunicationService {
     this.socketService.on('houseChange', (data: HouseData[]) => {
       this.simulationManager.updateHousesData(data)
     })
+
+    this.socketService.on('stopped', () => {
+      this.simulationManager.resetSimulation();
+      this.snackBarService.openSuccessSnackBar('Simulation stopped', '');
+
+    })
+
+    this.socketService.on('error', (data: SnackbarMessage) => {
+      this.snackBarService.openFailureSnackBar(data.message, '');
+    });
+
+    this.socketService.on('success', (data: SnackbarMessage) => {
+        this.snackBarService.openSuccessSnackBar(data.message, '');
+    });
+
+
   }
 
-  startTraining() {
+  startTraining(): void {
     this.socketService.send('train');
+    this.simulationManager.started = true;
+    this.simulationManager.stopped = false;
+  }
+
+  stopTraining(): void {
+    this.snackBarService.openSuccessSnackBar('Stopping simulation...', '');
+    this.simulationManager.stopped = true;
+    this.socketService.send('stop');
   }
 }
