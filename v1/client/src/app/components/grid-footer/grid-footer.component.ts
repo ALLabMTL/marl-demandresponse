@@ -23,7 +23,7 @@ export class GridFooterComponent {
   }
 
   setPageInput(): void {
-    var page = (<HTMLInputElement>document.getElementById("myNumber")).value;
+    const page = (<HTMLInputElement>document.getElementById("myNumber")).value;
     this.sharedService.changeCount(parseInt(page));
   }
 
