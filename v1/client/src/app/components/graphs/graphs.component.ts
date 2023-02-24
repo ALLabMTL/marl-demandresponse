@@ -7,5 +7,5 @@ import { SimulationManagerService } from '@app/services/simulation-manager.servi
   styleUrls: ['./graphs.component.scss']
 })
 export class GraphsComponent {
-  constructor(public simulationManager: SimulationManagerService){}
+  constructor(){}
 }

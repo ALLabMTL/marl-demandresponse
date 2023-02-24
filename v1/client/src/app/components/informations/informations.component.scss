@@ -1,0 +1,26 @@
+.container{
+    position: relative;
+    background-color: rgb(245, 245, 245);
+    width: 85%;
+    height: 90%;
+    border-radius: 1rem;
+}
+
+.box{
+    padding-left: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.title{
+    font-weight: bold;
+    font-size: medium;
+    margin-bottom: 0.2rem;
+}
+
+.text{
+    font-size: small;
+    margin-top: 0;
+    line-height: 1.2em;
+    margin-bottom: 0;
+}
