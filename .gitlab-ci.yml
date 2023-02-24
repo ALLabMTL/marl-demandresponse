@@ -7,7 +7,7 @@ docker-frontend-build:
   variables:
     DOCKER_DRIVER: overlay
   script:
-    - docker-compose build frontend
+    - docker-compose build frontend 
 
 
 docker-backend-build:
@@ -19,4 +19,4 @@ docker-backend-build:
   variables:
     DOCKER_DRIVER: overlay
   script:
-    - docker-compose up --build backend
+    - docker-compose up --build --exit-code-from backend backend
