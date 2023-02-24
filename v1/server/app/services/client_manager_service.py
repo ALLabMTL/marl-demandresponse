@@ -1,7 +1,7 @@
-from typing import Dict
+from copy import deepcopy
+from typing import List, Dict, Union
 import numpy as np
 import pandas as pd
-import asyncio
 from utils.logger import logger
 from .socket_manager_service import SocketManager
 
@@ -20,10 +20,33 @@ class ClientManagerService():
         self.OD_temp = np.array([])
         self.signal = np.array([])
         self.consumption = np.array([])
-        self.loop = asyncio.get_event_loop()
+        self.houses_messages: List[Dict[Union[str, float]]] =  []
     
     async def emit_data_change(self, obs_dict: Dict[int, dict]) -> pd.DataFrame:
         df = pd.DataFrame(obs_dict).transpose()
+        self.update_data(df)
+        self.houses_messages = []
+        for house_id in obs_dict.keys():
+            self.houses_messages.append({"id": house_id})
+            # self.houses_messages[house_id] = {}
+            if obs_dict[house_id]["turned_on"]:
+                self.houses_messages[house_id].update({"hvacStatus": "ON"})
+            elif obs_dict[house_id]["lockout"]:
+                self.houses_messages[house_id].update({"hvacStatus":"Lockout", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
+            else:
+                self.houses_messages[house_id].update({"hvacStatus" : "OFF", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
+
+            self.houses_messages[house_id]["indoorTemp"] = obs_dict[house_id]["indoor_temp"]
+            self.houses_messages[house_id]["targetTemp"] = obs_dict[house_id]["target_temp"]
+            self.houses_messages[house_id]["tempDifference"] = obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
+
+
+
+        await self.socket_manager_service.emit("dataChange", self.data_messages)
+        await self.socket_manager_service.emit("houseChange", self.houses_messages)
+
+
+    def update_data(self, df: pd.DataFrame) -> None:
         df["temperature_difference"] = df["indoor_temp"] - df["target_temp"]
         df["temperature_error"] = np.abs(df["indoor_temp"] - df["target_temp"])
         self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean())
@@ -34,12 +57,9 @@ class ClientManagerService():
         self.OD_temp = np.append(self.OD_temp, df["OD_temp"].mean())
         self.signal = np.append(self.signal, df["reg_signal"][0])
         self.consumption = np.append(self.consumption, df["cluster_hvac_power"][0])
-        self.edit_data(df)
-        
-        await self.socket_manager_service.emit("dataChange", self.data_messages)
+        self.update_data_messages(df)
 
-    def edit_data(self, df):
-
+    def update_data_messages(self, df: pd.DataFrame):
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
         self.data_messages["Number of locked HVAC"] = str(
@@ -80,3 +100,4 @@ class ClientManagerService():
                 - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
             )
         )
+
