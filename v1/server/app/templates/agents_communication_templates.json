@@ -1,0 +1,10 @@
+{
+    "neighbours_2D": {
+        "row_size": 5, 
+        "distance_comm": 2
+    },
+    "neighbours": {},
+    "closed_groups": {},
+    "random_sample": {},
+    "random_fixed": {}
+}

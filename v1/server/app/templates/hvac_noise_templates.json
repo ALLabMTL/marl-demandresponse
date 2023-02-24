@@ -1,0 +1,23 @@
+{
+    "no_noise": {
+        "std_latent_cooling_fraction": 0, 
+        "factor_COP_low": 1,  
+        "factor_COP_high": 1,  
+        "factor_cooling_capacity_low": 1, 
+        "factor_cooling_capacity_high": 1
+    },
+    "small_noise": {
+        "std_latent_cooling_fraction": 0.05,  
+        "factor_COP_low": 0.95,  
+        "factor_COP_high": 1.05,  
+        "factor_cooling_capacity_low": 0.9,  
+        "factor_cooling_capacity_high": 1.1 
+    },
+    "big_noise": {
+        "std_latent_cooling_fraction": 0.1,  
+        "factor_COP_low": 0.85,  
+        "factor_COP_high": 1.15,  
+        "factor_cooling_capacity_low": 0.6666667,  
+        "factor_cooling_capacity_high": 1.3333333333
+    }
+}

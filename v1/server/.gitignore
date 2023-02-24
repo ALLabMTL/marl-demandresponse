@@ -1,0 +1,22 @@
+# Python venv
+/.venv/
+/.env/
+/venv/
+/env/
+
+# Python compiled files
+**/__pycache__/
+
+# Environment files
+**/*.env
+
+#logs folder
+logs/*.log
+
+# Coverage related files
+htmlcov/
+.pytest_cache/
+.coverage
+
+
+/docs

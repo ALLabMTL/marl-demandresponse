@@ -1,0 +1,39 @@
+# project requriements
+wandb==0.13.*
+numpy==1.24.*
+pandas==1.5.*
+torch==1.13.*
+ray[rllib]==2.2.*
+gym==0.23.*
+sympy==1.11.*
+pyglet==1.5.*
+matplotlib==3.7.*
+perlin_noise==1.*
+cvxpy==1.3.*
+dm_tree==0.1.*
+scikit-image==0.19.* # for rllib
+
+# dev requirements
+black # code formatter
+isort # code formatter
+pylint # code linter
+pytest # test runner
+# pytest-cov # test coverage
+# pytest-mock # mock testing
+# pytest-xdist # parallel testing
+pydocstyle # docstring linter
+codespell # spell checker
+mypy # type checker
+sphinx # documentation generator
+sphinx-autodoc-typehints # type hinting for sphinx
+insipid-sphinx-theme # sphinx theme
+autodoc_pydantic # sphinx plugin for pydantic
+# sphinx-apidoc # api documentation generator
+
+
+# v1
+python-socketio==5.7.*
+fastapi==0.92.*
+uvicorn==0.20.*
+dependency_injector==4.*
+websockets
