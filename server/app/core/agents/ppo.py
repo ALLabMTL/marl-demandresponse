@@ -65,6 +65,7 @@ class PPO:
     def select_action(self, state):
         state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
         with torch.no_grad():
+            # pylint: disable=not-callable
             action_prob = self.actor_net(state)
         c = Categorical(action_prob.cpu())
         action = c.sample()
@@ -74,6 +75,7 @@ class PPO:
         # state = torch.from_numpy(state)
         state = state.to(self.device)
         with torch.no_grad():
+            # pylint: disable=not-callable
             value = self.critic_net(state)
         return value.cpu().item()
 
@@ -150,11 +152,13 @@ class PPO:
                 # with torch.no_grad():
                 Gt_index = Gt[index].view(-1, 1)
 
+                # pylint: disable=not-callable
                 V = self.critic_net(state[index])
                 delta = Gt_index - V
                 advantage = delta.detach()
 
                 # epoch iteration, PPO core
+                # pylint: disable=not-callable
                 action_prob = self.actor_net(state[index]).gather(
                     1, action[index]
                 )  # new policy

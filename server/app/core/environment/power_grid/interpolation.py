@@ -59,58 +59,6 @@ class PowerInterpolator(object):
 
         return index_df
 
-    def interpolateLinearND(self, point_dict):
-        "Return a linear interpolation for a point"
-        assert set(point_dict.keys()) == set(self.dict_keys)
-
-        point_coordinates = list(point_dict.values())
-
-        closest_coordinates_grid = {}
-        # Getting highest and lowest points for each coordinates
-        for key in self.dict_keys:
-            closest_coordinates_grid[key] = self.get_two_closest(
-                np.array(parameters_dict[key]), point_dict[key]
-            )
-
-        # Getting the coordinates of all points on the grid that we want to give to the interpolator
-        list_coordinates = list(closest_coordinates_grid.values())
-        all_combinations = np.array(np.meshgrid(*list_coordinates)).T.reshape(
-            -1, len(point_coordinates)
-        )  # Gives a list of point coordinates representing all combinations from the two points per dimension.
-        all_combinations_list = all_combinations.tolist()
-
-        ## Getting the values
-        power_list = []
-        for coordinates in all_combinations_list:
-            point = {}
-            i = 0
-            for key in self.dict_keys:
-                point[key] = coordinates[i]
-                i += 1
-            index_df = self.param2index(point)
-            power = self.power_data.loc[[index_df]]["hvac_average_power"]
-            power_list.append(power)
-        power_array = np.array(power_list)
-
-        start_time = time.time()
-
-        print("Ready to start interpolator")
-
-        interp = LinearNDInterpolator(all_combinations, power_array)
-        print(
-            "Interpolator loaded. Time for loading: ",
-            str(datetime.timedelta(seconds=round(time.time() - start_time))),
-        )
-        print("Interpolating...")
-
-        result = interp(point_coordinates)
-
-        print(
-            "Done! Time for loading + interpolating: ",
-            str(datetime.timedelta(seconds=round(time.time() - start_time))),
-        )
-        return result
-
     def interpolateGrid(self, point_dict):
         point_coordinates = list(point_dict.values())
         result = interpn(self.points, self.values, point_coordinates)
