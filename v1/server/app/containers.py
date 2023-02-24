@@ -9,11 +9,12 @@ class Container(containers.DeclarativeContainer):
     socket_manager_service = providers.Singleton(SocketManager)
 
     client_manager_service = providers.Singleton(
-        ClientManagerService,
-        socket_manager_service=socket_manager_service
+        ClientManagerService
     )
     
     training_service = providers.Singleton(
         TrainingService,
+        socket_manager_service=socket_manager_service,
         client_manager_service=client_manager_service,
+
     )

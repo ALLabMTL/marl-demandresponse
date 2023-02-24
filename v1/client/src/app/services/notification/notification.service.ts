@@ -5,7 +5,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     providedIn: 'root',
 })
 export class NotificationService {
-    constructor(public snackBar: MatSnackBar) {}
+    constructor(private snackBar: MatSnackBar) {}
 
     openSuccessSnackBar(message: string, action: string) {
         this.snackBar.open(message, action, {
@@ -21,11 +21,5 @@ export class NotificationService {
             horizontalPosition: 'left',
         });
     }
-    openWarningSnackBar(message: string, action: string) {
-        this.snackBar.open(message, action, {
-            duration: 3000,
-            panelClass: ['orange-snackbar', 'login-snackbar'],
-            horizontalPosition: 'left',
-        });
-    }
+
 }

@@ -13,8 +13,8 @@ export class GridFooterComponent {
   
   @Output() pageChangeFromFooter:EventEmitter<any> = new EventEmitter;
   
-  currentPage = 1;
-  maxPage = 35;
+  currentPage: number = 1;
+  maxPage: number = 35;
 
   constructor(private sharedService: SharedService){}
 
