@@ -5,6 +5,7 @@ GRAPH_MEMORY = 5000
 
 
 class PlotterService:
+    @staticmethod
     def make_graph(
         temp_diff,
         temp_err,
@@ -139,21 +140,20 @@ class PlotterService:
         return fig
 
     def draw_graph(self):
-        fig = self.make_graph(
-            self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
-            self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :],
-            self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
-            self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
-            self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
-            self.OD_temp[max(-GRAPH_MEMORY, -len(self.OD_temp)) :],
-            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
-            self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :],
-            self.time,
-        )
+        # fig = self.make_graph(
+        #     self.temp_diff[max(-GRAPH_MEMORY, -len(self.temp_diff)) :],
+        #     self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :],
+        #     self.air_temp[max(-GRAPH_MEMORY, -len(self.air_temp)) :],
+        #     self.mass_temp[max(-GRAPH_MEMORY, -len(self.mass_temp)) :],
+        #     self.target_temp[max(-GRAPH_MEMORY, -len(self.target_temp)) :],
+        #     self.OD_temp[max(-GRAPH_MEMORY, -len(self.OD_temp)) :],
+        #     self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :],
+        #     self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :],
+        #     self.time,
+        # )
 
-        if fig != None:
-            rendered_figure = rendering.render_figure(fig)
-            plt.close(fig)
-            self.graph_data = rendered_figure
-
+        # if fig != None:
+        #     rendered_figure = rendering.render_figure(fig)
+        #     plt.close(fig)
+        #     self.graph_data = rendered_figure
         return
