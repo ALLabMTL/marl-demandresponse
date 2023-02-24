@@ -1,16 +1,21 @@
 <div class="sidebar">
-  <p class="filter-title">
-    <b>Filters:</b>
-  </p>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Sort by</mat-label>
+      <mat-select>
+        <mat-option style="font-size: 14px" value="one"
+          >Temperature : small to big</mat-option
+        >
+        <mat-option style="font-size: 14px" value="two"
+          >Temperature : big to small</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
   <div class="temp_filter">
-    <mat-slide-toggle
-      class="temp_checkbox"
-      [(ngModel)]="isTempChecked">
-      Temperature difference
-    </mat-slide-toggle>
-    <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
-      >Temperature difference</mat-checkbox
-    > -->
+    <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
+      >Temprature difference</mat-checkbox
+    >
     <mat-slider
       min="-1"
       max="1"
@@ -19,27 +24,11 @@
       discrete
       [displayWith]="formatLabel"
       [disabled]="!isTempChecked"
-      [(ngModel)] = "tempDiffValue"
-      (click) = "filterByTempDiff()"
     >
       <input matSliderThumb />
     </mat-slider>
   </div>
-  <mat-divider></mat-divider>
-  <div class="hvac_filter">
-    <mat-slide-toggle
-    class="temp_checkbox"
-    [(ngModel)]="isHvacChecked">
-    HVAC status
-    </mat-slide-toggle>
-    <mat-chip-listbox [disabled] = "!isHvacChecked">
-      <mat-chip-option [(ngModel)]="hvacStatus" (click) = "filterByHvacStatus()"> ON </mat-chip-option>
-      <mat-chip-option [(ngModel)]="hvacStatus" (click) = "filterByHvacStatus()"> Lockout </mat-chip-option>
-      <mat-chip-option [(ngModel)]="hvacStatus" (click) = "filterByHvacStatus()"> OFF </mat-chip-option>
-    </mat-chip-listbox>
-  </div>
-  <mat-divider></mat-divider>
-  <!-- <div class="floor_filter">
+  <div class="floor_filter">
     <mat-checkbox class="floor_checkbox" (click)="floorCheckbox()"
       >Number of floors</mat-checkbox
     >
@@ -54,41 +43,18 @@
     >
       <input matSliderThumb />
     </mat-slider>
-  </div> -->
-  <!-- <div class="floor_filter">
+  </div>
+  <div class="floor_filter">
     <mat-checkbox class="house_checkbox">Houses</mat-checkbox>
     <mat-checkbox class="vehicule_checkbox">Vehicules</mat-checkbox>
     <mat-checkbox class="compagnie_checkbox">Compagnies</mat-checkbox>
-  </div> -->
-  <div class="filter">
-    <mat-form-field appearance="fill">
-      <mat-label>Sort by</mat-label>
-      <mat-select [(ngModel)]="sortingOptionSelected">
-        <mat-option style="font-size: 14px" value="indoorTempInc" (click) = "sortByIndoorTempIncreasing()"
-          >Indoor temp. : increasing</mat-option
-        >
-        <mat-option style="font-size: 14px" value="indoorTempDec" (click) = "sortByIndoorTempDecreasing()"
-          >Indoor temp. : decreasing</mat-option
-        >
-        <mat-option style="font-size: 14px" value="tempDiffInc" (click) = "sortByTempDiffIncreasing()"
-        >Temp. diff. : increasing</mat-option
-      >
-      <mat-option style="font-size: 14px" value="tempDiffDec" (click) = "sortByTempDiffDecreasing()"
-        >Temp. diff. : decreasing</mat-option
-      >
-      <mat-option style="font-size: 14px" value="noSorting" (click) = "removeSorting()"
-      >No sorting</mat-option
-    >
-      </mat-select>
-    </mat-form-field>
   </div>
-  <mat-divider></mat-divider>
+
   <div class="scale">
     <p class="scale_text"><b>Color Temperature Scale</b></p>
     <mat-form-field class="precision">
       <mat-label>Precision</mat-label>
       <input
-        id="precisionValue"
         type="number"
         matInput
         [formControl]="numberFormControl"
@@ -129,12 +95,11 @@
         {{ posMax }}
       </span>
     </div>
-    <mat-divider></mat-divider>
     <div class="hvac_status">
-      <p class="hvac-status-title"><b>HVAC Status: </b></p>
-      <div  class="circle_lockout"><p class="hvac-status-legend">Lockout</p></div>
-      <div class="circle_hvac_on"><p class="hvac-status-legend">ON</p></div>
-      <div class="circle_hvac_off"><p class="hvac-status-legend">OFF</p></div>
+      <p><b>HVAC Status: </b></p>
+      <div class="circle_lockout"><p>Lockout</p></div>
+      <div class="circle_hvac_on"><p>ON</p></div>
+      <div class="circle_hvac_off"><p>OFF</p></div>
     </div>
   </div>
 </div>

@@ -1,30 +1,11 @@
 mat-slider {
-  margin-left: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
+  margin-left: 30px;
   width: 190px;
 }
 
-mat-chip-listbox {
-  margin-top: 1rem;
-}
-.hvac_filter {
-  margin-left: 1rem;
-  margin-top: 1.5rem;
-  margin-bottom: 2rem;
-
-}
-.temp_filter {
-  margin-left: 1rem;
-  margin-top: 1.5rem;
-  
-}
-
 .scale {
-  // position: absolute;
-  // bottom: 0;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  position: absolute;
+  bottom: 0;
 }
 
 .scale .scale_gradient {
@@ -33,35 +14,29 @@ mat-chip-listbox {
   margin-left: 1.3rem;
   background: linear-gradient(
     to right,
-    rgba(0, 0, 255, 100),
-    rgba(0, 255, 255, 100),
-    rgba(0, 255, 0, 100),
-    rgba(255, 255, 0, 100),
-    rgba(255, 0, 0, 100)
+    rgba(0, 18, 107, 100),
+    rgba(90, 255, 250, 100),
+    rgba(98, 253, 109, 100),
+    rgba(255, 162, 0, 100),
+    rgba(144, 4, 4, 100)
   );
-  border: 1px solid rgba(0,0,0,0.5);
+  border: 1px solid black;
 }
 
 .scale_chart {
-  text-align: center;
   display: table;
   width: 15.3rem;
   table-layout: fixed;
   margin-bottom: 2rem;
-  color: black;
 }
 
 .scale_chart span {
   display: table-cell;
-  // text-align: center;
-  // padding-left: 1rem;
+  text-align: center;
 }
 
 .scale .scale_text {
-  // text-align: center;
-  font-size: 1rem;
-  padding-left: 1.2rem;
-  color: black;
+  text-align: center;
 }
 
 .scale .input_precision {
@@ -76,15 +51,13 @@ mat-chip-listbox {
 }
 
 .hvac_status {
-  margin-top: 2rem;
-  padding-left: 1.2rem;
+  padding-left: 20px;
   margin-bottom: 2rem;
 }
 
-.hvac-status-legend {
+.hvac_status p {
   padding-left: 50px;
   padding-top: 5px;
-  color: black;
 }
 
 .circle_lockout {
@@ -117,28 +90,10 @@ mat-chip-listbox {
 }
 
 .filter {
-  margin: 2rem 1rem 1.5rem 1rem;
+  margin: 1rem 1rem 0 1rem;
 }
 
 .floor_filter {
   display: flex;
   flex-direction: column;
 }
-
-.filter-title {
-  font-size: 1rem;
-  // margin-left: 0.7rem;
-  padding-left: 1.2rem;
-  margin-top: 1rem;
-  color: black;
-}
-
-.hvac-status-title {
-  font-size: 1rem;
-  color: black
-}
-
-// .filter {
-//   margin-top: 2rem;
-//   margin-bottom: 2rem;
-// }
