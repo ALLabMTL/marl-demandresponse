@@ -12,13 +12,16 @@ import { GridFooterComponent } from './components/grid-footer/grid-footer.compon
 import { InformationsComponent } from './components/informations/informations.component';
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { TimestampComponent } from './components/timestamp/timestamp.component';
+import { MatIconModule } from '@angular/material/icon';
+import {MatGridListModule} from '@angular/material/grid-list';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DialogComponent } from './components/dialog/dialog.component';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -29,12 +32,16 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     GridFooterComponent,
     InformationsComponent,
     GraphsComponent,
-    TimestampComponent
+    TimestampComponent,
+    DialogComponent,
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     MatToolbarModule,
+    MatIconModule,
+    MatGridListModule,
+    AppMaterialModule,
     MatFormFieldModule,
     MatSelectModule,
     MatCheckboxModule,
@@ -44,7 +51,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     FormsModule, 
     ReactiveFormsModule,
     AppRoutingModule,
-    AppMaterialModule
+    AppMaterialModule,
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
