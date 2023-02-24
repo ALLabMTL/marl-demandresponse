@@ -4,8 +4,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from agents.buffer import ReplayBuffer, Transition
-from agents.network import DQN_network
+from app.core.agents.buffer import ReplayBuffer, Transition
+from app.core.agents.network import DQN_network
 
 
 class DQN:

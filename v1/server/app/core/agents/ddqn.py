@@ -1,5 +1,5 @@
-from core.agents.dqn import DQN
-from core.agents.buffer import Transition
+from app.core.agents.dqn import DQN
+from app.core.agents.buffer import Transition
 import torch.nn as nn
 
 class DDQN(DQN):

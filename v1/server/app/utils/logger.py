@@ -3,7 +3,7 @@ from logging.config import dictConfig
 
 from pydantic import BaseModel
 
-from utils.settings import settings
+from app.utils.settings import settings
 
 
 class LoggingConfig(BaseModel):

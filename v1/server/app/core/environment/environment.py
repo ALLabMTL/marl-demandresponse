@@ -3,13 +3,13 @@ import random
 from typing import Dict
 
 import numpy as np
-from core.environment.cluster.cluster import Cluster
+from app.core.environment.cluster.cluster import Cluster
 
-from core.environment.cluster.cluster_properties import TemperatureProperties
-from core.environment.power_grid.power_grid import PowerGrid
-from utils.utils import deadbandL2
-from core.environment.cluster.building import Building
-from core.environment.environment_properties import EnvironmentProperties
+from app.core.environment.cluster.cluster_properties import TemperatureProperties
+from app.core.environment.power_grid.power_grid import PowerGrid
+from app.utils.utils import deadbandL2
+from app.core.environment.cluster.building import Building
+from app.core.environment.environment_properties import EnvironmentProperties
 
 
 class Environment:

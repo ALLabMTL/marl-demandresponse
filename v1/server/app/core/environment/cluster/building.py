@@ -5,9 +5,9 @@ import random
 from typing import List
 
 import numpy as np
-from core.environment.cluster.building_properties import BuildingNoiseProperties, BuildingProperties
-from core.environment.cluster.hvac import HVAC
-from core.environment.simulatable import Simulatable
+from app.core.environment.cluster.building_properties import BuildingNoiseProperties, BuildingProperties
+from app.core.environment.cluster.hvac import HVAC
+from app.core.environment.simulatable import Simulatable
 
 class Building(Simulatable):
     initial_properties: BuildingProperties

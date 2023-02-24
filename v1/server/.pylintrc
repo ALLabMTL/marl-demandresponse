@@ -1,0 +1,6 @@
+[MASTER]
+extension-pkg-whitelist=numpy,torch,pydantic
+
+[TYPECHECK]
+ignored-modules=numpy,torch,pydantic
+ignored-classes=numpy,torch,pydantic

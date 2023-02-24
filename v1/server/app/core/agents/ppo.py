@@ -5,8 +5,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from utils.logger import logger
-from core.agents.network import Actor, Critic
+from app.utils.logger import logger
+from app.core.agents.network import Actor, Critic
 
 class PPO:
     def __init__(self, config_dict: dict, num_state=22, num_action=2, seed=1):

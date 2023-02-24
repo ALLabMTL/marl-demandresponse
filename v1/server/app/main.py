@@ -18,7 +18,7 @@ from app.services.training_service import TrainingService
 from app.utils.const import Color
 from app.utils.logger import logger
 from app.utils.settings import settings
-from config import config_dict
+from app.config import config_dict
 
 
 class ExtendedFastAPI(FastAPI):

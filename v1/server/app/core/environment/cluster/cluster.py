@@ -3,13 +3,13 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.environment.cluster.building import Building
-from core.environment.cluster.cluster_properties import (
+from app.core.environment.cluster.building import Building
+from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
     MessageProperties,
 )
-from core.environment.simulatable import Simulatable
-from utils.logger import logger
+from app.core.environment.simulatable import Simulatable
+from app.utils.logger import logger
 
 class Cluster(Simulatable):
     # TODO: maybe we should put them in same model (static properties) 

@@ -1,7 +1,7 @@
 from datetime import timedelta
 import random
 from .hvac_properties import HvacNoiseProperties, HvacProperties
-from core.environment.simulatable import Simulatable
+from app.core.environment.simulatable import Simulatable
 
 
 class HVAC(Simulatable):

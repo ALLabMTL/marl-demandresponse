@@ -1,6 +1,6 @@
 import numpy as np
 
-from core.environment.environment import Environment
+from app.core.environment.environment import Environment
 
 
 class Metrics:

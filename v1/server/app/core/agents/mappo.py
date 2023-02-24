@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
-from core.agents.network import Actor, Critic
+from app.core.agents.network import Actor, Critic
 
 
 class MAPPO:

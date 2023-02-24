@@ -5,7 +5,7 @@ import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils.logger import logger
+from app.utils.logger import logger
 #%% Classes
 
 

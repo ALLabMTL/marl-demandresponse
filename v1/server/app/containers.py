@@ -1,8 +1,8 @@
 from dependency_injector import containers, providers
 
-from services.socket_manager_service import SocketManager
-from services.training_service import TrainingService
-from services.client_manager_service import ClientManagerService
+from app.services.socket_manager_service import SocketManager
+from app.services.training_service import TrainingService
+from app.services.client_manager_service import ClientManagerService
 
 class Container(containers.DeclarativeContainer):
 

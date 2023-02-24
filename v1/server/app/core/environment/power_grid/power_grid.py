@@ -5,10 +5,10 @@ import random
 import time
 
 import numpy as np
-from core.environment.simulatable import Simulatable
-from core.environment.power_grid.power_grid_properties import PowerGridProperties
-from core.environment.power_grid.perlin import Perlin
-from core.environment.power_grid.interpolation import PowerInterpolator
+from app.core.environment.simulatable import Simulatable
+from app.core.environment.power_grid.power_grid_properties import PowerGridProperties
+from app.core.environment.power_grid.perlin import Perlin
+from app.core.environment.power_grid.interpolation import PowerInterpolator
 
 class PowerGrid(Simulatable):
     initial_properties: PowerGridProperties
