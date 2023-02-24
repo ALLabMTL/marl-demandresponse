@@ -1,4 +1,5 @@
 from typing import List
+
 from pydantic import BaseModel
 
 
@@ -21,8 +22,9 @@ class BasePowerProperties(BaseModel):
     path_datafile: str = "./monteCarlo/mergedGridSearchResultFinal.npy"
     path_parameter_dict: str = "./monteCarlo/interp_parameters_dict.json"
     path_dict_keys: str = "./monteCarlo/interp_dict_keys.csv"
-    interp_update_period: int =  300  
-    interp_nb_agents: int = 100 
+    interp_update_period: int = 300
+    interp_nb_agents: int = 100
+
 
 class PowerGridProperties(BaseModel):
     artificial_signal_ratio_range: int = 1

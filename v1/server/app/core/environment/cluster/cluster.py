@@ -3,16 +3,17 @@ from typing import Dict, List
 
 import numpy as np
 
-from core.environment.cluster.building import Building
-from core.environment.cluster.cluster_properties import (
+from app.core.environment.cluster.building import Building
+from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
     MessageProperties,
 )
-from core.environment.simulatable import Simulatable
-from utils.logger import logger
+from app.core.environment.simulatable import Simulatable
+from app.utils.logger import logger
+
 
 class Cluster(Simulatable):
-    # TODO: maybe we should put them in same model (static properties) 
+    # TODO: maybe we should put them in same model (static properties)
     agents_comm_properties: AgentsCommunicationProperties
     message_properties: MessageProperties
     nb_agents: int
@@ -30,7 +31,7 @@ class Cluster(Simulatable):
         self.agents_comm_properties = AgentsCommunicationProperties()
         self.message_properties = MessageProperties()
         self.nb_agents = 10
-        self.buildings= [Building() for _ in range(self.nb_agents)]
+        self.buildings = [Building() for _ in range(self.nb_agents)]
         self.current_power = 0
         self.max_power = 0
         self.agent_communicators = {}
@@ -43,11 +44,17 @@ class Cluster(Simulatable):
             self.nb_hvacs += building.initial_properties.nb_hvacs
         self.build_agents_comm_links()
 
-    def _step(self, od_temp: float, action_dict:Dict[int, bool], date_time: datetime, time_step: timedelta) -> None:
+    def _step(
+        self,
+        od_temp: float,
+        action_dict: Dict[int, bool],
+        date_time: datetime,
+        time_step: timedelta,
+    ) -> None:
         self.current_power_consumption = 0
-        
+
         # TODO: we need to change this if we are doing multiple hvacs
-        for building_id, building in enumerate(self.buildings):            
+        for building_id, building in enumerate(self.buildings):
             if building_id in action_dict.keys():
                 command = action_dict[building_id]
             else:
@@ -55,7 +62,6 @@ class Cluster(Simulatable):
                 command = False
             building._step(od_temp, time_step, date_time, command)
             self.current_power_consumption += building.get_power_consumption()
-
 
     def message(self, thermal: bool, hvac: bool) -> dict:
         # TODO: we need to implement this method
@@ -77,27 +83,27 @@ class Cluster(Simulatable):
 
     def _get_obs(self) -> Dict[int, dict]:
         state_dict = {}
-        # TODO: we need to change this into models and maybe 
-        # move this to parser service 
+        # TODO: we need to change this into models and maybe
+        # move this to parser service
         for building_id, building in enumerate(self.buildings):
             for hvac_id, _ in enumerate(building.hvacs):
-                state_dict.update({building_id+hvac_id: building._get_obs()})
-                state_dict[building_id+hvac_id].update({"cluster_hvac_power": self.current_power_consumption })
-                id_houses_messages= self.agent_communicators[building_id]
-                
+                state_dict.update({building_id + hvac_id: building._get_obs()})
+                state_dict[building_id + hvac_id].update(
+                    {"cluster_hvac_power": self.current_power_consumption}
+                )
+                id_houses_messages = self.agent_communicators[building_id]
+
                 state_dict[building_id]["message"] = []
                 for id_house_message in id_houses_messages:
                     state_dict[building_id]["message"].append(
-                        self.buildings[id_house_message].message(
-                            True, False
-                        )
+                        self.buildings[id_house_message].message(True, False)
                     )
         return state_dict
 
     def build_agents_comm_links(self) -> None:
         nb_comm = np.minimum(
-            self.agents_comm_properties.max_nb_agents_communication, 
-            (len(self.buildings) - 1)
+            self.agents_comm_properties.max_nb_agents_communication,
+            (len(self.buildings) - 1),
         )
         # This is to get the neighbours of each agent in a circular fashion,
         # if agent_id is 5, the half before will be [0, 1, 2, 3, 4] and half after will be [6, 7, 8, 9, 10]
@@ -113,7 +119,7 @@ class Cluster(Simulatable):
                 (agent_id + 1 + i) % len(agent_ids)
                 for i in range(int(np.ceil(nb_comm / 2)))
             ]
-            self.agent_communicators[agent_id]= half_before + half_after
+            self.agent_communicators[agent_id] = half_before + half_after
         # if self.agents_communication_properties.mode == "random_sample":
         #     possible_ids = deepcopy(agent_ids)
         #     nb_comm = np.minimum(
@@ -126,7 +132,5 @@ class Cluster(Simulatable):
         # else:
         #     ids_houses_messages = self.agent_communicators[house_id]
 
-
     def apply_noise(self) -> None:
         (building.apply_noise() for building in self.buildings)
-

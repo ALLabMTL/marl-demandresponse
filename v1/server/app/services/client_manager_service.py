@@ -1,12 +1,13 @@
 from copy import deepcopy
-from typing import List, Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
+
 import numpy as np
 import pandas as pd
 
 GRAPH_MEMORY = 5000
 
-class ClientManagerService():
 
+class ClientManagerService:
     def __init__(self) -> None:
         self.initialize_data()
 
@@ -21,7 +22,7 @@ class ClientManagerService():
         self.signal = np.array([])
         self.consumption = np.array([])
         # TODO: Make pydantic model
-        self.houses_messages: List[Dict[str, Union[str, float]]] =  []
+        self.houses_messages: List[Dict[str, Union[str, float]]] = []
 
     def update_data_change(self, obs_dict: Dict[int, dict]) -> Tuple[dict, dict]:
         df = pd.DataFrame(obs_dict).transpose()
@@ -32,17 +33,31 @@ class ClientManagerService():
             if obs_dict[house_id]["turned_on"]:
                 self.houses_messages[house_id].update({"hvacStatus": "ON"})
             elif obs_dict[house_id]["lockout"]:
-                self.houses_messages[house_id].update({"hvacStatus":"Lockout", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
+                self.houses_messages[house_id].update(
+                    {
+                        "hvacStatus": "Lockout",
+                        "secondsSinceOff": obs_dict[house_id]["seconds_since_off"],
+                    }
+                )
             else:
-                self.houses_messages[house_id].update({"hvacStatus" : "OFF", "secondsSinceOff" : obs_dict[house_id]["seconds_since_off"]})
+                self.houses_messages[house_id].update(
+                    {
+                        "hvacStatus": "OFF",
+                        "secondsSinceOff": obs_dict[house_id]["seconds_since_off"],
+                    }
+                )
 
-            self.houses_messages[house_id]["indoorTemp"] = obs_dict[house_id]["indoor_temp"]
-            self.houses_messages[house_id]["targetTemp"] = obs_dict[house_id]["target_temp"]
-            self.houses_messages[house_id]["tempDifference"] = obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
-
+            self.houses_messages[house_id]["indoorTemp"] = obs_dict[house_id][
+                "indoor_temp"
+            ]
+            self.houses_messages[house_id]["targetTemp"] = obs_dict[house_id][
+                "target_temp"
+            ]
+            self.houses_messages[house_id]["tempDifference"] = (
+                obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
+            )
 
         return self.data_messages, self.houses_messages
-
 
     def update_data(self, df: pd.DataFrame) -> None:
         df["temperature_difference"] = df["indoor_temp"] - df["target_temp"]
@@ -62,9 +77,7 @@ class ClientManagerService():
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
         self.data_messages["Number of locked HVAC"] = str(
-            np.where(
-                df["lockout"] & (df["turned_on"] == False), 1, 0
-            ).sum()
+            np.where(df["lockout"] & (df["turned_on"] == False), 1, 0).sum()
         )
         self.data_messages["Outdoor temperature"] = (
             str(round(df["OD_temp"][0], 2)) + " °C"
@@ -99,4 +112,3 @@ class ClientManagerService():
                 - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
             )
         )
-

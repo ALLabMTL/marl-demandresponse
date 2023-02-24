@@ -27,6 +27,7 @@ mypy # type checker
 sphinx # documentation generator
 sphinx-autodoc-typehints # type hinting for sphinx
 insipid-sphinx-theme # sphinx theme
+autodoc_pydantic # sphinx plugin for pydantic
 # sphinx-apidoc # api documentation generator
 
 

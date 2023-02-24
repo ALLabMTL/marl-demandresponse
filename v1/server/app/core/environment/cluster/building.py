@@ -1,13 +1,18 @@
+import random
 from abc import ABC
 from copy import deepcopy
-from datetime import timedelta, datetime
-import random
+from datetime import datetime, timedelta
 from typing import List
 
 import numpy as np
-from core.environment.cluster.building_properties import BuildingNoiseProperties, BuildingProperties
-from core.environment.cluster.hvac import HVAC
-from core.environment.simulatable import Simulatable
+
+from app.core.environment.cluster.building_properties import (
+    BuildingNoiseProperties,
+    BuildingProperties,
+)
+from app.core.environment.cluster.hvac import HVAC
+from app.core.environment.simulatable import Simulatable
+
 
 class Building(Simulatable):
     initial_properties: BuildingProperties
@@ -22,21 +27,23 @@ class Building(Simulatable):
         super().__init__()
         self._reset()
 
-    def _reset(self)-> dict:
+    def _reset(self) -> dict:
         super()._reset()
         # TODO: Initialize values with parser service
         self.initial_properties = BuildingProperties()
         self.noise_properties = BuildingNoiseProperties()
-        self.hvacs = list([HVAC()]*self.initial_properties.nb_hvacs)
+        self.hvacs = list([HVAC()] * self.initial_properties.nb_hvacs)
         self.max_consumption = 0
-        for hvac in self.hvacs: 
+        for hvac in self.hvacs:
             self.max_consumption += hvac.max_consumption
         self.current_solar_gain = 0
         self.indoor_temp = self.initial_properties.init_air_temp
-        self.current_mass_temp = self.initial_properties.init_mass_temp      
-        return self._get_obs()  
-    
-    def _step(self, od_temp: float, time_step: timedelta, date_time: datetime, action: bool) -> None:
+        self.current_mass_temp = self.initial_properties.init_mass_temp
+        return self._get_obs()
+
+    def _step(
+        self, od_temp: float, time_step: timedelta, date_time: datetime, action: bool
+    ) -> None:
         """
         Take a time step for the house
 
@@ -59,12 +66,18 @@ class Building(Simulatable):
         state_dict = {}
         for hvac in self.hvacs:
             state_dict.update(hvac._get_obs())
-            state_dict.update(self.initial_properties.dict(include={'target_temp', 'deadband', 'Ua', 'Cm', 'Ca', 'Hm'}))
-            state_dict.update({
+            state_dict.update(
+                self.initial_properties.dict(
+                    include={"target_temp", "deadband", "Ua", "Cm", "Ca", "Hm"}
+                )
+            )
+            state_dict.update(
+                {
                     "indoor_temp": self.indoor_temp,
                     "mass_temp": self.current_mass_temp,
-                    "solar_gain": self.current_solar_gain,            
-            })
+                    "solar_gain": self.current_solar_gain,
+                }
+            )
         return state_dict
 
     def message(self, thermal: bool, hvac: bool) -> dict:
@@ -73,7 +86,8 @@ class Building(Simulatable):
         """
         # TODO: make this apply to all hvacs
         message = {
-            "current_temp_diff_to_target": self.indoor_temp - self.initial_properties.target_temp,
+            "current_temp_diff_to_target": self.indoor_temp
+            - self.initial_properties.target_temp,
             "hvac_seconds_since_off": self.hvacs[0].seconds_since_off,
             "hvac_curr_consumption": self.hvacs[0].get_power_consumption(),
             "hvac_max_consumption": self.hvacs[0].max_consumption,
@@ -81,12 +95,18 @@ class Building(Simulatable):
         }
 
         if thermal:
-            message.update(self.initial_properties.dict(include={'Ua', 'Ca', 'Hm', "Cm"}))
+            message.update(
+                self.initial_properties.dict(include={"Ua", "Ca", "Hm", "Cm"})
+            )
         if hvac:
-            message.update(self.hvacs[0].initial_properties.dict(exclude={"lockout_duration"}))
+            message.update(
+                self.hvacs[0].initial_properties.dict(exclude={"lockout_duration"})
+            )
         return message
 
-    def update_temperature(self, od_temp: int, time_step: timedelta, date_time: datetime) -> None:
+    def update_temperature(
+        self, od_temp: int, time_step: timedelta, date_time: datetime
+    ) -> None:
         """
         Update the temperature of the house
 
@@ -104,7 +124,12 @@ class Building(Simulatable):
         """
         # TODO: Make it prettier
         time_step_sec = time_step.seconds
-        Hm, Ca, Ua, Cm = self.initial_properties.Hm, self.initial_properties.Ca, self.initial_properties.Ua, self.initial_properties.Cm
+        Hm, Ca, Ua, Cm = (
+            self.initial_properties.Hm,
+            self.initial_properties.Ca,
+            self.initial_properties.Ua,
+            self.initial_properties.Cm,
+        )
 
         # Convert Celsius temperatures in Kelvin
         od_temp_K = od_temp + 273
@@ -203,7 +228,7 @@ class Building(Simulatable):
             1,
         )  # low, high, mode ->  low <= N <= high, with max prob at mode.
         self.initial_properties.Hm *= factor_Hm
-        
+
         for hvac in self.hvacs:
             hvac.apply_noise()
 
@@ -279,10 +304,14 @@ class Building(Simulatable):
                 + y**4 * coeff[17]
             )
 
-        solar_gain = self.initial_properties.window_area * self.initial_properties.shading_coeff * solar_cooling_load
+        solar_gain = (
+            self.initial_properties.window_area
+            * self.initial_properties.shading_coeff
+            * solar_cooling_load
+        )
         return solar_gain
-    
-    def get_power_consumption(self)-> int:
+
+    def get_power_consumption(self) -> int:
         power_consumption = 0
         for hvac in self.hvacs:
             power_consumption += hvac.get_power_consumption()

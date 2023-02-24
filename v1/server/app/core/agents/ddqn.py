@@ -1,6 +1,8 @@
-from core.agents.dqn import DQN
-from core.agents.buffer import Transition
 import torch.nn as nn
+
+from app.core.agents.buffer import Transition
+from app.core.agents.dqn import DQN
+
 
 class DDQN(DQN):
     def __init__(self, config_dict, opt, num_state=20, num_action=2):

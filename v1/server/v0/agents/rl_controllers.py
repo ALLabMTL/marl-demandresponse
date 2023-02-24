@@ -2,9 +2,9 @@ import os
 import sys
 
 import torch
-from agents.network import Actor, DDPG_Network, DQN_network
+from v0.agents.network import Actor, DDPG_Network, DQN_network
 from torch.distributions import Categorical
-from utils import normStateDict
+from v0.utils import normStateDict
 
 sys.path.append("..")
 
