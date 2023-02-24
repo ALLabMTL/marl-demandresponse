@@ -1,0 +1,46 @@
+/* You can add global styles to this file, and also import other style files */
+
+// TODO: Setup a custom Angular Material Theme
+
+@import '@angular/material/theming';
+@include mat-core();
+
+$default-theme-primary: mat-palette($mat-light-green, 800);
+$default-theme-accent: mat-palette($mat-light-green, 300);
+$default-theme-warn: mat-palette($mat-red, 400);
+
+$default-theme: mat-light-theme($default-theme-primary, $default-theme-accent);
+
+@include angular-material-theme($default-theme);
+
+
+html, body { height: 100%; }
+body { margin: 0; font-family: 'Rubik', serif !important; }
+
+.green-snackbar {
+    background: #9AC999;
+    color: white;
+}
+.green-snackbar button {
+    background-color: #9AC999;
+    color: white;
+    border: none;
+}
+.red-snackbar {
+    background: #ef5350;
+    color: white;
+}
+.red-snackbar button {
+    background-color: #ef5350;
+    color: white !important;
+    border: none;
+}
+.orange-snackbar {
+    background: #ff6700;
+    color: white;
+}
+.orange-snackbar button {
+    background-color: #ff6700;
+    color: white;
+    border: none;
+}
