@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
 @Component({
   selector: 'app-informations',
@@ -6,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./informations.component.scss']
 })
 export class InformationsComponent {
-  constructor() {}
+  constructor(public simulationManager: SimulationManagerService) {}
 }
