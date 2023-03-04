@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import { SharedService } from '@app/services/shared/shared.service';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
 
 @Component({
@@ -16,7 +17,8 @@ export class GridFooterComponent {
   currentPage: number = 1;
   maxPage: number = 35;
 
-  constructor(private sharedService: SharedService){}
+  constructor(private sharedService: SharedService, public simulationManager: SimulationManagerService){
+  }
 
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { SimulationManagerService } from '../simulation-manager.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,13 +30,6 @@ export class SharedService {
     const middleLowerBound = -middleUpperBound;
     const lowerBound = -upperBound;
     const boundRange = upperBound - middleUpperBound;
-    console.log(data);
-    console.log(upperBound);
-    console.log(middleUpperBound);
-    console.log(center);
-    console.log(middleLowerBound);
-    console.log(lowerBound);
-
 
     if (data < lowerBound) {
       return "rgba(0, 0, 255, 100)";
