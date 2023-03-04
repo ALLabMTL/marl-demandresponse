@@ -22,8 +22,8 @@ export class SimulationManagerService {
   housesPerPage: number = 100;
   pages: PageData[];
 
-  houseData1: HouseData[];
-  houseData2: HouseData[];
+  // houseData1: HouseData[];
+  // houseData2: HouseData[];
 
   constructor() { 
       this.sidenavData = [];
@@ -34,39 +34,39 @@ export class SimulationManagerService {
       this.stopped = true;
       this.pages = [];
 
-      this.houseData1 = [
-        {    
-        id: 101,
-        hvacStatus: "Lockout",
-        secondsSinceOff: 20,
-        indoorTemp: 20,
-        targetTemp: 20,
-        tempDifference: 1},
-        {    
-          id: 102,
-          hvacStatus: "OFF",
-          secondsSinceOff: 21,
-          indoorTemp: 21,
-          targetTemp: 21,
-          tempDifference: 2},
-          {    
-            id: 103,
-            hvacStatus: "ON",
-            secondsSinceOff: 22,
-            indoorTemp: 22,
-            targetTemp: 22,
-            tempDifference: 3},
-      ]
+      // this.houseData1 = [
+      //   {    
+      //   id: 101,
+      //   hvacStatus: "Lockout",
+      //   secondsSinceOff: 20,
+      //   indoorTemp: 20,
+      //   targetTemp: 20,
+      //   tempDifference: 1},
+      //   {    
+      //     id: 102,
+      //     hvacStatus: "OFF",
+      //     secondsSinceOff: 21,
+      //     indoorTemp: 21,
+      //     targetTemp: 21,
+      //     tempDifference: 2},
+      //     {    
+      //       id: 103,
+      //       hvacStatus: "ON",
+      //       secondsSinceOff: 22,
+      //       indoorTemp: 22,
+      //       targetTemp: 22,
+      //       tempDifference: 3},
+      // ]
 
-      this.houseData2 = [
-        {    
-        id: 201,
-        hvacStatus: "Lockout",
-        secondsSinceOff: 20,
-        indoorTemp: 20,
-        targetTemp: 20,
-        tempDifference: 1},
-      ]
+      // this.houseData2 = [
+      //   {    
+      //   id: 201,
+      //   hvacStatus: "Lockout",
+      //   secondsSinceOff: 20,
+      //   indoorTemp: 20,
+      //   targetTemp: 20,
+      //   tempDifference: 1},
+      // ]
   }
 
 
@@ -86,9 +86,9 @@ export class SimulationManagerService {
       const pageContent: HouseData[] = this.housesData.slice(startIndex, endIndex);
       this.pages.push({ id: i + 1, content: pageContent });
     }
-    this.pages.push({id: 2, content: this.houseData1})
-    this.pages.push({id: 3, content: this.houseData2})
-    this.maxPage = 3;
+    // this.pages.push({id: 2, content: this.houseData1})
+    // this.pages.push({id: 3, content: this.houseData2})
+    // this.maxPage = 3;
     console.log(this.pages);
   }
 
