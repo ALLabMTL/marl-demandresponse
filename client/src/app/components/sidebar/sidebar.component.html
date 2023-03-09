@@ -3,7 +3,7 @@
     <b>Filters:</b>
   </p>
   <div class="temp_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isTempChecked">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.simulationManager.removeTempDiffFilter()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
@@ -16,26 +16,26 @@
       showTickMarks
       discrete
       [displayWith]="formatLabel"
-      [disabled]="!isTempChecked"
-      [(ngModel)]="tempDiffValue"
-      (click)="filterByTempDiff()"
+      [disabled]="!this.simulationManager.isTempChecked"
+      [(ngModel)]="this.simulationManager.tempDiffValue"
+      (mouseup)="this.simulationManager.filterByTempDiff()"
     >
       <input matSliderThumb />
     </mat-slider>
   </div>
   <mat-divider></mat-divider>
   <div class="hvac_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isHvacChecked">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacChecked" (click)="this.simulationManager.removeHvacFilter()">
       HVAC status
     </mat-slide-toggle>
-    <mat-chip-listbox [disabled]="!isHvacChecked">
-      <mat-chip-option [(ngModel)]="hvacStatus" (click)="filterByHvacStatus()">
+    <mat-chip-listbox [disabled]="!this.simulationManager.isHvacChecked">
+      <mat-chip-option [(ngModel)]="this.simulationManager.hvacStatus" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         ON
       </mat-chip-option>
-      <mat-chip-option [(ngModel)]="hvacStatus" (click)="filterByHvacStatus()">
+      <mat-chip-option [(ngModel)]="this.simulationManager.hvacStatus"(selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         Lockout
       </mat-chip-option>
-      <mat-chip-option [(ngModel)]="hvacStatus" (click)="filterByHvacStatus()">
+      <mat-chip-option [(ngModel)]="this.simulationManager.hvacStatus" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         OFF
       </mat-chip-option>
     </mat-chip-listbox>
@@ -65,35 +65,32 @@
   <div class="filter">
     <mat-form-field appearance="fill">
       <mat-label>Sort by</mat-label>
-      <mat-select [(ngModel)]="sortingOptionSelected">
-        <mat-option
-          style="font-size: 14px"
+      <mat-select>
+        <mat-option 
+          style="font-size: 14px" 
           value="indoorTempInc"
-          (click)="sortByIndoorTempIncreasing()"
+          (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : increasing</mat-option
         >
         <mat-option
           style="font-size: 14px"
-          value="indoorTempDec"
-          (click)="sortByIndoorTempDecreasing()"
+          value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : decreasing</mat-option
         >
         <mat-option
           style="font-size: 14px"
-          value="tempDiffInc"
-          (click)="sortByTempDiffIncreasing()"
+          value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
           >Temp. diff. : increasing</mat-option
         >
         <mat-option
           style="font-size: 14px"
-          value="tempDiffDec"
-          (click)="sortByTempDiffDecreasing()"
+          value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
           >Temp. diff. : decreasing</mat-option
         >
         <mat-option
           style="font-size: 14px"
           value="noSorting"
-          (click)="removeSorting()"
+          (click)="this.simulationManager.removeSorting()"
           >No sorting</mat-option
         >
       </mat-select>

@@ -19,22 +19,23 @@ interface Filter {
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-  isTempChecked = false;
-  isHvacChecked = false;
+  //isTempChecked = false;
+  //isHvacChecked = false;
   precisionValueSelected = 0.5;
   negMin = -0.5;
   negMidMin = -0.25;
   mid = 0;
   posMidMax = 0.25;
   posMax = 0.5;
-  hvacStatus = "ON";
-  isSortingSelected = false;
-  tempDiffValue = -1;
-  filters: Filter[] = [];
-  isFilteredSorted = false; // for the grid 
-  sortingOptionSelected = " ";
+  //hvacStatus = "ON";
+  //isSortingSelected = false;
+  //tempDiffValue = -1;
+  //filters: Filter[] = [];
+  //isFilteredSorted = false; // for the grid 
+  //sortingOptionSelected = " ";
 
   numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
+
   
   constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
     this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
@@ -44,156 +45,156 @@ export class SidebarComponent {
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
   }
 
-  sortByTempDiffIncreasing(): void {
-    this.isFilteredSorted = true;
-    this.isSortingSelected = true;
-    if(this.isHvacChecked || this.isTempChecked){
-      this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b
-    } else {
-      this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b  
-    }
-    this.filters.push({id: 0, type: "tempDiffInc"});
-    this.simulationManager.separateHousesByPage();
-  }
+  // sortByTempDiffIncreasing(): void {
+  //   this.isFilteredSorted = true;
+  //   this.isSortingSelected = true;
+  //   if(this.isHvacChecked || this.isTempChecked){
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b
+  //   } else {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b  
+  //   }
+  //   this.filters.push({id: 0, type: "tempDiffInc"});
+  //   this.simulationManager.separateHousesByPage();
+  // }
 
-  sortByTempDiffDecreasing(): void {
-    this.isFilteredSorted = true;
-    this.isSortingSelected = true;
-    if(this.isHvacChecked || this.isTempChecked){
-      this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
-    } else {
-      this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
-    }
-    this.filters.push({id: 1, type: "tempDiffDec"});
-    this.simulationManager.separateHousesByPage();
+  // sortByTempDiffDecreasing(): void {
+  //   this.isFilteredSorted = true;
+  //   this.isSortingSelected = true;
+  //   if(this.isHvacChecked || this.isTempChecked){
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
+  //   } else {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
+  //   }
+  //   this.filters.push({id: 1, type: "tempDiffDec"});
+  //   this.simulationManager.separateHousesByPage();
 
-  }
+  // }
 
-  sortByIndoorTempIncreasing(): void {
-    this.isFilteredSorted = true;
-    this.isSortingSelected = true;
-    if(this.isHvacChecked || this.isTempChecked){
-      this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-    } else {
-      this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-    }
-    this.filters.push({id: 2, type: "indoorTempInc"});
-    this.simulationManager.separateHousesByPage();
+  // sortByIndoorTempIncreasing(): void {
+  //   this.isFilteredSorted = true;
+  //   this.isSortingSelected = true;
+  //   if(this.isHvacChecked || this.isTempChecked){
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+  //   } else {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+  //   }
+  //   this.filters.push({id: 2, type: "indoorTempInc"});
+  //   this.simulationManager.separateHousesByPage();
 
-  }
+  // }
 
-  sortByIndoorTempDecreasing(): void {
-    this.isFilteredSorted = true;
-    this.isSortingSelected = true;
-    if(this.isHvacChecked || this.isTempChecked){
-      this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-    } else {
-      this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-    }
-    this.filters.push({id: 3, type: "indoorTempDec"});
-    this.simulationManager.separateHousesByPage();
-  }
+  // sortByIndoorTempDecreasing(): void {
+  //   this.isFilteredSorted = true;
+  //   this.isSortingSelected = true;
+  //   if(this.isHvacChecked || this.isTempChecked){
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+  //   } else {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+  //   }
+  //   this.filters.push({id: 3, type: "indoorTempDec"});
+  //   this.simulationManager.separateHousesByPage();
+  // }
 
-  sortByOptionSelected(option: string): void {
-    switch(option) {
-      case "indoorTempInc":
-        this.sortByIndoorTempIncreasing();
-        break;
-      case "indoorTempDec":
-        this.sortByIndoorTempDecreasing();
-        break;
-      case "tempDiffInc":
-        this.sortByTempDiffIncreasing();
-        break;
-      case "tempDiffDec":
-        this.sortByTempDiffDecreasing();
-        break;
-      default:
-        break;
-    }
-  }
+  // sortByOptionSelected(option: string): void {
+  //   switch(option) {
+  //     case "indoorTempInc":
+  //       this.sortByIndoorTempIncreasing();
+  //       break;
+  //     case "indoorTempDec":
+  //       this.sortByIndoorTempDecreasing();
+  //       break;
+  //     case "tempDiffInc":
+  //       this.sortByTempDiffIncreasing();
+  //       break;
+  //     case "tempDiffDec":
+  //       this.sortByTempDiffDecreasing();
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 
-  removeSorting(): void {
-    this.isSortingSelected = false;
-    //update grid
-    this.restoreHousesData();
-  }
+  // removeSorting(): void {
+  //   this.isSortingSelected = false;
+  //   //update grid
+  //   this.restoreHousesData();
+  // }
 
-  filterByHvacStatus(): void {
-    this.isFilteredSorted = true;
-    if(this.isSortingSelected || this.isTempChecked) {
-      if(this.hvacStatus == "ON") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "ON");
-      } else if(this.hvacStatus == "Lockout") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "Lockout");
-      } else if(this.hvacStatus == "OFF") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "OFF");
-      }
-    } else {
-      if(this.hvacStatus == "ON") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "ON");
-      } else if(this.hvacStatus == "Lockout") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "Lockout");
-      } else if(this.hvacStatus == "OFF") {
-        this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "OFF");
-      }
+  // filterByHvacStatus(): void {
+  //   this.isFilteredSorted = true;
+  //   if(this.isSortingSelected || this.isTempChecked) {
+  //     if(this.hvacStatus == "ON") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "ON");
+  //     } else if(this.hvacStatus == "Lockout") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "Lockout");
+  //     } else if(this.hvacStatus == "OFF") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(status => status.hvacStatus == "OFF");
+  //     }
+  //   } else {
+  //     if(this.hvacStatus == "ON") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "ON");
+  //     } else if(this.hvacStatus == "Lockout") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "Lockout");
+  //     } else if(this.hvacStatus == "OFF") {
+  //       this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(status => status.hvacStatus == "OFF");
+  //     }
 
-    }
-    this.filters.push({id: 4, type: "hvacStatus", value: this.hvacStatus});
-    this.simulationManager.separateHousesByPage();
-  }
+  //   }
+  //   this.filters.push({id: 4, type: "hvacStatus", value: this.hvacStatus});
+  //   this.simulationManager.separateHousesByPage();
+  // }
 
-  filterByTempDiff(): void {
-    this.isFilteredSorted = true;
-    if(this.isSortingSelected || this.isHvacChecked) {
-      this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(houses => houses.tempDifference == this.tempDiffValue);
-    } else {
-      this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
-    }
-    this.filters.push({id: 5, type: "tempDiffValue", value: this.tempDiffValue});
-    this.simulationManager.separateHousesByPage();
-  }
+  // filterByTempDiff(): void {
+  //   this.isFilteredSorted = true;
+  //   if(this.isSortingSelected || this.isHvacChecked) {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.houseDataFiltered.filter(houses => houses.tempDifference == this.tempDiffValue);
+  //   } else {
+  //     this.simulationManager.houseDataFiltered = this.simulationManager.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
+  //   }
+  //   this.filters.push({id: 5, type: "tempDiffValue", value: this.tempDiffValue});
+  //   this.simulationManager.separateHousesByPage();
+  // }
 
 
-  resetActivityFilters(): void {
-    this.isSortingSelected = false;
-    this.isHvacChecked = false;
-    this.isTempChecked = false;
-  }
+  // resetActivityFilters(): void {
+  //   this.isSortingSelected = false;
+  //   this.isHvacChecked = false;
+  //   this.isTempChecked = false;
+  // }
 
-  // called when any toggle is turned off and form field no sorting is selected
-  restoreHousesData(): void {
-    //if()
-    //this.simulationManager.housesData = this.simulationManager.originalHousesData;
-    const filterTypes = this.filters.map(filter => filter.type);
+  // // called when any toggle is turned off and form field no sorting is selected
+  // restoreHousesData(): void {
+  //   //if()
+  //   //this.simulationManager.housesData = this.simulationManager.originalHousesData;
+  //   const filterTypes = this.filters.map(filter => filter.type);
 
-    if(this.isSortingSelected && this.isHvacChecked) {
-      if (filterTypes.includes('hvacStatus') && filterTypes.includes(this.sortingOptionSelected)) {
+  //   if(this.isSortingSelected && this.isHvacChecked) {
+  //     if (filterTypes.includes('hvacStatus') && filterTypes.includes(this.sortingOptionSelected)) {
         
-        this.resetActivityFilters();
+  //       this.resetActivityFilters();
 
-         const hvacFilter = this.filters.find(filter => filter.type === 'hvacStatus');
-         this.hvacStatus = hvacFilter?.value;
-         this.filterByHvacStatus();
+  //        const hvacFilter = this.filters.find(filter => filter.type === 'hvacStatus');
+  //        this.hvacStatus = hvacFilter?.value;
+  //        this.filterByHvacStatus();
 
-         //const sortFilter = this.filters.find(filter => filter.type === this.sortingOptionSelected);
-         this.sortByOptionSelected(this.sortingOptionSelected);
+  //        //const sortFilter = this.filters.find(filter => filter.type === this.sortingOptionSelected);
+  //        this.sortByOptionSelected(this.sortingOptionSelected);
 
-      }
-    } else if(this.isSortingSelected && this.isTempChecked) {
+  //     }
+  //   } else if(this.isSortingSelected && this.isTempChecked) {
 
-    } else if(this.isTempChecked && this.isHvacChecked){
+  //   } else if(this.isTempChecked && this.isHvacChecked){
 
-    } else if(this.isHvacChecked) {
+  //   } else if(this.isHvacChecked) {
 
-    } else if(this.isTempChecked) {
+  //   } else if(this.isTempChecked) {
 
-    } else if(this.isSortingSelected) {
+  //   } else if(this.isSortingSelected) {
 
-    } else {
-        this.isFilteredSorted = false;
-    }
-  }
+  //   } else {
+  //       this.isFilteredSorted = false;
+  //   }
+  // }
 
   formatLabel(value: number): string {
     return `${value}`;
