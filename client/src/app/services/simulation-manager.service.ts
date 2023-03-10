@@ -7,11 +7,7 @@ interface PageData {
   content: HouseData[];
 }
 
-interface Filter {
-  id: number;
-  type: string;
-  value?: any;
-}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -38,9 +34,9 @@ export class SimulationManagerService {
   isFilteredHvac: boolean;
   isTempFiltered: boolean;
   hvacStatus: string;
-  filters: Filter[] = [];
   tempDiffValue: number;
   sortingOptionSelected: string;
+
 
 
   // houseData1: HouseData[];
@@ -115,10 +111,17 @@ export class SimulationManagerService {
 
   updateHousesData(data: HouseData[]): void {
     this.housesData = data; // every house
+    this.originalHousesData = data;
 
     if(this.isSortingSelected) {
       this.sortByOptionSelected(this.sortingOptionSelected);
-    }
+    } else if(this.isFilteredHvac) {
+      this.filterByHvacStatus(this.chipSelected)
+    } else if(this.isTempFiltered) {
+      this.filterByTempDiff();
+    } 
+
+    //rajouter les remove
 
     this.pages = [];
     this.maxPage = Math.ceil(this.housesData.length / this.housesPerPage);
@@ -132,6 +135,19 @@ export class SimulationManagerService {
     // this.pages.push({id: 3, content: this.houseData2})
     // this.maxPage = 3;
     console.log(this.pages);
+  }
+
+  updateFilteredHouses(): void {
+    // housesData will get updated with new values before calling
+    this.housesData = this.originalHousesData;
+
+    if(this.isSortingSelected) {
+      this.housesData = this.housesData.filter(x => {this.houseDataFiltered.find(y => (x.id === y.id))})
+
+      if(this.isFilteredHvac) {
+        this.housesData = this.housesData.filter( x => { this.hvacChosen.find( y => y.hvacStatus == x.hvacStatus)})
+      }
+    } 
   }
 
   separateHousesByPage(): void {
@@ -156,17 +172,6 @@ export class SimulationManagerService {
     this.stopped = true;
   }
 
-  // sortByTempDiffIncreasing(): void {
-  //   this.isFilteredSorted = true;
-  //   this.isSortingSelected = true;
-  //   if(this.isHvacChecked || this.isTempChecked){
-  //     this.houseDataFiltered = this.houseDataFiltered.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b
-  //   } else {
-  //     this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b  
-  //   }
-  //   this.filters.push({id: 0, type: "tempDiffInc"});
-  //   this.separateHousesByPage();
-  // }
 
   sortByTempDiffIncreasing(): void {
     this.isSortingSelected = true;
@@ -175,19 +180,6 @@ export class SimulationManagerService {
 
   }
 
-  // sortByTempDiffDecreasing(): void {
-  //   this.isFilteredSorted = true;
-  //   this.isSortingSelected = true;
-  //   if(this.isHvacChecked || this.isTempChecked){
-  //     this.houseDataFiltered = this.houseDataFiltered.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
-  //   } else {
-  //     this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
-  //   }
-  //   this.filters.push({id: 1, type: "tempDiffDec"});
-  //   this.separateHousesByPage();
-
-  // }
-
   sortByTempDiffDecreasing(): void {
     this.isSortingSelected = true;
 
@@ -195,37 +187,12 @@ export class SimulationManagerService {
 
   }
 
-  // sortByIndoorTempIncreasing(): void {
-  //   this.isFilteredSorted = true;
-  //   this.isSortingSelected = true;
-  //   if(this.isHvacChecked || this.isTempChecked){
-  //     this.houseDataFiltered = this.houseDataFiltered.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-  //   } else {
-  //     this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-  //   }
-  //   this.filters.push({id: 2, type: "indoorTempInc"});
-  //   this.separateHousesByPage();
-
-  // }
-
   sortByIndoorTempIncreasing(): void {
     this.isSortingSelected = true;
 
     this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
 
   }
-
-  // sortByIndoorTempDecreasing(): void {
-  //   this.isFilteredSorted = true;
-  //   this.isSortingSelected = true;
-  //   if(this.isHvacChecked || this.isTempChecked){
-  //     this.houseDataFiltered = this.houseDataFiltered.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-  //   } else {
-  //     this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
-  //   }
-  //   this.filters.push({id: 3, type: "indoorTempDec"});
-  //   this.separateHousesByPage();
-  // }
 
   sortByIndoorTempDecreasing(): void {
     this.isSortingSelected = true;
@@ -253,45 +220,23 @@ export class SimulationManagerService {
       case "noSorting":
         break;
     }
-    this.updateFilteredHouses(this.houseDataFiltered);
+    this.updateFilteredHouses();
   }
 
-  updateFilteredHouses(house: HouseData[]): void {
-    this.housesData = this.housesData.filter(x => {house.find(y => (x.id === y.id))})
-  }
+
 
   removeSorting(): void {
     this.isSortingSelected = false;
+    this.housesData = this.originalHousesData;
     //update grid
     //this.restoreHousesData();
   }
 
-  // filterByHvacStatus(): void {
-  //   this.isFilteredSorted = true;
-  //   if(this.isSortingSelected || this.isTempChecked) {
-  //     if(this.hvacStatus == "ON") {
-  //       this.houseDataFiltered = this.houseDataFiltered.filter(status => status.hvacStatus == "ON");
-  //     } else if(this.hvacStatus == "Lockout") {
-  //       this.houseDataFiltered = this.houseDataFiltered.filter(status => status.hvacStatus == "Lockout");
-  //     } else if(this.hvacStatus == "OFF") {
-  //       this.houseDataFiltered = this.houseDataFiltered.filter(status => status.hvacStatus == "OFF");
-  //     }
-  //   } else {
-  //     if(this.hvacStatus == "ON") {
-  //       this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "ON");
-  //     } else if(this.hvacStatus == "Lockout") {
-  //       this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "Lockout");
-  //     } else if(this.hvacStatus == "OFF") {
-  //       this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "OFF");
-  //     }
-
-  //   }
-  //   this.filters.push({id: 4, type: "hvacStatus", value: this.hvacStatus});
-  //   this.separateHousesByPage();
-  // }
   hvacChosen: any[] = [];
+  chipSelected: any;
 
   filterByHvacStatus(chip: MatChipSelectionChange): void {
+    this.chipSelected = chip.selected;
 
     if(chip.selected) {
       this.hvacChosen = [...this.hvacChosen, {...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)}];
@@ -299,42 +244,27 @@ export class SimulationManagerService {
       this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== (this.housesData.filter(status => status.hvacStatus == this.hvacStatus)))];
     }
     this.isFilteredHvac = true;
-    // if(this.hvacStatus == "ON") {
-    //   this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "ON");
-    // } else if(this.hvacStatus == "Lockout") {
-    //   this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "Lockout");
-    // } else if(this.hvacStatus == "OFF") {
-    //   this.houseDataFiltered = this.housesData.filter(status => status.hvacStatus == "OFF");
-    // }
-    this.updateFilteredHouses(this.houseDataFiltered);
+
+    this.updateFilteredHouses();
   }
 
   removeHvacFilter(): void {
     this.isFilteredHvac = false;
+    this.housesData = this.originalHousesData;
   }
-
-  // filterByTempDiff(): void {
-  //   this.isFilteredSorted = true;
-  //   if(this.isSortingSelected || this.isHvacChecked) {
-  //     this.houseDataFiltered = this.houseDataFiltered.filter(houses => houses.tempDifference == this.tempDiffValue);
-  //   } else {
-  //     this.houseDataFiltered = this.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
-  //   }
-  //   this.filters.push({id: 5, type: "tempDiffValue", value: this.tempDiffValue});
-  //   this.separateHousesByPage();
-  // }
 
   
   filterByTempDiff(): void {
     this.isTempFiltered = true;
 
     this.houseDataFiltered = this.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
-    this.updateFilteredHouses(this.houseDataFiltered);
+    this.updateFilteredHouses();
 
   }
 
   removeTempDiffFilter(): void {
     this.isTempFiltered = false;
+    this.housesData = this.originalHousesData;
   }
 
   resetActivityFilters(): void {
@@ -343,39 +273,6 @@ export class SimulationManagerService {
     this.isTempChecked = false;
   }
 
-  // // called when any toggle is turned off and form field no sorting is selected
-  // restoreHousesData(): void {
-  //   //if()
-  //   //this.simulationManager.housesData = this.simulationManager.originalHousesData;
-  //   const filterTypes = this.filters.map(filter => filter.type);
-
-  //   if(this.isSortingSelected && this.isHvacChecked) {
-  //     if (filterTypes.includes('hvacStatus') && filterTypes.includes(this.sortingOptionSelected)) {
-        
-  //       this.resetActivityFilters();
-
-  //        const hvacFilter = this.filters.find(filter => filter.type === 'hvacStatus');
-  //        this.hvacStatus = hvacFilter?.value;
-  //        this.filterByHvacStatus();
-
-  //        //const sortFilter = this.filters.find(filter => filter.type === this.sortingOptionSelected);
-  //        this.sortByOptionSelected(this.sortingOptionSelected);
-
-  //     }
-  //   } else if(this.isSortingSelected && this.isTempChecked) {
-
-  //   } else if(this.isTempChecked && this.isHvacChecked){
-
-  //   } else if(this.isHvacChecked) {
-
-  //   } else if(this.isTempChecked) {
-
-  //   } else if(this.isSortingSelected) {
-
-  //   } else {
-  //       this.isFilteredSorted = false;
-  //   }
-  // }
 
 
   // updatePages() {
