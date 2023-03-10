@@ -146,7 +146,7 @@ export class SimulationManagerService {
 
       if(this.isFilteredHvac) {
         this.housesData = this.housesData.filter( x => { this.hvacChosen.find( y => y.hvacStatus == x.hvacStatus)})
-      }
+      } else if(this.isTempFiltered)
     } 
   }
 
@@ -254,10 +254,11 @@ export class SimulationManagerService {
   }
 
   
+  tempDiffHousesData: HouseData[] = [];
   filterByTempDiff(): void {
     this.isTempFiltered = true;
 
-    this.houseDataFiltered = this.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
+    this.tempDiffHousesData = this.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
     this.updateFilteredHouses();
 
   }
