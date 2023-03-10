@@ -50,17 +50,30 @@ export class GridComponent implements OnInit {
     return `repeat(10, ${100 / 10}%)`;
   }
 
-  getHvacColor(i: number): string {
-    if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
+  getHvacColor(page: number, i: number): string {
+    if (this.simulationManager.pages[page].content[i].hvacStatus === 'ON') {
       return 'green';
     }
-    else if (this.simulationManager.housesData[i].hvacStatus === 'OFF') {
+    else if (this.simulationManager.pages[page].content[i].hvacStatus === 'OFF') {
       return 'red';
     }
     else {
       return 'gray';
     }
   }
+
+  // getHvacColor(i: number): string {
+  //   console.log(this.currentPage - 1);
+  //   if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
+  //     return 'green';
+  //   }
+  //   else if (this.simulationManager.housesData[i].hvacStatus === 'OFF') {
+  //     return 'red';
+  //   }
+  //   else {
+  //     return 'gray';
+  //   }
+  // }
 
   switchPage(pageNumber: number) {
     this.currentPage = pageNumber;

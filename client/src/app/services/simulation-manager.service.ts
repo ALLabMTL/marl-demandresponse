@@ -86,10 +86,7 @@ export class SimulationManagerService {
       const pageContent: HouseData[] = this.housesData.slice(startIndex, endIndex);
       this.pages.push({ id: i + 1, content: pageContent });
     }
-    // this.pages.push({id: 2, content: this.houseData1})
-    // this.pages.push({id: 3, content: this.houseData2})
-    // this.maxPage = 3;
-    console.log(this.pages);
+
   }
 
   resetSimulation(): void {
@@ -97,6 +94,7 @@ export class SimulationManagerService {
     this.propertyNames = [];
     this.propertyValues = [];
     this.housesData = [];
+    this.pages = [];
     this.started = false;
     this.stopped = true;
   }

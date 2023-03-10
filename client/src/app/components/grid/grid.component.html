@@ -6,7 +6,7 @@
   [style.grid-template-rows]="getRowHeights()"
 >
   <div class="cell" *ngFor="let _ of [].constructor(100); let i = index">
-    <div *ngFor="let page of this.simulationManager.pages">
+    <div *ngFor="let page of this.simulationManager.pages; let j = index">
       <div [id]="page.id" [hidden]="currentPage !== page.id">
         <div class="content" *ngIf="page.content[i]">
           <div class="dialog" (click)="openDialog(i)">
@@ -30,7 +30,10 @@
               </g>
             </svg>
           </div>
-          <div class="circle" [style.background-color]="getHvacColor(i)"></div>
+          <div
+            class="circle"
+            [style.background-color]="getHvacColor(j, i)"
+          ></div>
         </div>
       </div>
     </div>
