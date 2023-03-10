@@ -7,7 +7,6 @@ interface PageData {
   content: HouseData[];
 }
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -25,7 +24,6 @@ export class SimulationManagerService {
   maxPage: number;
   housesPerPage: number;
   pages: PageData[];
-  pagesFiltered: PageData[];
 
   //sidebar
   isSortingSelected: boolean;
@@ -37,11 +35,6 @@ export class SimulationManagerService {
   tempDiffValue: number;
   sortingOptionSelected: string;
 
-
-
-  // houseData1: HouseData[];
-  // houseData2: HouseData[];
-
   constructor() { 
       this.sidenavData = [];
       this.propertyNames = [];
@@ -51,7 +44,6 @@ export class SimulationManagerService {
       this.started = true;
       this.stopped = true;
       this.pages = [];
-      this.pagesFiltered = [];
       this.houseDataFiltered = [];
       this.originalHousesData = [];
       this.maxPage = -1;
@@ -65,41 +57,6 @@ export class SimulationManagerService {
       this.hvacStatus = "ON";
       this.tempDiffValue = -1;
       this.sortingOptionSelected = " ";
-
-
-      // this.houseData1 = [
-      //   {    
-      //   id: 101,
-      //   hvacStatus: "Lockout",
-      //   secondsSinceOff: 20,
-      //   indoorTemp: 20,
-      //   targetTemp: 20,
-      //   tempDifference: 1},
-      //   {    
-      //     id: 102,
-      //     hvacStatus: "OFF",
-      //     secondsSinceOff: 21,
-      //     indoorTemp: 21,
-      //     targetTemp: 21,
-      //     tempDifference: 2},
-      //     {    
-      //       id: 103,
-      //       hvacStatus: "ON",
-      //       secondsSinceOff: 22,
-      //       indoorTemp: 22,
-      //       targetTemp: 22,
-      //       tempDifference: 3},
-      // ]
-
-      // this.houseData2 = [
-      //   {    
-      //   id: 201,
-      //   hvacStatus: "Lockout",
-      //   secondsSinceOff: 20,
-      //   indoorTemp: 20,
-      //   targetTemp: 20,
-      //   tempDifference: 1},
-      // ]
   }
 
 
@@ -115,13 +72,14 @@ export class SimulationManagerService {
 
     if(this.isSortingSelected) {
       this.sortByOptionSelected(this.sortingOptionSelected);
-    } else if(this.isFilteredHvac) {
+    } 
+    if(this.isFilteredHvac) {
       this.filterByHvacStatus(this.chipSelected)
-    } else if(this.isTempFiltered) {
-      this.filterByTempDiff();
     } 
 
-    //rajouter les remove
+    if(this.isTempFiltered) {
+      this.filterByTempDiff();
+    } 
 
     this.pages = [];
     this.maxPage = Math.ceil(this.housesData.length / this.housesPerPage);
@@ -131,36 +89,8 @@ export class SimulationManagerService {
       const pageContent: HouseData[] = this.housesData.slice(startIndex, endIndex); // separate the data in pages 
       this.pages.push({ id: i + 1, content: pageContent });
     }
-    // this.pages.push({id: 2, content: this.houseData1})
-    // this.pages.push({id: 3, content: this.houseData2})
-    // this.maxPage = 3;
+
     console.log(this.pages);
-  }
-
-  updateFilteredHouses(): void {
-    // housesData will get updated with new values before calling
-    this.housesData = this.originalHousesData;
-
-    if(this.isSortingSelected) {
-      this.housesData = this.housesData.filter(x => {this.houseDataFiltered.find(y => (x.id === y.id))})
-
-      if(this.isFilteredHvac) {
-        this.housesData = this.housesData.filter( x => { this.hvacChosen.find( y => y.hvacStatus == x.hvacStatus)})
-      } else if(this.isTempFiltered)
-    } 
-  }
-
-  separateHousesByPage(): void {
-    this.pages = [];
-    this.maxPage = Math.ceil(this.houseDataFiltered.length / this.housesPerPage);
-    for (let i = 0; i < this.maxPage; i++) {
-      const startIndex = i * this.housesPerPage;
-      const endIndex = Math.min(startIndex + this.housesPerPage, this.houseDataFiltered.length);
-      const pageContent: HouseData[] = this.houseDataFiltered.slice(startIndex, endIndex); // separate the data in pages 
-      this.pages.push({ id: i + 1, content: pageContent });
-    }
-
-    console.log(this.pagesFiltered);
   }
 
   resetSimulation(): void {
@@ -172,6 +102,22 @@ export class SimulationManagerService {
     this.stopped = true;
   }
 
+  updateFilteredHouses(): void {
+    // housesData will get updated with new values before calling
+    this.housesData = this.originalHousesData;
+
+    if(this.isSortingSelected) {
+      this.housesData = this.housesData.filter(x => {this.houseDataFiltered.find(y => (x.id === y.id))})
+    }  
+
+    if(this.isFilteredHvac) {
+        this.housesData = this.housesData.filter( x => { this.hvacChosen.find( y => y.hvacStatus == x.hvacStatus)})
+    }
+
+    if(this.isTempFiltered) {
+      this.housesData =  this.housesData.filter( x => { this.tempDiffHousesData.find( y => y.tempDifference == x.tempDifference)})
+    }
+  }
 
   sortByTempDiffIncreasing(): void {
     this.isSortingSelected = true;
@@ -228,8 +174,6 @@ export class SimulationManagerService {
   removeSorting(): void {
     this.isSortingSelected = false;
     this.housesData = this.originalHousesData;
-    //update grid
-    //this.restoreHousesData();
   }
 
   hvacChosen: any[] = [];
@@ -237,6 +181,7 @@ export class SimulationManagerService {
 
   filterByHvacStatus(chip: MatChipSelectionChange): void {
     this.chipSelected = chip.selected;
+    this.housesData = this.originalHousesData;
 
     if(chip.selected) {
       this.hvacChosen = [...this.hvacChosen, {...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)}];
@@ -257,6 +202,7 @@ export class SimulationManagerService {
   tempDiffHousesData: HouseData[] = [];
   filterByTempDiff(): void {
     this.isTempFiltered = true;
+    this.housesData = this.originalHousesData;
 
     this.tempDiffHousesData = this.housesData.filter(houses => houses.tempDifference == this.tempDiffValue);
     this.updateFilteredHouses();
