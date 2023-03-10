@@ -11,7 +11,7 @@ import { SnackbarMessage } from '@app/classes/snackbar-message';
 })
 export class SocketCommunicationService {
 
-  constructor(        
+  constructor(
     public socketService: SocketService,
     private snackBarService: NotificationService,
     private simulationManager: SimulationManagerService
@@ -19,16 +19,16 @@ export class SocketCommunicationService {
 
   connect(): void {
     if (!this.socketService.isSocketAlive()) {
-        this.socketService.connect();
-        const timeout = 2000;
-        setTimeout(() => {
-            if (!this.socketService.isSocketAlive()) {
-                const message = 'Error: cannot connect to server';
-                const action = '';
-                this.snackBarService.openFailureSnackBar(message, action);
-            }
-        }, timeout);
-        this.configureSocket();
+      this.socketService.connect();
+      const timeout = 2000;
+      setTimeout(() => {
+        if (!this.socketService.isSocketAlive()) {
+          const message = 'Error: cannot connect to server';
+          const action = '';
+          this.snackBarService.openFailureSnackBar(message, action);
+        }
+      }, timeout);
+      this.configureSocket();
 
     }
   }
@@ -41,7 +41,6 @@ export class SocketCommunicationService {
 
     this.socketService.on('dataChange', (data: SidenavData) => {
       this.simulationManager.addTimeStep(data)
-
     });
 
     this.socketService.on('houseChange', (data: HouseData[]) => {
@@ -59,7 +58,7 @@ export class SocketCommunicationService {
     });
 
     this.socketService.on('success', (data: SnackbarMessage) => {
-        this.snackBarService.openSuccessSnackBar(data.message, '');
+      this.snackBarService.openSuccessSnackBar(data.message, '');
     });
 
 
