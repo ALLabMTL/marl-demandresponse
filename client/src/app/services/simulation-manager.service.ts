@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MatChip, MatChipSelectionChange } from '@angular/material/chips';
+import { MatChipSelectionChange } from '@angular/material/chips';
 import { SidenavData, HouseData } from '@app/classes/sidenav-data';
 
 interface PageData {
@@ -32,7 +32,7 @@ export class SimulationManagerService {
   isFilteredHvac: boolean;
   isTempFiltered: boolean;
   hvacStatus: string;
-  tempDiffValue: number;
+  tempSelectRange : {min: number, max:number};
   sortingOptionSelected: string;
   hvacChosen: HouseData[];
   chipSelected: any;
@@ -58,7 +58,7 @@ export class SimulationManagerService {
       this.isFilteredHvac = false;
       this.isTempFiltered = false;
       this.hvacStatus = " ";
-      this.tempDiffValue = -1;
+      this.tempSelectRange = {min: -3, max:3 }
       this.sortingOptionSelected = " ";
       this.hvacChosen = [];
       this.chipSelected = false;
@@ -82,7 +82,6 @@ export class SimulationManagerService {
       this.sortByOptionSelected(this.sortingOptionSelected);
     } 
     if(this.isFilteredHvac) {
-      console.log('the fuck');
       this.filteredByHvacStatus();
     } 
 
@@ -119,15 +118,14 @@ export class SimulationManagerService {
       this.housesData = this.housesData.filter(x => {
         return this.houseDataFiltered.find(y => y.id === x.id) !== undefined;
       });
-      console.log('allo', this.housesData);
+      console.log('sorting filtered', this.housesData);
     }  
 
     if(this.isFilteredHvac) {
         this.housesData = this.housesData.filter(x => {
           return this.hvacChosen.find(y => y.hvacStatus === x.hvacStatus) !== undefined;
         });   
-        console.log('allo', this.housesData);
-     
+        console.log('hvac filtered', this.housesData);
     }
 
     if(this.isTempFiltered) {
@@ -216,7 +214,6 @@ export class SimulationManagerService {
     if(this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
     } else { // if un-select manually
-      console.log('out');
       this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
     }
     this.isFilteredHvac = true;
@@ -238,7 +235,6 @@ export class SimulationManagerService {
     if(this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
     } else { // if un-select manually
-      console.log('out');
       this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
     }
     this.isFilteredHvac = true;
@@ -248,29 +244,19 @@ export class SimulationManagerService {
     this.updateFilteredHouses();
   }
 
-
-
   removeHvacFilter(): void {
     this.isFilteredHvac = false;
     this.housesData = this.originalHousesData;
   }
 
-  // setTempDiffFilter(temp: number): void {
-  //   this.tempDiffValue = temp;
-  //   console.log('temp diff', this.tempDiffValue);
-
-  //   this.filterByTempDiff();
-  // }
-
   filterByTempDiff(): void {
     this.isTempFiltered = true;
     this.housesData = this.originalHousesData;
 
-    console.log('temp diff', this.tempDiffValue);
+    this.tempDiffHousesData = this.housesData.filter((e) => e.tempDifference >= this.tempSelectRange.min && e.tempDifference <= this.tempSelectRange.max)
+    console.log('temp diff filtered', this.tempDiffHousesData)
 
-    this.tempDiffHousesData = this.housesData.filter(houses => parseFloat(houses.tempDifference.toFixed(2)) === this.tempDiffValue);
     this.updateFilteredHouses();
-
   }
 
   removeTempDiffFilter(): void {
@@ -283,17 +269,5 @@ export class SimulationManagerService {
     this.isHvacChecked = false;
     this.isTempChecked = false;
   }
-
-
-
-  // updatePages() {
-  //   this.maxPage = Math.ceil(this.housesData.length / this.housesPerPage);
-  //   for (let i = 0; i < this.maxPage; i++) {
-  //     const startIndex = i * this.housesPerPage;
-  //     const endIndex = Math.min(startIndex + this.housesPerPage, this.housesData.length);
-  //     const pageContent: HouseData[] = this.housesData.slice(startIndex, endIndex);
-  //     this.pages.push({ id: i + 1, content: pageContent });
-  //   }
-  // }
 
 }
