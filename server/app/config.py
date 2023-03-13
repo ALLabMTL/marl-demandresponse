@@ -1,438 +1,416 @@
-config_dict = {
-    # House properties
-    # The house is modelled as a 10mx10m square with 2.5m height, 8 windows of 1.125 m² and 2 doors of 2m² each.
-    # The formulas for Ua, Cm, Ca and Hm are mainly taken here: http://gridlab-d.shoutwiki.com/wiki/Residential_module_user's_guide
-    "default_house_prop": {
-        "id": 1,
-        "init_air_temp": 20,
-        "init_mass_temp": 20,
-        "target_temp": 20,
-        "deadband": 0,
-        "Ua": 2.18e02,  # House walls conductance (W/K). Multiplied by 3 to account for drafts (according to https://dothemath.ucsd.edu/2012/11/this-thermal-house/)
-        "Cm": 3.45e06,  # House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)
-        "Ca": 9.08e05,  # Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)
-        "Hm": 2.84e03,  # House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.14 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))
-        "window_area": 7.175,  # Gross window area, in m^2
-        "shading_coeff": 0.67,  # Window Solar Heat Gain Coefficient, look-up table in Gridlab reference
-        "solar_gain_bool": True,  # Boolean to model the solar gain
-    },
-    "noise_house_prop": {
-        "noise_mode": "small_noise",  # Can be: no_noise, small_noise, big_noise, small_start_temp, big_start_temp
-        "noise_parameters": {
-            "no_noise": {
-                "std_start_temp": 0,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "dwarf_noise": {
-                "std_start_temp": 0.05,  # Std noise on starting temperature
-                "std_target_temp": 0.05,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "house_small_noise": {
-                "std_start_temp": 0,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 0.9,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "house_medium_noise": {
-                "std_start_temp": 0,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 0.8,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.2,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "house_big_noise": {
-                "std_start_temp": 0,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 0.5,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.5,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "small_noise": {
-                "std_start_temp": 3,  # Std noise on starting temperature
-                "std_target_temp": 1,  # Std Noise on target temperature
-                "factor_thermo_low": 0.9,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "big_noise": {
-                "std_start_temp": 5,  # Std noise on starting temperature
-                "std_target_temp": 2,  # Std Noise on target temperature
-                "factor_thermo_low": 0.8,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.2,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "small_start_temp": {
-                "std_start_temp": 3,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "big_start_temp": {
-                "std_start_temp": 5,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-        },
-    },
-    "noise_house_prop_test": {
-        "noise_mode": "small_noise",  # Can be: no_noise, small_noise, big_noise, small_start_temp, big_start_temp
-        "noise_parameters": {
-            "no_noise": {
-                "std_start_temp": 0,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "dwarf_noise": {
-                "std_start_temp": 0.05,  # Std noise on starting temperature
-                "std_target_temp": 0.05,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "small_noise": {
-                "std_start_temp": 3,  # Std noise on starting temperature
-                "std_target_temp": 1,  # Std Noise on target temperature
-                "factor_thermo_low": 0.9,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "big_noise": {
-                "std_start_temp": 5,  # Std noise on starting temperature
-                "std_target_temp": 2,  # Std Noise on target temperature
-                "factor_thermo_low": 0.8,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1.2,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "small_start_temp": {
-                "std_start_temp": 3,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-            "big_start_temp": {
-                "std_start_temp": 5,  # Std noise on starting temperature
-                "std_target_temp": 0,  # Std Noise on target temperature
-                "factor_thermo_low": 1,  # Lowest random factor for Ua, Cm, Ca, Hm
-                "factor_thermo_high": 1,  # Highest random factor for Ua, Cm, Ca, Hm
-            },
-        },
-    },
-    # HVAC properties
-    "default_hvac_prop": {
-        "id": 1,
-        "COP": 2.5,  # Coefficient of performance (power spent vs heat displaced)
-        "cooling_capacity": 15000,  # Cooling capacity (W)
-        "latent_cooling_fraction": 0.35,  # Fraction of latent cooling w.r.t. sensible cooling
-        "lockout_duration": 40,  # In seconds
-        "lockout_noise": 0,  # In seconds
-    },
-    "noise_hvac_prop": {
-        "noise_mode": "small_noise",  # Can be: no_noise, small_noise, big_noise
-        "noise_parameters": {
-            "no_noise": {
-                "cooling_capacity_list": {10000: [10000], 15000: [15000]}
-                # "std_latent_cooling_fraction": 0,     # Std Gaussian noise on latent_cooling_fraction
-                # "factor_COP_low": 1,   # Lowest random factor for COP
-                # "factor_COP_high": 1,   # Highest random factor for COP
-                # "factor_cooling_capacity_low": 1,   # Lowest random factor for cooling_capacity
-                # "factor_cooling_capacity_high": 1,   # Highest random factor for cooling_capacity
-            },
-            "small_noise": {
-                "cooling_capacity_list": {
-                    10000: [9000, 10000, 11000],
-                    15000: [12500, 15000, 17500],
-                }
-                # "std_latent_cooling_fraction": 0.05,     # Std Gaussian noise on latent_cooling_fraction
-                # "factor_COP_low": 0.95,   # Lowest random factor for COP
-                # "factor_COP_high": 1.05,   # Highest random factor for COP
-                # "factor_cooling_capacity_low": 0.9,   # Lowest random factor for cooling_capacity
-                # "factor_cooling_capacity_high": 1.1,   # Highest random factor for cooling_capacity
-            },
-            "big_noise": {
-                "cooling_capacity_list": {
-                    10000: [7500, 9000, 10000, 11000, 12500],
-                    15000: [10000, 12500, 15000, 17500, 20000],
-                }
-                # "std_latent_cooling_fraction": 0.1,     # Std Gaussian noise on latent_cooling_fraction
-                # "factor_COP_low": 0.85,   # Lowest random factor for COP
-                # "factor_COP_high": 1.15,   # Highest random factor for COP
-                # "factor_cooling_capacity_low": 0.6666667,   # Lowest random factor for cooling_capacity
-                # "factor_cooling_capacity_high": 1.3333333333,   # Highest random factor for cooling_capacity
-            },
-        },
-    },
-    "noise_hvac_prop_test": {
-        "noise_mode": "small_noise",  # Can be: no_noise, small_noise, big_noise
-        "noise_parameters": {
-            "no_noise": {
-                "std_latent_cooling_fraction": 0,  # Std Gaussian noise on latent_cooling_fraction
-                "factor_COP_low": 1,  # Lowest random factor for COP
-                "factor_COP_high": 1,  # Highest random factor for COP
-                "factor_cooling_capacity_low": 1,  # Lowest random factor for cooling_capacity
-                "factor_cooling_capacity_high": 1,  # Highest random factor for cooling_capacity
-            },
-            "small_noise": {
-                "std_latent_cooling_fraction": 0.05,  # Std Gaussian noise on latent_cooling_fraction
-                "factor_COP_low": 0.95,  # Lowest random factor for COP
-                "factor_COP_high": 1.05,  # Highest random factor for COP
-                "factor_cooling_capacity_low": 0.9,  # Lowest random factor for cooling_capacity
-                "factor_cooling_capacity_high": 1.1,  # Highest random factor for cooling_capacity
-            },
-            "big_noise": {
-                "std_latent_cooling_fraction": 0.1,  # Std Gaussian noise on latent_cooling_fraction
-                "factor_COP_low": 0.85,  # Lowest random factor for COP
-                "factor_COP_high": 1.15,  # Highest random factor for COP
-                "factor_cooling_capacity_low": 0.6666667,  # Lowest random factor for cooling_capacity
-                "factor_cooling_capacity_high": 1.3333333333,  # Highest random factor for cooling_capacity
-            },
-        },
-    },
-    # Env properties
-    "default_env_prop": {
-        "start_datetime": "2021-01-01 00:00:00",  # Start date and time (Y-m-d H:M:S)
-        "start_datetime_mode": "random",  # Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)
-        "time_step": 4,  # Time step in seconds
-        "cluster_prop": {
-            "temp_mode": "noisy_sinusoidal",  # Can be: constant, sinusoidal, noisy_sinusoidal
-            "temp_parameters": {
-                "constant": {
-                    "day_temp": 26.5,  # Day temperature
-                    "night_temp": 26.5,  # Night temperature
-                    "temp_std": 0,  # Noise std dev on the temperature
-                    "random_phase_offset": False,
-                },
-                "sinusoidal": {
-                    "day_temp": 30,
-                    "night_temp": 23,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "sinusoidal_hot": {
-                    "day_temp": 30,
-                    "night_temp": 28,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "sinusoidal_heatwave": {
-                    "day_temp": 34,
-                    "night_temp": 28,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "sinusoidal_hot_heatwave": {
-                    "day_temp": 38,
-                    "night_temp": 32,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "sinusoidal_cold_heatwave": {
-                    "day_temp": 30,
-                    "night_temp": 24,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "sinusoidal_cold": {
-                    "day_temp": 24,
-                    "night_temp": 22,
-                    "temp_std": 0,
-                    "random_phase_offset": False,
-                },
-                "noisy_sinusoidal": {
-                    "day_temp": 30,
-                    "night_temp": 23,
-                    "temp_std": 0.5,
-                    "random_phase_offset": False,
-                },
-                "noisy_sinusoidal_hot": {
-                    "day_temp": 30,
-                    "night_temp": 28,
-                    "temp_std": 0.5,
-                    "random_phase_offset": False,
-                },
-                "noisy_sinusoidal_heatwave": {
-                    "day_temp": 34,
-                    "night_temp": 28,
-                    "temp_std": 0.5,
-                    "random_phase_offset": False,
-                },
-                "noisier_sinusoidal_heatwave": {
-                    "day_temp": 34,
-                    "night_temp": 28,
-                    "temp_std": 2,
-                    "random_phase_offset": False,
-                },
-                "noisy_sinusoidal_cold": {
-                    "day_temp": 24,
-                    "night_temp": 22,
-                    "temp_std": 0.5,
-                    "random_phase_offset": False,
-                },
-                "shifting_sinusoidal": {
-                    "day_temp": 30,
-                    "night_temp": 23,
-                    "temp_std": 0,
-                    "random_phase_offset": True,
-                },
-                "shifting_sinusoidal_heatwave": {
-                    "day_temp": 34,
-                    "night_temp": 28,
-                    "temp_std": 0,
-                    "random_phase_offset": True,
-                },
-            },
-            "nb_agents": 1,  # Number of houses
-            "nb_agents_comm": 10,  # Maximal number of houses a single house communicates with
-            "agents_comm_mode": "neighbours",  # Communication mode
-            "agents_comm_parameters": {
-                "neighbours_2D": {
-                    "row_size": 5,  # Row side length
-                    "distance_comm": 2,  # Max distance between two communicating houses
-                },
-            },
-        },
-        "state_properties": {
-            "hour": False,
-            "day": False,
-            "solar_gain": False,
-            "thermal": False,
-            "hvac": False,
-        },
-        "message_properties": {
-            "thermal": False,
-            "hvac": False,
-        },
-        "power_grid_prop": {
-            "base_power_mode": "constant",  # Interpolation (based on deadband bang-bang controller) or constant
-            "base_power_parameters": {
-                "constant": {
-                    "avg_power_per_hvac": 4200,  # Per hvac. In Watts.
-                    "init_signal_per_hvac": 910,  # Per hvac.
-                },
-                "interpolation": {
-                    "path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
-                    "path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
-                    "path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
-                    "interp_update_period": 300,  # Seconds
-                    "interp_nb_agents": 100,  # Max number of agents over which the interpolation is run
-                },
-            },
-            "artificial_signal_ratio_range": 1,  # Scale of artificial multiplicative factor randomly multiplied (or divided) at each episode during training. Ex: 1 will not modify signal. 3 will have signal between 33% and 300% of what is computed.
-            "artificial_ratio": 1.0,
-            "signal_mode": "regular_steps",  # Mode of the signal. Currently available: flat, sinusoidal, regular_steps
-            "signal_parameters": {
-                "flat": {},
-                "sinusoidals": {
-                    "periods": [400, 1200],  # In seconds
-                    "amplitude_ratios": [0.1, 0.3],  # As a ratio of avg_power_per_hvac
-                },
-                "regular_steps": {
-                    "amplitude_per_hvac": 6000,  # In watts
-                    "period": 300,  # In seconds
-                },
-                "perlin": {
-                    "amplitude_ratios": 0.9,
-                    "nb_octaves": 5,
-                    "octaves_step": 5,
-                    "period": 400,
-                },
-                "amplitude+_perlin": {
-                    "amplitude_ratios": 0.9 * 1.1,
-                    "nb_octaves": 5,
-                    "octaves_step": 5,
-                    "period": 400,
-                },
-                "amplitude++_perlin": {
-                    "amplitude_ratios": 0.9 * 1.3,
-                    "nb_octaves": 5,
-                    "octaves_step": 5,
-                    "period": 400,
-                },
-                "fast+_perlin": {
-                    "amplitude_ratios": 0.9,
-                    "nb_octaves": 5,
-                    "octaves_step": 5,
-                    "period": 300,
-                },
-                "fast++_perlin": {
-                    "amplitude_ratios": 0.9,
-                    "nb_octaves": 5,
-                    "octaves_step": 5,
-                    "period": 200,
-                },
-            },
-        },
-        "reward_prop": {
-            "alpha_temp": 1,  # Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-            "alpha_sig": 1,  # Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.
-            "norm_reg_sig": 7500,  # Average power use, for signal normalization
-            "temp_penalty_mode": "individual_L2",  # Mode of temperature penalty
-            "temp_penalty_parameters": {
-                "individual_L2": {},
-                "common_L2": {},
-                "common_max_error": {},
-                "mixture": {
-                    "alpha_ind_L2": 1,
-                    "alpha_common_L2": 1,
-                    "alpha_common_max": 0,
-                },
-            },
-            "sig_penalty_mode": "common_L2",  # Mode of signal penalty
-        },
-    },
-    # Agent properties
-    "PPO_prop": {
-        "actor_layers": [100, 100],
-        "critic_layers": [100, 100],
-        "gamma": 0.99,
-        "lr_critic": 3e-3,
-        "lr_actor": 1e-3,
-        "clip_param": 0.2,
-        "max_grad_norm": 0.5,
-        "ppo_update_time": 10,
-        "batch_size": 256,
-        "zero_eoepisode_return": False,
-    },
-    "MAPPO_prop": {
-        "actor_layers": [100, 100],
-        "critic_layers": [100, 100],
-        "gamma": 0.99,
-        "lr_critic": 3e-3,
-        "lr_actor": 1e-3,
-        "clip_param": 0.2,
-        "max_grad_norm": 0.5,
-        "ppo_update_time": 10,
-        "batch_size": 256,
-        "zero_eoepisode_return": False,
-    },
-    "DDPG_prop": {
-        "actor_hidden_dim": 256,
-        "critic_hidden_dim": 256,
-        "gamma": 0.99,
-        "lr_critic": 3e-3,
-        "lr_actor": 1e-3,
-        "soft_tau": 0.01,
-        "clip_param": 0.2,
-        "max_grad_norm": 0.5,
-        "ddpg_update_time": 10,
-        "batch_size": 64,
-        "buffer_capacity": 524288,
-        "episode_num": 10000,
-        "learn_interval": 100,
-        "learn_interval": 100,
-        "random_steps": 100,
-        "gumbel_softmax_tau": 1,
-        "DDPG_shared": True,
-    },
-    "DQN_prop": {
-        "network_layers": [100, 100],
-        "gamma": 0.99,
-        "tau": 0.01,
-        "buffer_capacity": 524288,
-        "lr": 1e-3,
-        "batch_size": 256,
-        "epsilon_decay": 0.99998,
-        "min_epsilon": 0.01,
-    },
-    "MPC_prop": {
-        "rolling_horizon": 15,
-    },
-}
+from pydantic import BaseModel, Extra, Field
+import typing as t
+import datetime
+
+
+class HvacNoiseProperties(BaseModel):
+    std_latent_cooling_fraction: float = Field(
+        0.05,
+        description="Standard deviation of the latent cooling fraction of the HVAC.",
+    )
+    factor_COP_low: float = Field(
+        0.95,
+        description="Lowest random factor for COP to multiply the coefficient of performance of the HVAC.",
+    )
+    factor_COP_high: float = Field(
+        1.05,
+        description="Highest random factor for COP to multiply the coefficient of performance of the HVAC.",
+    )
+    factor_cooling_capacity_low: float = Field(
+        0.9,
+        description="Lowest random factor for cooling_capacity to multiply the cooling capacity of the HVAC.",
+    )
+    factor_cooling_capacity_high: float = Field(
+        1.1,
+        description="Highest random factor for cooling_capacity to multiply the cooling capacity of the HVAC.",
+    )
+    lockout_noise: int = Field(
+        0,
+        description="Lockout noise to add to the lockout duration of the HVAC.",  # TODO check if this is correct
+    )
+    cooling_capacity_list: t.List[int] = Field(
+        [12500, 15000, 17500],
+        description="List of cooling capacities to choose from randomly.",  # TODO check if this is correct
+    )
+
+
+class HvacProperties(
+    BaseModel,
+    extra=Extra.forbid,
+    allow_mutation=False,
+    validate_assignment=True,
+    freeze=True,
+):
+    cop: float = Field(
+        2.5,
+        description="coefficient of performance (ratio between cooling capacity and electric power consumption).",
+        gt=0,
+    )
+    cooling_capacity: int = Field(
+        15000,
+        description='Rate of "negative" heat transfer produced by the HVAC (W).',
+        gt=0,
+    )
+    latent_cooling_fraction: float = Field(
+        0.35,
+        description="Float between 0 and 1, fraction of sensible cooling (temperature) which is latent cooling (humidity).",
+        gt=0,
+        lt=1,
+    )
+    lockout_duration: int = Field(
+        40,
+        description="Duration of lockout (hardware constraint preventing to turn on the HVAC for some time after turning off), in seconds",
+    )
+
+    @property
+    def max_consumption(self) -> float:
+        return self.cooling_capacity / self.cop
+
+
+class BuildingNoiseProperties(BaseModel):
+    std_start_temp: float = Field(
+        3.0,
+        description="Standard deviation of the initial temperature of the house (Celsius).",
+    )
+    std_target_temp: float = Field(
+        1.0,
+        description="Standard deviation of the target temperature of the house (Celsius).",
+    )
+    factor_thermo_low: float = Field(
+        0.9,
+        description="Factor to multiply the standard deviation of the target temperature of the house (Celsius).",
+    )
+    factor_thermo_high: float = Field(
+        1.1,
+        description="Factor to multiply the standard deviation of the target temperature of the house (Celsius).",
+    )
+
+
+class ThermalProperties(BaseModel):
+    Ua: float = Field(
+        2.18e02,
+        description="House walls conductance (W/K). Multiplied by 3 to account for drafts (according to https://dothemath.ucsd.edu/2012/11/this-thermal-house/)",
+    )
+    Ca: float = Field(
+        9.08e05,
+        description="Air thermal mass in the house (J/K): 3 * (volumetric heat capacity: 1200 J/m3/K, default area 100 m2, default height 2.5 m)",
+    )
+    Hm: float = Field(
+        2.84e03,
+        description="House mass surface conductance (W/K) (interioor surface heat tansfer coefficient: 8.14 W/K/m2; wall areas = Afloor + Aceiling + Aoutwalls + Ainwalls = A + A + (1+IWR)*h*R*sqrt(A/R) = 455m2 where R = width/depth of the house (default R: 1.5) and IWR is I/O wall surface ratio (default IWR: 1.5))",
+    )
+    Cm: float = Field(
+        3.45e06,
+        description="House thermal mass (J/K) (area heat capacity:: 40700 J/K/m2 * area 100 m2)",
+    )
+
+
+class BuildingProperties(ThermalProperties):
+    target_temp: float = Field(
+        20,
+        description="Desired temperature in the house (Celsius).",
+    )
+    deadband: float = Field(
+        0,
+        description="Deadband around the target temperature (Celsius).",
+    )
+    init_air_temp: float = Field(
+        20,
+        description="Initial temperature of the air in the house (Celsius).",
+    )
+    init_mass_temp: float = Field(
+        20,
+        description="Initial temperature of the mass in the house (Celsius).",
+    )
+    solar_gain: bool = Field(
+        True,
+        description="Whether to include solar gain in the simulation.",
+    )
+    nb_hvacs: int = Field(
+        1,
+        description="Number of HVACs in the house.",
+    )
+    window_area: float = Field(
+        7.175,
+        description="Gross window area (m2).",
+    )
+    shading_coeff: float = Field(
+        0.67,
+        description="Window Solar Heat Gain Coefficient, look-up table in Gridlab reference",
+    )
+
+
+class PPOProp(BaseModel):
+    """Properties for PPO agent."""
+
+    actor_layers: list[int] = Field(
+        [100, 100],
+        description="List of layer sizes for the actor network.",
+    )
+    critic_layers: list[int] = Field(
+        [100, 100],
+        description="List of layer sizes for the critic network.",
+    )
+    gamma: float = Field(
+        0.99,
+        description="Discount factor for the reward.",
+    )
+    lr_critic: float = Field(
+        3e-3,
+        description="Learning rate for the critic network.",
+    )
+    lr_actor: float = Field(
+        3e-3,
+        description="Learning rate for the actor network.",
+    )
+    clip_param: float = Field(
+        0.2,
+        description="Clipping parameter for the PPO loss.",
+    )
+    max_grad_norm: float = Field(
+        0.5,
+        description="Maximum norm for the gradient clipping.",
+    )
+    ppo_update_time: int = Field(
+        10,
+        description="Update time for the PPO agent.",
+    )
+    batch_size: int = Field(
+        256,
+        description="Batch size for the PPO agent.",
+    )
+    zero_eoepisode_return: bool = Field(
+        False,
+        # description="Whether to zero the episode return when the episode ends.",
+    )
+
+
+class MAPPOProp(PPOProp):
+    """Properties for MAPPO agent."""
+
+
+class DDPGProp(BaseModel):
+    """Properties for MAPPO agent."""
+
+    actor_hidden_dim: int = Field(
+        256,
+        description="Hidden dimension for the actor network.",
+    )
+    critic_hidden_dim: int = Field(
+        256,
+        description="Hidden dimension for the critic network.",
+    )
+    lr_critic: float = Field(
+        3e-3,
+        description="Learning rate for the critic network.",
+    )
+    lr_actor: float = Field(
+        3e-3,
+        description="Learning rate for the actor network.",
+    )
+    soft_tau: float = Field(
+        0.01,
+        description="Soft target update parameter.",
+    )
+    clip_param: float = Field(
+        0.2,
+        description="Clipping parameter for the PPO loss.",
+    )
+    max_grad_norm: float = Field(
+        0.5,
+        description="Maximum norm for the gradient clipping.",
+    )
+    ddpg_update_time: int = Field(
+        10,
+        description="Update time for the DDPG agent.",
+    )
+    batch_size: int = Field(
+        64,
+        description="Batch size for the DDPG agent.",
+    )
+    buffer_capacity: int = Field(
+        524288,
+        description="Capacity of the replay buffer.",
+    )
+    episode_num: int = Field(
+        10000,
+        # description="Number of episodes for the MAPPO agent.",
+    )
+    learn_interval: int = Field(
+        100,
+        description="Learning interval for the MAPPO agent.",
+    )
+    random_steps: int = Field(
+        100,
+        # description="Number of random steps for the MAPPO agent.",
+    )
+    gumbel_softmax_tau: float = Field(
+        1.0,
+        description="Temperature for the gumbel softmax distribution.",
+    )
+    DDPG_shared: bool = Field(
+        True,
+        # description="Whether to use the shared DDPG network.",
+    )
+
+
+class DQNProp(BaseModel):
+    """Properties for DQN agent."""
+
+    network_layers: list[int] = Field(
+        [100, 100],
+        description="List of layer sizes for the DQN network.",
+    )
+    gamma: float = Field(
+        0.99,
+        description="Discount factor for the reward.",
+    )
+    tau: float = Field(
+        0.001,
+        description="Soft target update parameter.",
+    )
+    lr: float = Field(
+        3e-3,
+        description="Learning rate for the DQN network.",
+    )
+    buffer_capacity: int = Field(
+        524288,
+        description="Capacity of the replay buffer.",
+    )
+    batch_size: int = Field(
+        256,
+        description="Batch size for the DQN agent.",
+    )
+    epsilon_decay: float = Field(
+        0.99998,
+        description="Epsilon decay rate for the DQN agent.",
+    )
+    min_epsilon: float = Field(
+        0.01,
+        description="Minimum epsilon for the DQN agent.",
+    )
+
+
+class MPCProp(BaseModel):
+    """Properties for MPC agent."""
+
+    rolling_horizon: int = Field(
+        15,
+        description="Rolling horizon for the MPC agent.",
+    )
+
+
+class CLIConfig(BaseModel):
+    """Properties ported from the CIL calls."""
+
+    experiment_name: str = Field(
+        "default",
+        description="Name of the experiment.",
+    )
+    wandb: bool = Field(
+        False,
+        description="Whether to use wandb.",
+    )
+    log_metrics_path: str = Field(
+        "",
+        description="Path to the metrics file.",
+    )
+    nb_time_steps: int = Field(
+        100000,
+        description="Number of time steps for the experiment.",
+    )
+    save_actor_name: str = Field(
+        "",
+        description="Name of the actor to save.",
+    )
+    nb_inter_saving_actor: int = Field(
+        0,
+        description="Number of time steps between saving the actor.",
+    )
+
+
+class PenaltyProperties(BaseModel):
+    mode: str = "common_L2"
+    alpha_ind_l2: float = 1.0
+    alpha_common_l2: float = 1.0
+    alpha_common_max: float = 0.0
+
+
+class RewardProperties(BaseModel):
+    """Properties of the reward function."""
+
+    alpha_temp: float = Field(
+        1.0,
+        description="Tradeoff parameter for temperature in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.",
+    )
+    alpha_sig: float = Field(
+        1.0,
+        description="Tradeoff parameter for signal in the loss function: alpha_temp * temperature penalty + alpha_sig * regulation signal penalty.",
+    )
+    norm_reg_signal: int = Field(
+        7500,
+        description="Average power use, for signal normalization.",
+    )
+    penalty_props: PenaltyProperties = Field(PenaltyProperties())
+
+
+class StateProperties(BaseModel):
+    """Properties of the state space."""
+
+    hour: bool = Field(
+        False,
+        description="Whether to include the hour of the day in the state space.",
+    )
+    day: bool = Field(
+        False,
+        description="Whether to include the day of the week in the state space.",
+    )
+    solar_gain: bool = Field(
+        False,
+        description="Whether to include solar gain in the state space.",
+    )
+    thermal: bool = Field(
+        False,
+        description="Whether to include thermal state in the state space.",
+    )
+    hvac: bool = Field(
+        False,
+        description="Whether to include hvac state in the state space.",
+    )
+
+
+class EnvironmentProperties(BaseModel):
+    """Properties of the environment."""
+
+    start_datetime: datetime.datetime = Field(
+        datetime.datetime(2021, 1, 1, 0, 0, 0),
+        description="Start date and time (Y-m-d H:M:S).",
+    )
+    start_datetime_mode: t.Union[
+        t.Literal["individual_L2"],
+        t.Literal["common_L2"],
+        t.Literal["common_max"],
+        t.Literal["mixture"],
+    ] = Field(
+        "fixed",
+        description="Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)",
+    )
+    time_step: datetime.timedelta = Field(datetime.timedelta(0, 4))  # Time step (H:M:S)
+    state_properties: StateProperties
+    message_properties: t.Dict[str, bool] = {"thermal": False, "hvac": False}
+    reward_properties: RewardProperties
+
+
+class MarlConfig(BaseModel, extra=Extra.forbid):
+    """Configuration for MARL environment."""
+
+    default_house_prop: BuildingProperties
+    noise_house_prop: BuildingNoiseProperties
+    default_hvac_prop: HvacProperties
+    noise_hvac_prop: HvacNoiseProperties
+    default_env_prop: EnvironmentProperties
+    PPO_prop: PPOProp
+    MAPPO_prop: MAPPOProp
+    DDPG_prop: DDPGProp
+    DQN_prop: DQNProp
+    MPC_prop: MPCProp
