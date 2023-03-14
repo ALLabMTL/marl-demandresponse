@@ -37,6 +37,7 @@ export class SimulationManagerService {
   hvacChosen: HouseData[];
   chipSelected: any;
   tempDiffHousesData: HouseData[];
+ // isChipSelected: boolean;
 
   constructor() { 
       this.sidenavData = [];
@@ -63,6 +64,8 @@ export class SimulationManagerService {
       this.hvacChosen = [];
       this.chipSelected = false;
       this.tempDiffHousesData = [];
+     // this.isChipSelected = false;
+
   }
 
 
@@ -118,14 +121,12 @@ export class SimulationManagerService {
       this.housesData = this.housesData.filter(x => {
         return this.houseDataFiltered.find(y => y.id === x.id) !== undefined;
       });
-      console.log('sorting filtered', this.housesData);
     }  
 
     if(this.isFilteredHvac) {
         this.housesData = this.housesData.filter(x => {
           return this.hvacChosen.find(y => y.hvacStatus === x.hvacStatus) !== undefined;
         });   
-        console.log('hvac filtered', this.housesData);
     }
 
     if(this.isTempFiltered) {
@@ -168,22 +169,18 @@ export class SimulationManagerService {
     switch(option) {
       case "indoorTempInc":
         this.sortByIndoorTempIncreasing();
-        console.log("indoortemp inc");
         break;
       case "indoorTempDec":
         this.sortByIndoorTempDecreasing();
-        console.log("indoortemp dec");
         break;
       case "tempDiffInc":
         this.sortByTempDiffIncreasing();
-        console.log("tempdiff inc");
         break;
       case "tempDiffDec":
         this.sortByTempDiffDecreasing();
-        console.log("tempdiff dec");
         break;
       case "noSorting":
-        console.log("no sorting");
+        this.removeSorting();
         break;
     }
 
@@ -203,14 +200,6 @@ export class SimulationManagerService {
     this.housesData = this.originalHousesData;
     this.hvacStatus = event.source.value;
 
-    console.log('hvac status:', this.hvacStatus)
-
-    // if(this.chipSelected) {
-    //   this.hvacChosen = [...this.hvacChosen, {...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)}];
-    // } else {
-    //   this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== (this.housesData.filter(status => status.hvacStatus == this.hvacStatus)))];
-    // }
-
     if(this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
     } else { // if un-select manually
@@ -218,19 +207,11 @@ export class SimulationManagerService {
     }
     this.isFilteredHvac = true;
 
-    console.log('hvac chosen')
-    console.log(this.hvacChosen);
     this.updateFilteredHouses();
   }
 
   filteredByHvacStatus(): void {
-    console.log('hvac status:', this.hvacStatus)
     this.housesData = this.originalHousesData;
-    // if(this.chipSelected) {
-    //   this.hvacChosen = [...this.hvacChosen, {...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)}];
-    // } else {
-    //   this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== (this.housesData.filter(status => status.hvacStatus == this.hvacStatus)))];
-    // }
 
     if(this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
@@ -239,8 +220,6 @@ export class SimulationManagerService {
     }
     this.isFilteredHvac = true;
 
-    console.log('hvac chosen')
-    console.log(this.hvacChosen);
     this.updateFilteredHouses();
   }
 
@@ -254,7 +233,6 @@ export class SimulationManagerService {
     this.housesData = this.originalHousesData;
 
     this.tempDiffHousesData = this.housesData.filter((e) => e.tempDifference >= this.tempSelectRange.min && e.tempDifference <= this.tempSelectRange.max)
-    console.log('temp diff filtered', this.tempDiffHousesData)
 
     this.updateFilteredHouses();
   }

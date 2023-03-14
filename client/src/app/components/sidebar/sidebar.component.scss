@@ -22,8 +22,11 @@ mat-chip-listbox {
 
 .values_temp p {
   display: inline;
-  margin: 30px;
+  margin: 20px;
+  text-align: center;
+  table-layout: fixed;
 }
+
 .scale {
   // position: absolute;
   // bottom: 0;
@@ -140,6 +143,19 @@ mat-chip-listbox {
 .hvac-status-title {
   font-size: 1rem;
   color: black
+}
+
+.on_chip {
+  background-color: green;
+}
+
+.lockout_chip {
+  background-color: grey;
+  color: grey;
+}
+
+.off_chip {
+  background-color: red;
 }
 
 // .filter {

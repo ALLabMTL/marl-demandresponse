@@ -2,6 +2,7 @@
   <p class="filter-title">
     <b>Filters:</b>
   </p>
+
   <div class="temp_filter">
     <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.simulationManager.removeTempDiffFilter()">
       Temperature difference
@@ -29,23 +30,26 @@
     <p tag="max_temp">Max: {{this.simulationManager.tempSelectRange.max}}</p>
     </div>
   </div>
+
   <mat-divider></mat-divider>
+
   <div class="hvac_filter">
     <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacChecked" (click)="this.simulationManager.removeHvacFilter()">
       HVAC status
     </mat-slide-toggle>
     <mat-chip-listbox [disabled]="!this.simulationManager.isHvacChecked">
-      <mat-chip-option value = "ON" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      <mat-chip-option class="on_chip" color = "primary" value = "ON" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         ON
       </mat-chip-option>
-      <mat-chip-option value = "Lockout" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      <mat-chip-option class="lockout_chip" color = "grey" value = "Lockout" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         Lockout
       </mat-chip-option>
-      <mat-chip-option value = "OFF" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      <mat-chip-option class="off_chip" color = "warn" value = "OFF" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
         OFF
       </mat-chip-option>
     </mat-chip-listbox>
   </div>
+
   <mat-divider></mat-divider>
   <!-- <div class="floor_filter">
     <mat-checkbox class="floor_checkbox" (click)="floorCheckbox()"
@@ -68,6 +72,7 @@
     <mat-checkbox class="vehicule_checkbox">Vehicules</mat-checkbox>
     <mat-checkbox class="compagnie_checkbox">Compagnies</mat-checkbox>
   </div> -->
+
   <div class="filter">
     <mat-form-field appearance="fill">
       <mat-label>Sort by</mat-label>
@@ -102,7 +107,9 @@
       </mat-select>
     </mat-form-field>
   </div>
+
   <mat-divider></mat-divider>
+
   <div class="scale">
     <p class="scale_text"><b>Color Temperature Scale</b></p>
     <mat-form-field class="precision">
