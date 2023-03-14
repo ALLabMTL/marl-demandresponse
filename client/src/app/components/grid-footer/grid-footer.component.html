@@ -1,19 +1,60 @@
 <div class="container">
-    <div class="pagination">
-        <button class="prev-page" (click)="decrementPage()" [disabled]="currentPage == 1">
-            <mat-icon>chevron_left</mat-icon>
-        </button>
+  <!-- <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Square Per Line</mat-label>
+      <mat-select>
+        <mat-option
+          *ngFor="let option of nbSquareOptions"
+          style="font-size: 12px"
+          value="option"
+          >{{ option }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div> -->
+  <div class="squareInput">
+    <input
+      class="square"
+      id="squareNumber"
+      (keyup.enter)="setNbSquare()"
+      (blur)="setNbSquare()"
+      type="number"
+      step="1"
+      value="{{ nbSquares }}"
+    />
+  </div>
 
-        <div class="page-input">
-            <input class="input" id="myNumber" (keyup.enter)="setPageInput()" (blur)="setPageInput()" type="number" min="1" max="{{this.simulationManager.maxPage}}" step="1" value="{{currentPage}}">
-        </div>
+  <div class="pagination">
+    <button
+      class="prev-page"
+      (click)="decrementPage()"
+      [disabled]="currentPage === 1"
+    >
+      <mat-icon>chevron_left</mat-icon>
+    </button>
 
-        <span class="max-pages">
-            / {{this.simulationManager.maxPage}}
-        </span>
-
-        <button class="next-page" (click)="incrementPage()" [disabled]="currentPage == this.simulationManager.maxPage" >
-            <mat-icon>chevron_right</mat-icon>
-        </button>
+    <div class="page-input">
+      <input
+        class="input"
+        id="myNumber"
+        (keyup.enter)="setPageInput()"
+        (blur)="setPageInput()"
+        type="number"
+        min="1"
+        max="{{ this.simulationManager.maxPage }}"
+        step="1"
+        value="{{ currentPage }}"
+      />
     </div>
+
+    <span class="max-pages"> / {{ this.simulationManager.maxPage }} </span>
+
+    <button
+      class="next-page"
+      (click)="incrementPage()"
+      [disabled]="currentPage == this.simulationManager.maxPage"
+    >
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
 </div>

@@ -13,7 +13,24 @@ export class SharedService {
   private precisionValueSelected = new BehaviorSubject(0.5);
   currentPrecisionValue = this.precisionValueSelected.asObservable();
 
+  private squareNb = new BehaviorSubject(64);
+  squareNbValue = this.squareNb.asObservable();
+
+  columnWidths = new BehaviorSubject(`repeat(8, ${100/8}%)`);
+  columnWidthsValue = this.columnWidths.asObservable();
+
+  rowHeights = new BehaviorSubject(`repeat(8, ${100/8}%)`);
+  rowHeightsValue = this.rowHeights.asObservable();
+
   constructor() { }
+
+
+  changeSquareNb(squareNb: number) {
+    this.squareNb.next(squareNb);
+    const nbSquarePerLine = Math.sqrt(this.squareNb.getValue());
+    this.columnWidths.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
+    this.rowHeights.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
+  }
 
   changeCount(currentPage: number) {
     this.currentPage.next(currentPage);
