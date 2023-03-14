@@ -1,6 +1,6 @@
-import { Component, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SharedService } from '@app/services/shared/shared.service';
-import {MatDialog} from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { DialogComponent } from '../dialog/dialog.component';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -24,7 +24,7 @@ export class GridComponent implements OnInit {
   maxPage = 35;
   precisionValueSelected = 0;
 
-  constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService){
+  constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
     this.pages = [
       { id: 1, content: "Page 1" },
       { id: 2, content: "Page 2" },
@@ -35,9 +35,9 @@ export class GridComponent implements OnInit {
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
     this.currentPage = this.pages[0].id;
-    for (let i = 0; i < this.simulationManager.housesData.length; i++) {
-      console.log (this.simulationManager.housesData[i]);
-    }
+    // for (let i = 0; i < this.simulationManager.housesData.length; i++) {
+    //   console.log (this.simulationManager.housesData[i]);
+    // }
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
     //this.houseColor();
     // console.log(this.houseColor(0.40));
@@ -56,11 +56,11 @@ export class GridComponent implements OnInit {
   getHvacColor(i: number): string {
     if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
       return 'green';
-    } 
-    else if(this.simulationManager.housesData[i].hvacStatus === 'OFF'){
+    }
+    else if (this.simulationManager.housesData[i].hvacStatus === 'OFF') {
       return 'red';
     }
-    else{
+    else {
       return 'gray';
     }
   }
@@ -71,7 +71,7 @@ export class GridComponent implements OnInit {
 
   openDialog(index: number) {
     this.dialog.open(DialogComponent, {
-      data :index
+      data: index
     });
 
   }

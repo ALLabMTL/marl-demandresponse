@@ -79,18 +79,16 @@ class ClientManagerService:
         self.data_messages["Number of locked HVAC"] = str(
             np.where(df["lockout"] & (df["turned_on"] == False), 1, 0).sum()
         )
-        self.data_messages["Outdoor temperature"] = (
-            str(round(df["OD_temp"][0], 2)) + " °C"
+        self.data_messages["Outdoor temperature (°C)"] = str(round(df["OD_temp"][0], 2))
+        self.data_messages["Average indoor temperature (°C)"] = str(
+            round(df["indoor_temp"].mean(), 2)
         )
-        self.data_messages["Average indoor temperature"] = (
-            str(round(df["indoor_temp"].mean(), 2)) + " °C"
-        )
-        self.data_messages["Average temperature difference"] = (
-            str(round(df["temperature_difference"].mean(), 2)) + " °C"
+        self.data_messages["Average temperature difference (°C)"] = str(
+            round(df["temperature_difference"].mean(), 2)
         )
         self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
         self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
-        self.data_messages["Consumption error (%)"] = "{:.3f}%".format(
+        self.data_messages["Consumption error (%)"] = "{:.3f}".format(
             (df["reg_signal"][0] - df["cluster_hvac_power"][0])
             / df["reg_signal"][0]
             * 100

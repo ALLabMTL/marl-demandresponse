@@ -19,12 +19,26 @@ export class GraphsComponent implements OnInit {
   ngOnInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
     this.sms.sidenavObservable.subscribe((data) => {
-      const number_data = data.map((elem) => Number(elem["Average indoor temperature"].slice(0, -3)));
-      // TODO: this is ugly, sidenav data should contain numbers instead of strings, here we have to strip out the " °C"
+      // get the categories
+      debugger;
+      const categories = Object.keys(data[0]);
+      const datasets = categories.map((category) => {
+        return {
+          data: data.map((elem) => Number(elem[category])),
+          label: category,
+          fill: true,
+          tension: 0,
+          borderColor: 'black',
+          backgroundColor: 'rgba(255,0,0,0.3)'
+        }
+      }
+      );
+
+      // const number_data = data.map((elem) => Number(elem["Average indoor temperature (°C)"]));
       // TODO: checkboxes that allow us to select which series to display, multple at one time
-      this.lineChartData.datasets[0].data = number_data;
+      this.lineChartData.datasets = datasets;
       // labels are range from 0 to number_data.length
-      this.lineChartData.labels = Array.from(Array(number_data.length).keys());
+      this.lineChartData.labels = Array.from(Array(data.length).keys());
       this.lineChart.chart!.update();
     })
   }
@@ -33,19 +47,11 @@ export class GraphsComponent implements OnInit {
   //TODO same thing with y axis, let the user choose the min and max values
 
   public lineChartData: ChartConfiguration<'line'>['data'] = {
-    labels: [
-      'January', // TODO remove this, it's overwritten by the sidenav data update anyways
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July'
-    ],
+    labels: [],
     datasets: [
       {
-        data: [65, 59, 80, 81, 56, 55, 40], //TODO this is also placeholder data
-        label: 'Series A',
+        data: [], //TODO this is also placeholder data
+        label: 'Series A', //TODO this is also placeholder data
         fill: true,
         tension: 0,
         borderColor: 'black',
