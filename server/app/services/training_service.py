@@ -4,13 +4,13 @@ from copy import deepcopy
 from datetime import datetime
 from time import sleep
 from typing import Dict, List, Union
-
+import json
 import numpy as np
 import torch
 
-from app.config import config_dict
 from app.core.agents.agent import Agent
 from app.core.agents.ppo import PPO
+from app.core.config.config import MarlConfig
 from app.core.environment.environment import Environment
 from app.utils.logger import logger
 from app.utils.metrics import Metrics
@@ -40,6 +40,13 @@ class TrainingService:
 
     stop: bool
 
+    def load_config(self) -> MarlConfig:
+        with open("MarlConfig.json", "r") as f:
+            config_dict = MarlConfig(**json.load(f))
+        return config_dict
+        # logger.warning("TODO(Victor): Loading default config")
+        # return MarlConfig()
+
     def __init__(
         self,
         socket_manager_service: SocketManager,
@@ -49,9 +56,11 @@ class TrainingService:
         self.socket_manager_service = socket_manager_service
         self.stop = False
 
+        self.config: MarlConfig = self.load_config()
+
     def initialize(self) -> None:
         random.seed(1)
-        self.env = Environment()
+        self.env = Environment(self.config.env_prop)
         self.metrics = Metrics()
         # TODO: Get these arguments from config file (parser)
         self.nb_time_steps = 1000
@@ -60,10 +69,10 @@ class TrainingService:
         self.nb_tr_epochs = 20
         self.obs_dict = self.env._reset()
         self.num_state = len(
-            normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
+            normStateDict(self.obs_dict[next(iter(self.obs_dict))], self.config)
         )
         # TODO: Get agent from config file
-        self.agent = PPO(config_dict, self.num_state)
+        self.agent = PPO(self.config.PPO_prop, self.num_state)
         self.time_steps_per_episode = int(self.nb_time_steps / self.nb_tr_epochs)
         self.time_steps_per_epoch = int(self.nb_time_steps / self.nb_tr_epochs)
         self.time_steps_train_log = int(self.nb_time_steps / self.nb_tr_logs)
@@ -104,7 +113,7 @@ class TrainingService:
             # Select action with probabilities
             action_and_prob = {
                 k: self.agent.select_action(
-                    normStateDict(self.obs_dict[k], config_dict)
+                    normStateDict(self.obs_dict[k], self.config)
                 )
                 for k in self.obs_dict.keys()
             }
@@ -121,11 +130,11 @@ class TrainingService:
             for k in self.obs_dict.keys():
                 self.agent.store_transition(
                     self.transition(
-                        normStateDict(self.obs_dict[k], config_dict),
+                        normStateDict(self.obs_dict[k], self.config),
                         action[k],
                         action_prob[k],
                         rewards_dict[k],
-                        normStateDict(next_obs_dict[k], config_dict),
+                        normStateDict(next_obs_dict[k], self.config),
                         done,
                     ),
                     k,

@@ -6,12 +6,21 @@ from app.core.environment.simulatable import Simulatable
 from .hvac_properties import HvacNoiseProperties, HvacProperties
 
 
+class HVACObsDict(HvacProperties):
+    """Observation dictionary for HVAC."""
+
+    turned_on: bool
+    seconds_since_off: float
+    lockout: bool
+    cop: float
+
+
 class HVAC(Simulatable):
     init_props: HvacProperties
     noise_props: HvacNoiseProperties
     turned_on: bool
     seconds_since_off: int
-    max_consumption: int
+    max_consumption: float
     lockout: bool
 
     def __init__(self) -> None:
@@ -63,11 +72,11 @@ class HVAC(Simulatable):
         return self._get_obs()
 
     def apply_noise(self) -> None:
-        self.init_props.cooling_capacity = random.choices(
+        self.init_props.cooling_capacity = random.choice(
             self.noise_props.cooling_capacity_list
         )
 
-    def _get_obs(self) -> dict:
+    def _get_obs(self) -> HVACObsDict:
         obs_dict = self.init_props.dict()
         obs_dict.update(
             {
@@ -76,7 +85,7 @@ class HVAC(Simulatable):
                 "lockout": self.lockout,
             }
         )
-        return obs_dict
+        return HVACObsDict(**obs_dict)
 
     def get_Q(self) -> float:
         """

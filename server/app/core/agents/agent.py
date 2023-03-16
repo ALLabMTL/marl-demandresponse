@@ -16,3 +16,12 @@ class Agent(ABC):
     @abstractmethod
     def update(self, time_step: int) -> None:
         pass
+
+
+class Trainable(ABC):
+    @abstractmethod
+    def save_model(self, path: str) -> None:
+        pass
+
+    def test(self, env, config_dict, opt, tr_time_step, num_episodes=10):
+        pass

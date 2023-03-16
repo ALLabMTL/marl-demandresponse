@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -21,7 +20,7 @@ class Simulatable(ABC):
         pass
 
     @abstractmethod
-    def _get_obs(self) -> dict:
+    def _get_obs(self) -> BaseModel:
         pass
 
     @abstractmethod

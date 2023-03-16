@@ -3,45 +3,55 @@ from typing import Dict, List
 
 import numpy as np
 
-from app.core.environment.cluster.building import Building
+from app.core.environment.cluster.building import Building, BuildingObsDict
 from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
     MessageProperties,
 )
+from app.core.environment.environment_properties import ClusterPropreties
 from app.core.environment.simulatable import Simulatable
 from app.utils.logger import logger
+
+
+class ClusterObsDict(BuildingObsDict):
+    """Observation dictionary for Cluster."""
+
+    cluster_hvac_power: float
+    message: List[dict]
 
 
 class Cluster(Simulatable):
     # TODO: maybe we should put them in same model (static properties)
     agents_comm_properties: AgentsCommunicationProperties
     message_properties: MessageProperties
-    nb_agents: int
     buildings: List[Building]
-    current_power: int
-    max_power: int
     agent_communicators: Dict[int, List[int]]
-    nb_hvacs: int
 
-    def __init__(self) -> None:
+    @property
+    def current_power(self) -> int:
+        return sum([building.get_power_consumption() for building in self.buildings])
+
+    @property
+    def max_power(self) -> int:
+        return sum([building.max_consumption for building in self.buildings])
+
+    @property
+    def nb_hvacs(self) -> int:
+        return sum(
+            [building.initial_properties.nb_hvacs for building in self.buildings]
+        )
+
+    def __init__(self, cluster_prop: ClusterPropreties) -> None:
+        self.nb_agents = 10
         self._reset()
 
     def _reset(self) -> dict:
         # TODO: Initialize values with parser service
         self.agents_comm_properties = AgentsCommunicationProperties()
         self.message_properties = MessageProperties()
-        self.nb_agents = 10
         self.buildings = [Building() for _ in range(self.nb_agents)]
-        self.current_power = 0
-        self.max_power = 0
         self.agent_communicators = {}
-        self.nb_hvacs = 0
         self.current_power_consumption = 0
-        for building in self.buildings:
-            # TODO: put power_consumptions in building class
-            self.current_power += building.get_power_consumption()
-            self.max_power += building.max_consumption
-            self.nb_hvacs += building.initial_properties.nb_hvacs
         self.build_agents_comm_links()
 
     def _step(
@@ -81,13 +91,13 @@ class Cluster(Simulatable):
         #         )
         pass
 
-    def _get_obs(self) -> Dict[int, dict]:
+    def _get_obs(self) -> Dict[int, Dict]:
         state_dict = {}
         # TODO: we need to change this into models and maybe
         # move this to parser service
         for building_id, building in enumerate(self.buildings):
             for hvac_id, _ in enumerate(building.hvacs):
-                state_dict.update({building_id + hvac_id: building._get_obs()})
+                state_dict.update({building_id + hvac_id: building._get_obs().dict()})
                 state_dict[building_id + hvac_id].update(
                     {"cluster_hvac_power": self.current_power_consumption}
                 )
@@ -98,7 +108,7 @@ class Cluster(Simulatable):
                     state_dict[building_id]["message"].append(
                         self.buildings[id_house_message].message(True, False)
                     )
-        return state_dict
+        return {k: ClusterObsDict(**v).dict() for k, v in state_dict.items()}
 
     def build_agents_comm_links(self) -> None:
         nb_comm = np.minimum(
@@ -133,4 +143,5 @@ class Cluster(Simulatable):
         #     ids_houses_messages = self.agent_communicators[house_id]
 
     def apply_noise(self) -> None:
-        (building.apply_noise() for building in self.buildings)
+        for building in self.buildings:
+            building.apply_noise()
