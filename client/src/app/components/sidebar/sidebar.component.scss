@@ -10,7 +10,7 @@ mat-chip-listbox {
 }
 .hvac_filter {
   margin-left: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
   margin-bottom: 2rem;
 
 }
@@ -23,8 +23,8 @@ mat-chip-listbox {
 .scale {
   // position: absolute;
   // bottom: 0;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .scale .scale_gradient {
@@ -47,7 +47,7 @@ mat-chip-listbox {
   display: table;
   width: 15.3rem;
   table-layout: fixed;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   color: black;
 }
 
@@ -76,9 +76,9 @@ mat-chip-listbox {
 }
 
 .hvac_status {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   padding-left: 1.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .hvac-status-legend {
