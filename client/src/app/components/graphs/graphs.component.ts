@@ -20,13 +20,12 @@ export class GraphsComponent implements OnInit {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
     this.sms.sidenavObservable.subscribe((data) => {
       // get the categories
-      debugger;
       const categories = Object.keys(data[0]);
       const datasets = categories.map((category) => {
         return {
           data: data.map((elem) => Number(elem[category])),
           label: category,
-          fill: true,
+          fill: false,
           tension: 0,
           borderColor: 'black',
           backgroundColor: 'rgba(255,0,0,0.3)'
@@ -39,7 +38,7 @@ export class GraphsComponent implements OnInit {
       this.lineChartData.datasets = datasets;
       // labels are range from 0 to number_data.length
       this.lineChartData.labels = Array.from(Array(data.length).keys());
-      this.lineChart.chart!.update();
+      this.lineChart.chart!.update('none');
     })
   }
 
@@ -52,7 +51,7 @@ export class GraphsComponent implements OnInit {
       {
         data: [], //TODO this is also placeholder data
         label: 'Series A', //TODO this is also placeholder data
-        fill: true,
+        fill: false,
         tension: 0,
         borderColor: 'black',
         backgroundColor: 'rgba(255,0,0,0.3)'
