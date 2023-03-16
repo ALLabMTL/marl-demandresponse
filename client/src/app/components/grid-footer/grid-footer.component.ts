@@ -17,29 +17,20 @@ export class GridFooterComponent {
   currentPage: number = 1;
   maxPage: number = 35;
 
-  nbSquares = 81;
-  nbSquareOptions = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-
   constructor(private sharedService: SharedService, public simulationManager: SimulationManagerService){
   }
 
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
-    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
-  }
-
-  setSquareNb(): void {
-
-  }
-
-  setNbSquare(): void {
-    const square = (<HTMLInputElement>document.getElementById("squareNumber")).value;
-    this.sharedService.changeSquareNb(parseInt(square));
   }
 
   setPageInput(): void {
     const page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-    this.sharedService.changeCount(parseInt(page));
+    let pageNb = parseInt(page);
+    if(pageNb > this.simulationManager.maxPage){
+      pageNb = this.simulationManager.maxPage;
+    }
+    this.sharedService.changeCount(pageNb);
   }
 
   incrementPage(): void {

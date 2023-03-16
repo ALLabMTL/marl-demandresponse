@@ -13,13 +13,13 @@ export class SharedService {
   private precisionValueSelected = new BehaviorSubject(0.5);
   currentPrecisionValue = this.precisionValueSelected.asObservable();
 
-  private squareNb = new BehaviorSubject(64);
+  private squareNb = new BehaviorSubject(100);
   squareNbValue = this.squareNb.asObservable();
 
-  columnWidths = new BehaviorSubject(`repeat(8, ${100/8}%)`);
+  columnWidths = new BehaviorSubject(`repeat(10, ${100/10}%)`);
   columnWidthsValue = this.columnWidths.asObservable();
 
-  rowHeights = new BehaviorSubject(`repeat(8, ${100/8}%)`);
+  rowHeights = new BehaviorSubject(`repeat(10, ${100/10}%)`);
   rowHeightsValue = this.rowHeights.asObservable();
 
   constructor() { }

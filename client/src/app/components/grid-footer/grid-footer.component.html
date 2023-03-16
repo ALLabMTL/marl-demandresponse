@@ -1,29 +1,4 @@
 <div class="container">
-  <!-- <div class="filter">
-    <mat-form-field appearance="fill">
-      <mat-label>Square Per Line</mat-label>
-      <mat-select>
-        <mat-option
-          *ngFor="let option of nbSquareOptions"
-          style="font-size: 12px"
-          value="option"
-          >{{ option }}</mat-option
-        >
-      </mat-select>
-    </mat-form-field>
-  </div> -->
-  <div class="squareInput">
-    <input
-      class="square"
-      id="squareNumber"
-      (keyup.enter)="setNbSquare()"
-      (blur)="setNbSquare()"
-      type="number"
-      step="1"
-      value="{{ nbSquares }}"
-    />
-  </div>
-
   <div class="pagination">
     <button
       class="prev-page"
@@ -52,7 +27,7 @@
     <button
       class="next-page"
       (click)="incrementPage()"
-      [disabled]="currentPage == this.simulationManager.maxPage"
+      [disabled]="currentPage === this.simulationManager.maxPage"
     >
       <mat-icon>chevron_right</mat-icon>
     </button>

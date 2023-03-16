@@ -28,10 +28,8 @@ export class GridComponent implements OnInit {
   nbSquares = 100;
   nbSquarePerLine = Math.sqrt(this.nbSquares);
 
-  // columnWidths = `repeat(10, ${100/10}%)`;
-  // rowHeights = `repeat(10, ${100/10}%)`;
-  columnWidths = `repeat(8, ${8}%)`;
-  rowHeights = `repeat(8, ${8}%)`;
+  columnWidths = `repeat(10, ${100/10}%)`;
+  rowHeights = `repeat(10, ${100/10}%)`;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
     this.pages = []
@@ -49,15 +47,6 @@ export class GridComponent implements OnInit {
 
   cells = new Array(this.nbSquares).fill(null);
 
-  // getColumnWidths() {
-  //   this.nbSquarePerLine = Math.sqrt(this.nbSquares);
-  //   return `repeat(${this.nbSquarePerLine}, ${this.nbSquarePerLine}%)`;
-  // }
-
-  // getRowHeights() {
-  //   this.nbSquarePerLine = Math.sqrt(this.nbSquares);
-  //   return `repeat(${this.nbSquarePerLine}, ${this.nbSquarePerLine}%)`;
-  // }
 
   getHvacColor(page: number, i: number): string {
     if (this.simulationManager.pages[page].content[i].hvacStatus === 'ON') {
@@ -71,34 +60,10 @@ export class GridComponent implements OnInit {
     }
   }
 
-  // getHvacColor(i: number): string {
-  //   console.log(this.currentPage - 1);
-  //   if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
-  //     return 'green';
-  //   }
-  //   else if (this.simulationManager.housesData[i].hvacStatus === 'OFF') {
-  //     return 'red';
-  //   }
-  //   else {
-  //     return 'gray';
-  //   }
-  // }
-
   switchPage(pageNumber: number) {
     this.currentPage = pageNumber;
     this.sharedService.changeCount(pageNumber);
   }
-
-  // updatePages() {
-  //   const pages = [];
-  //   for (let i = 0; i < this.maxPage; i++) {
-  //     const startIndex = i * this.housesPerPage;
-  //     const endIndex = Math.min(startIndex + this.housesPerPage, this.simulationManager.housesData.length);
-  //     const pageContent: HouseData[] = this.simulationManager.housesData.slice(startIndex, endIndex);
-  //     pages.push({ id: i + 1, content: pageContent });
-  //   }
-  //   return pages;
-  // }
 
   openDialog(index: number) {
     this.dialog.open(DialogComponent, {

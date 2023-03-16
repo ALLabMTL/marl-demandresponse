@@ -117,7 +117,9 @@ mat-chip-listbox {
 }
 
 .filter {
-  margin: 2rem 1rem 1.5rem 1rem;
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 
 .floor_filter {
