@@ -3,9 +3,7 @@
     <b>Filters:</b>
   </p>
   <div class="temp_filter">
-    <mat-slide-toggle
-      class="temp_checkbox"
-      [(ngModel)]="isTempChecked">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isTempChecked">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
@@ -23,18 +21,16 @@
       <input matSliderThumb />
     </mat-slider>
   </div>
-  <mat-divider></mat-divider>
+
   <div class="hvac_filter">
-    <mat-slide-toggle
-    class="temp_checkbox"
-    [(ngModel)]="isHvacChecked">
-    HVAC status
-  </mat-slide-toggle>
-  <mat-chip-listbox [disabled] = "!isHvacChecked">
-    <mat-chip-option> ON </mat-chip-option>
-    <mat-chip-option> Lockout </mat-chip-option>
-    <mat-chip-option> OFF </mat-chip-option>
-  </mat-chip-listbox>
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isHvacChecked">
+      HVAC status
+    </mat-slide-toggle>
+    <mat-chip-listbox [disabled]="!isHvacChecked">
+      <mat-chip-option> ON </mat-chip-option>
+      <mat-chip-option> Lockout </mat-chip-option>
+      <mat-chip-option> OFF </mat-chip-option>
+    </mat-chip-listbox>
   </div>
   <mat-divider></mat-divider>
   <!-- <div class="floor_filter">
@@ -69,11 +65,28 @@
           >Indoor temp. : decreasing</mat-option
         >
         <mat-option style="font-size: 14px" value="one"
-        >Temp. diff. : increasing</mat-option
+          >Temp. diff. : increasing</mat-option
+        >
+        <mat-option style="font-size: 14px" value="two"
+          >Temp. diff. : decreasing</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Agents per Page</mat-label>
+      <mat-select
+        placeholder="{{ this.nbSquares }}"
+        (selectionChange)="setSquareNb($event.value)"
       >
-      <mat-option style="font-size: 14px" value="two"
-        >Temp. diff. : decreasing</mat-option
-      >
+        <mat-option
+          *ngFor="let option of nbSquareOptions"
+          style="font-size: 12px"
+          value="{{ option }}"
+          >{{ option }}</mat-option
+        >
       </mat-select>
     </mat-form-field>
   </div>
@@ -127,7 +140,9 @@
     <mat-divider></mat-divider>
     <div class="hvac_status">
       <p class="hvac-status-title"><b>HVAC Status: </b></p>
-      <div  class="circle_lockout"><p class="hvac-status-legend">Lockout</p></div>
+      <div class="circle_lockout">
+        <p class="hvac-status-legend">Lockout</p>
+      </div>
       <div class="circle_hvac_on"><p class="hvac-status-legend">ON</p></div>
       <div class="circle_hvac_off"><p class="hvac-status-legend">OFF</p></div>
     </div>
