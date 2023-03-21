@@ -59,7 +59,7 @@ export class SimulationManagerService {
       this.isFilteredHvac = false;
       this.isTempFiltered = false;
       this.hvacStatus = " ";
-      this.tempSelectRange = {min: -3, max:3 }
+      this.tempSelectRange = {min: -1, max: 1 }
       this.sortingOptionSelected = " ";
       this.hvacChosen = [];
       this.chipSelected = false;
@@ -121,7 +121,7 @@ export class SimulationManagerService {
       this.housesData = this.housesData.filter(x => {
         return this.houseDataFiltered.find(y => y.id === x.id) !== undefined;
       });
-    }  
+      }  
 
     if(this.isFilteredHvac) {
         this.housesData = this.housesData.filter(x => {
