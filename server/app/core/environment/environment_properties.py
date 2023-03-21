@@ -118,11 +118,8 @@ class EnvironmentProperties(BaseModel):
         default=datetime.datetime(2021, 1, 1, 0, 0, 0),
         description="Start date and time (Y-m-d H:M:S).",
     )
-    start_datetime_mode: Union[
-        Literal["individual_L2"],
-        Literal["common_L2"],
-        Literal["common_max"],
-        Literal["mixture"],
+    start_datetime_mode: Literal[
+        "individual_L2", "common_L2", "common_max", "mixture"
     ] = Field(
         default="fixed",
         description="Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)",

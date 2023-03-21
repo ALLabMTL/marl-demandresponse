@@ -41,11 +41,11 @@ class TrainingService:
     stop: bool
 
     def load_config(self) -> MarlConfig:
-        with open("MarlConfig.json", "r") as f:
-            config_dict = MarlConfig(**json.load(f))
-        return config_dict
-        # logger.warning("TODO(Victor): Loading default config")
-        # return MarlConfig()
+        # with open("MarlConfig.json", "r") as f:
+        #     config_dict = MarlConfig(**json.load(f))
+        # return config_dict
+        logger.warning("TODO(Victor): Loading default config")
+        return MarlConfig()
 
     def __init__(
         self,
