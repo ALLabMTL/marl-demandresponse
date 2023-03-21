@@ -2,8 +2,9 @@
   <p class="filter-title">
     <b>Filters:</b>
   </p>
+
   <div class="temp_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isTempChecked">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.simulationManager.removeTempDiffFilter()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
@@ -12,26 +13,43 @@
     <mat-slider
       min="-1"
       max="1"
-      step="0.1"
+      step="0.01"
+      name = "tempDiff"
+      ngDefaultControl
       showTickMarks
       discrete
       [displayWith]="formatLabel"
-      [disabled]="!isTempChecked"
+      [disabled]="!this.simulationManager.isTempChecked"
+      (mouseup)="this.simulationManager.filterByTempDiff()"
     >
-      <input matSliderThumb />
+      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRange.min"/>
+      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRange.max"/>
     </mat-slider>
+    <div class="values_temp">
+    <p tag="min_temp">Min: {{this.simulationManager.tempSelectRange.min}}</p>
+    <p tag="max_temp">Max: {{this.simulationManager.tempSelectRange.max}}</p>
+    </div>
   </div>
 
+  <mat-divider></mat-divider>
+
   <div class="hvac_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="isHvacChecked">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacChecked" (click)="this.simulationManager.removeHvacFilter()">
       HVAC status
     </mat-slide-toggle>
-    <mat-chip-listbox [disabled]="!isHvacChecked">
-      <mat-chip-option> ON </mat-chip-option>
-      <mat-chip-option> Lockout </mat-chip-option>
-      <mat-chip-option> OFF </mat-chip-option>
+    <mat-chip-listbox [disabled]="!this.simulationManager.isHvacChecked">
+      <mat-chip-option class="on_chip" color = "primary" value = "ON" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+        ON
+      </mat-chip-option>
+      <mat-chip-option class="lockout_chip" color = "grey" value = "Lockout" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+        Lockout
+      </mat-chip-option>
+      <mat-chip-option class="off_chip" color = "warn" value = "OFF" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+        OFF
+      </mat-chip-option>
     </mat-chip-listbox>
   </div>
+
   <mat-divider></mat-divider>
   <!-- <div class="floor_filter">
     <mat-checkbox class="floor_checkbox" (click)="floorCheckbox()"
@@ -54,21 +72,37 @@
     <mat-checkbox class="vehicule_checkbox">Vehicules</mat-checkbox>
     <mat-checkbox class="compagnie_checkbox">Compagnies</mat-checkbox>
   </div> -->
+
   <div class="filter">
     <mat-form-field appearance="fill">
       <mat-label>Sort by</mat-label>
       <mat-select>
-        <mat-option style="font-size: 14px" value="one"
+        <mat-option 
+          style="font-size: 14px" 
+          value="indoorTempInc"
+          (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')"
           >Indoor temp. : increasing</mat-option
         >
-        <mat-option style="font-size: 14px" value="two"
+        <mat-option
+          style="font-size: 14px"
+          value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : decreasing</mat-option
         >
-        <mat-option style="font-size: 14px" value="one"
+        <mat-option
+          style="font-size: 14px"
+          value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
           >Temp. diff. : increasing</mat-option
         >
-        <mat-option style="font-size: 14px" value="two"
+        <mat-option
+          style="font-size: 14px"
+          value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
           >Temp. diff. : decreasing</mat-option
+        >
+        <mat-option
+          style="font-size: 14px"
+          value="noSorting"
+          (click)="this.simulationManager.removeSorting()"
+          >No sorting</mat-option
         >
       </mat-select>
     </mat-form-field>
@@ -90,7 +124,9 @@
       </mat-select>
     </mat-form-field>
   </div>
+
   <mat-divider></mat-divider>
+
   <div class="scale">
     <p class="scale_text"><b>Color Temperature Scale</b></p>
     <mat-form-field class="precision">

@@ -65,6 +65,17 @@ export class GridComponent implements OnInit {
     this.sharedService.changeCount(pageNumber);
   }
 
+  // updatePages() {
+  //   const pages = [];
+  //   for (let i = 0; i < this.maxPage; i++) {
+  //     const startIndex = i * this.housesPerPage;
+  //     const endIndex = Math.min(startIndex + this.housesPerPage, this.simulationManager.housesData.length);
+  //     const pageContent: HouseData[] = this.simulationManager.housesData.slice(startIndex, endIndex);
+  //     pages.push({ id: i + 1, content: pageContent });
+  //   }
+  //   return pages;
+  // }
+
   openDialog(index: number) {
     this.dialog.open(DialogComponent, {
       data: index
