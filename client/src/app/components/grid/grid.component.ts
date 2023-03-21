@@ -25,6 +25,11 @@ export class GridComponent implements OnInit {
   // maxPage: number = 1;
   // housesPerPage: number = 100;
   precisionValueSelected: number = 0;
+  nbSquares = 100;
+  nbSquarePerLine = Math.sqrt(this.nbSquares);
+
+  columnWidths = `repeat(10, ${100/10}%)`;
+  rowHeights = `repeat(10, ${100/10}%)`;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
     this.pages = []
@@ -32,29 +37,22 @@ export class GridComponent implements OnInit {
 
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
-    // this.maxPage = Math.ceil(this.simulationManager.housesData.length / this.housesPerPage);
-    // this.updatePages();
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
-    // console.log(this.simulationManager.housesData.length, "my length--------");
-    // console.log(this.pages);
+    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
+    this.sharedService.columnWidthsValue.subscribe(columnWidths => this.columnWidths = columnWidths);
+    this.sharedService.rowHeightsValue.subscribe(rowHeights => this.rowHeights = rowHeights);
+
     console.log(this.simulationManager.pages, "page");
   }
 
-  cells = new Array(100).fill(null);
+  cells = new Array(this.nbSquares).fill(null);
 
-  getColumnWidths() {
-    return `repeat(10, ${100 / 10}%)`;
-  }
 
-  getRowHeights() {
-    return `repeat(10, ${100 / 10}%)`;
-  }
-
-  getHvacColor(i: number): string {
-    if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
+  getHvacColor(page: number, i: number): string {
+    if (this.simulationManager.pages[page].content[i].hvacStatus === 'ON') {
       return 'green';
     }
-    else if (this.simulationManager.housesData[i].hvacStatus === 'OFF') {
+    else if (this.simulationManager.pages[page].content[i].hvacStatus === 'OFF') {
       return 'red';
     }
     else {

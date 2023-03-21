@@ -107,6 +107,23 @@
       </mat-select>
     </mat-form-field>
   </div>
+  <mat-divider></mat-divider>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Agents per Page</mat-label>
+      <mat-select
+        placeholder="{{ this.nbSquares }}"
+        (selectionChange)="setSquareNb($event.value)"
+      >
+        <mat-option
+          *ngFor="let option of nbSquareOptions"
+          style="font-size: 12px"
+          value="{{ option }}"
+          >{{ option }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
 
   <mat-divider></mat-divider>
 

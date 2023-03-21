@@ -26,7 +26,11 @@ export class GridFooterComponent {
 
   setPageInput(): void {
     const page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-    this.sharedService.changeCount(parseInt(page));
+    let pageNb = parseInt(page);
+    if(pageNb > this.simulationManager.maxPage){
+      pageNb = this.simulationManager.maxPage;
+    }
+    this.sharedService.changeCount(pageNb);
   }
 
   incrementPage(): void {
