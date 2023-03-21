@@ -2,7 +2,7 @@ mat-slider {
   margin-left: 1rem;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
-  width: 190px;
+  width: 200px;
 }
 
 mat-chip-listbox {
@@ -18,6 +18,13 @@ mat-chip-listbox {
   margin-left: 1rem;
   margin-top: 1.5rem;
   
+}
+
+.values_temp p {
+  display: inline;
+  margin: 20px;
+  text-align: center;
+  table-layout: fixed;
 }
 
 .scale {
@@ -138,6 +145,19 @@ mat-chip-listbox {
 .hvac-status-title {
   font-size: 1rem;
   color: black
+}
+
+.on_chip {
+  background-color: green;
+}
+
+.lockout_chip {
+  background-color: grey;
+  color: grey;
+}
+
+.off_chip {
+  background-color: red;
 }
 
 // .filter {
