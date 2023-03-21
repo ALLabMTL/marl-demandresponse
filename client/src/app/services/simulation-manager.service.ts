@@ -47,7 +47,7 @@ export class SimulationManagerService {
     this.started = false;
     this.stopped = true;
   }
-
+/*
   updateChart(event: any, attribute: string): void {
     console.log(attribute.valueOf());
     const dataShown = attribute.valueOf();
@@ -57,7 +57,7 @@ export class SimulationManagerService {
     else{
       this.checkedInfo=this.checkedInfo.filter(x=>x!==dataShown);
     }
-    /*const len = Math.min(this.propertyNames.length, this.checkedInfo.length);
+    const len = Math.min(this.propertyNames.length, this.checkedInfo.length);
     for (let i = 0; i < len; i++) {
       for(let y=0; y < len; y++){
         console.log('names', this.propertyNames[i]);
@@ -67,9 +67,11 @@ export class SimulationManagerService {
           console.log('tab', this.indexTab);
       }
       }
-    }*/
+    }
     //this.propertyNames.filter(x)
 
-  }
+  }*/
+
+  
  
 }

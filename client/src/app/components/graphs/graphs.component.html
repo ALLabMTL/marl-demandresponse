@@ -3,7 +3,13 @@ sms.sidenavData
 }}
 
 <div style="display: block;">
-    <canvas id="chart" baseChart #lineChart width="250" height="250" [type]="'line'" [data]="lineChartData"
+    <canvas baseChart #lineChart width="250" height="250" [type]="'line'" [data]="lineChartData"
         [options]="lineChartOptions" [legend]="lineChartLegend" *ngIf="lineChartData">
+    </canvas>
+</div>
+
+<div style="display: block;">
+    <canvas baseChart #lineChart width="250" height="250" [type]="'line'" [data]="lineChartData2"
+        [options]="lineChartOptions" [legend]="lineChartLegend" *ngIf="lineChartData2">
     </canvas>
 </div>
