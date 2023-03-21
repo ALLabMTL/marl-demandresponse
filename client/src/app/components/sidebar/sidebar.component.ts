@@ -23,11 +23,15 @@ export class SidebarComponent {
   posMax = 0.5;
 
   numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
+
+  nbSquares = 100;
+  nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
   
   constructor(public sharedService: SharedService){}
 
   ngOnInit() {
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
+    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
   }
 
   formatLabel(value: number): string {
@@ -52,6 +56,11 @@ export class SidebarComponent {
       this.posMidMax = this.posMax / 2
       console.log("precision: %d", this.precisionValueSelected)
     }
+  }
+
+  setSquareNb(event: Event): void {
+    this.sharedService.changeSquareNb(Number(event));
+    this.sharedService.changeCount(1);
   }
 
 }
