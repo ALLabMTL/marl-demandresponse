@@ -38,6 +38,7 @@ class MAPPO(PPO):
     def select_action(self, state):
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
+            # pylint: disable=not-callable
             action_prob = self.actor_net(state)
         # print(action_prob)
         c = Categorical(action_prob)
@@ -84,7 +85,7 @@ class MAPPO(PPO):
                     print("Time step: {} ，train {} times".format(t, self.training_step))
                 # with torch.no_grad():
                 Gt_index = Gt[index].view(-1, 1)
-
+                # pylint: disable=not-callable
                 V = self.critic_net(
                     torch.cat((state[index], others_actions[index]), dim=1)
                 )
@@ -92,6 +93,7 @@ class MAPPO(PPO):
                 advantage = delta.detach()
 
                 # epoch iteration, PPO core
+                # pylint: disable=not-callable
                 action_prob = self.actor_net(state[index]).gather(
                     1, action[index]
                 )  # new policy

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.core.agents.buffer import ReplayBuffer, Transition
 from app.core.agents.network import DQN_network
+from app.utils.utils import normStateDict
 
 
 class DQNProperties(BaseModel):
