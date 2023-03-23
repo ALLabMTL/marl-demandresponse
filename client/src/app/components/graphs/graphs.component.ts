@@ -56,19 +56,17 @@ export class GraphsComponent implements OnInit {
         this.lineChartData2.datasets = datasets;
         this.lineChartData2.labels = Array.from(Array(data.length).keys());
       };
-      this.charts.forEach((e) => e.chart!.update("none"))
+        this.charts.forEach((e) => e.chart!.update("none"));
     })
   }
 
-  //TODO let the user choose from which timesetp to which timestep they should see the data; aka let the user zoom in the graph
-  //TODO same thing with y axis, let the user choose the min and max values
-
+  //First Graph
   public lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
       {
-        data: [], //TODO this is also placeholder data
-        label: 'Average temperature difference (°C)', //TODO this is also placeholder data
+        data: [],
+        label: 'Average temperature difference (°C)',
         fill: false,
         tension: 0,
         borderColor: 'black',
@@ -77,13 +75,13 @@ export class GraphsComponent implements OnInit {
     ]
   };
 
-  //second graph
+  //Second graph
   public lineChartData2: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [
       {
-        data: [], //TODO this is also placeholder data
-        label: 'Average indoor temperature (°C)', //TODO this is also placeholder data
+        data: [],
+        label: 'Average indoor temperature (°C)',
         fill: false,
         tension: 0,
         borderColor: 'black',
@@ -93,8 +91,12 @@ export class GraphsComponent implements OnInit {
 
   };
 
+  //Graphs options
   public lineChartOptions: ChartOptions<'line'> = {
     responsive: true,
+    display: true,
+    align: 'center',
+    
     plugins: {
       zoom: {
         zoom: {
@@ -102,9 +104,16 @@ export class GraphsComponent implements OnInit {
             enabled: true,
           },
           pinch: {
-            enabled: true
+            enabled: true,
           },
+          /*drag:{
+            enabled: true,
+          },*/
           mode: 'x',
+        },
+        pan:{
+          enabled:true,
+          mode:'xy',
         }
       }
     }
