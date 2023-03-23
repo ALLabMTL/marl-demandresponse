@@ -1,7 +1,9 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import zoomPlugin from 'chartjs-plugin-zoom';
+Chart.register(zoomPlugin);
 
 @Component({
   selector: 'app-graphs',
@@ -10,61 +12,53 @@ import { BaseChartDirective } from 'ng2-charts';
 })
 export class GraphsComponent implements OnInit {
   constructor(
-    public sms: SimulationManagerService
-  ) { }
+    public sms: SimulationManagerService,
+  ) {
+  }
 
-  @ViewChild(BaseChartDirective)
-  lineChart!: BaseChartDirective;
+  @ViewChildren(BaseChartDirective)
+  charts!: QueryList<BaseChartDirective>
 
   ngOnInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
     this.sms.sidenavObservable.subscribe((data) => {
-      // get the categories
-      //const categories = Object.keys(data[0]);
-      const categories = ['Average temperature difference (°C)'];
-      const datasets = categories.map((category) => {
-        return {
-          data: data.map((elem) => Number(elem[category])),
-          label: category,
-          fill: false,
-          tension: 0,
-          borderColor: 'black',
-          backgroundColor: 'rgba(255,0,0,0.3)'
+      {
+        // get the categories
+        const categories = ['Average temperature difference (°C)'];
+        let datasets = categories.map((category) => {
+          return {
+            data: data.map((elem) => Number(elem[category])),
+            label: category,
+            fill: true,
+            tension: 0,
+            borderColor: 'black',
+            backgroundColor: 'rgba(255,0,0,0.3)',
+          }
         }
-      }
-      );
-
-      // const number_data = data.map((elem) => Number(elem["Average indoor temperature (°C)"]));
-      this.lineChartData.datasets = datasets;
-      // labels are range from 0 to number_data.length
-      this.lineChartData.labels = Array.from(Array(data.length).keys());
-      this.lineChart.chart!.update('none');
-    })
-
-
-    // second graph
-    this.sms.sidenavObservable.subscribe((data) => {
-      const secondGraph = ['Average indoor temperature (°C)'];
-      const secondDatasets = secondGraph.map((category) => {
-        return {
-          data: data.map((elem) => Number(elem[category])),
-          label: category,
-          fill: false,
-          tension: 0,
-          borderColor: 'black',
-          backgroundColor: 'rgba(255,0,0,0.3)'
+        );
+        this.lineChartData.datasets = datasets;
+        this.lineChartData.labels = Array.from(Array(data.length).keys());
+      };
+      {
+        // get the categories
+        const categories = ['Average indoor temperature (°C)'];
+        let datasets = categories.map((category) => {
+          return {
+            data: data.map((elem) => Number(elem[category])),
+            label: category,
+            fill: true,
+            tension: 0,
+            borderColor: 'black',
+            backgroundColor: 'rgba(255,0,0,0.3)',
+          }
         }
-      }
-      );
-      this.lineChartData2.datasets = secondDatasets;
-      this.lineChartData2.labels = Array.from(Array(data.length).keys());
-      this.lineChart.chart!.update('none');
+        );
+        this.lineChartData2.datasets = datasets;
+        this.lineChartData2.labels = Array.from(Array(data.length).keys());
+      };
+      this.charts.forEach((e) => e.chart!.update("none"))
     })
   }
-
- // setInterval():void{
-
- // }
 
   //TODO let the user choose from which timesetp to which timestep they should see the data; aka let the user zoom in the graph
   //TODO same thing with y axis, let the user choose the min and max values
@@ -74,7 +68,7 @@ export class GraphsComponent implements OnInit {
     datasets: [
       {
         data: [], //TODO this is also placeholder data
-        label: 'Series A', //TODO this is also placeholder data
+        label: 'Average temperature difference (°C)', //TODO this is also placeholder data
         fill: false,
         tension: 0,
         borderColor: 'black',
@@ -89,19 +83,32 @@ export class GraphsComponent implements OnInit {
     datasets: [
       {
         data: [], //TODO this is also placeholder data
-        label: 'Series A', //TODO this is also placeholder data
+        label: 'Average indoor temperature (°C)', //TODO this is also placeholder data
         fill: false,
         tension: 0,
         borderColor: 'black',
-        backgroundColor: 'rgba(255,0,0,0.3)'
+        backgroundColor: 'rgba(0,0,255,0.3)'
       }
-    ]
+    ],
+
   };
 
   public lineChartOptions: ChartOptions<'line'> = {
-    responsive: true
-  };
+    responsive: true,
+    plugins: {
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true
+          },
+          mode: 'x',
+        }
+      }
+    }
+  } as ChartOptions<'line'>;
 
   public lineChartLegend = true;
-
 }
