@@ -34,20 +34,20 @@
   <mat-divider></mat-divider>
 
   <div class="hvac_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacChecked" (click)="this.simulationManager.removeHvacFilter()">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled" (change)="this.simulationManager.removeHvacFilter()">
       HVAC status
     </mat-slide-toggle>
-    <mat-chip-listbox [disabled]="!this.simulationManager.isHvacChecked">
-      <mat-chip-option class="on_chip" color = "primary" value = "ON" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+    <div>
+      <mat-checkbox class="on_chip" color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
         ON
-      </mat-chip-option>
-      <mat-chip-option class="lockout_chip" color = "grey" value = "Lockout" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      </mat-checkbox>
+      <mat-checkbox class="lockout_chip" color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
         Lockout
-      </mat-chip-option>
-      <mat-chip-option class="off_chip" color = "warn" value = "OFF" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      </mat-checkbox>
+      <mat-checkbox class="off_chip" color = "warn" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
         OFF
-      </mat-chip-option>
-    </mat-chip-listbox>
+      </mat-checkbox>
+    </div>
   </div>
 
   <mat-divider></mat-divider>
