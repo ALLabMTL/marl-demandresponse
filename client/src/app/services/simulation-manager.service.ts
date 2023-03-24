@@ -96,16 +96,16 @@ export class SimulationManagerService {
     console.log(this.housesData);
     this.originalHousesData = data;
 
-    // if(this.isSortingSelected) {
-    //   this.sortByOptionSelected(this.sortingOptionSelected);
-    // } 
-    // if(this.isFilteredHvac) {
-    //   this.filterByHvacStatus(this.isHvacChecked, this.hvacStatus);
-    // } 
+    if(this.isSortingSelected) {
+      this.sortByOptionSelected(this.sortingOptionSelected);
+    } 
+    if(this.isFilteredHvac) {
+      this.filterByHvacStatus(this.isHvacChecked, this.hvacStatus);
+    } 
 
-    // if(this.isTempFiltered) {
-    //   this.filterByTempDiff();
-    // } 
+    if(this.isTempFiltered) {
+      this.filterByTempDiff();
+    } 
     this.updateFilteredHouses();
 
     this.pages = [];

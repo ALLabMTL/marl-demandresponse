@@ -4,7 +4,7 @@
   </p>
 
   <div class="temp_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.simulationManager.removeTempDiffFilter()">
+    <mat-slide-toggle class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetSlider()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
