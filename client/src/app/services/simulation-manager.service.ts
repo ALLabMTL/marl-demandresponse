@@ -96,16 +96,17 @@ export class SimulationManagerService {
     console.log(this.housesData);
     this.originalHousesData = data;
 
-    if(this.isSortingSelected) {
-      this.sortByOptionSelected(this.sortingOptionSelected);
-    } 
-    if(this.isFilteredHvac) {
-      this.filterByHvacStatus(this.isHvacChecked, this.hvacStatus);
-    } 
+    // if(this.isSortingSelected) {
+    //   this.sortByOptionSelected(this.sortingOptionSelected);
+    // } 
+    // if(this.isFilteredHvac) {
+    //   this.filterByHvacStatus(this.isHvacChecked, this.hvacStatus);
+    // } 
 
-    if(this.isTempFiltered) {
-      this.filterByTempDiff();
-    } 
+    // if(this.isTempFiltered) {
+    //   this.filterByTempDiff();
+    // } 
+    this.updateFilteredHouses();
 
     this.pages = [];
     this.maxPage = Math.ceil(this.housesData.length / this.nbSquares);
@@ -219,25 +220,31 @@ export class SimulationManagerService {
 
     this.hvacStatus = hvac;
     this.isHvacChecked = checked;
-
+    console.log('status', this.hvacStatus);
     if(this.isHvacChecked) {
       this.hvacChosen = [...this.hvacChosen, ...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)];
+      console.log('chosen', this.hvacChosen);
     } else { // if un-select manually
       this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus)];
+      console.log('unchosen', this.hvacChosen);
+
     }
 
     this.isFilteredHvac = true;  
+
+    this.updateFilteredHouses(); 
     
     if(this.isOnChecked == false && this.isOffChecked == false && this.isLockoutChecked == false) {
+      console.log('ummm');
       this.removeHvacFilter();
     }
-
-    this.updateFilteredHouses();
   }
 
   removeHvacFilter(): void {
-    this.isFilteredHvac = false;
+    console.log('remove hvac')
     this.housesData = this.originalHousesData;
+    this.isFilteredHvac = false;
+    console.log('new data', this.housesData);
   }
 
   filterByTempDiff(): void {

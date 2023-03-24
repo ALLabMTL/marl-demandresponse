@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
+import { MatCheckbox } from '@angular/material/checkbox';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
@@ -26,6 +27,10 @@ export class SidebarComponent {
   nbSquares = 100;
   nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
   
+  @ViewChild('on_check', {static: false}) onChecked!: MatCheckbox;
+  @ViewChild('lockout_check', {static: false}) lockoutChecked!: MatCheckbox;
+  @ViewChild('off_check', {static: false}) offChecked!: MatCheckbox;
+
   constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
     this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
   }
@@ -37,6 +42,13 @@ export class SidebarComponent {
 
   formatLabel(value: number): string {
     return `${value}`;
+  }
+
+  resetHvacFilter(): void {
+    this.onChecked.checked = false;
+    this.offChecked.checked = false;
+    this.lockoutChecked.checked = false;
+    this.simulationManager.removeHvacFilter();
   }
 
   // tempCheckbox(): void {
