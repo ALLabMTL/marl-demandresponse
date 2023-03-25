@@ -14,8 +14,9 @@
     color="warn"
     class="button"
     (click)="this.socketCommunication.pauseSimulation()"
-    [disabled]="this.simulationManager.stopped || this.simulationManager.paused"
+    [disabled]="true"
   >
+    <!-- [disabled]="this.simulationManager.stopped || this.simulationManager.paused" -->
     <mat-icon>pause</mat-icon>
   </button>
 
