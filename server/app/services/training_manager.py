@@ -42,6 +42,7 @@ class TrainingManager(Experiment):
     time_steps_per_saving_actor: int
     agent_name: str
     stop: bool
+    pause: bool
 
     def __init__(
         self,
@@ -53,6 +54,7 @@ class TrainingManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
 
     def initialize(self) -> None:
         random.seed(1)
@@ -101,7 +103,15 @@ class TrainingManager(Experiment):
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
                 break
+            
+            if(self.pause):
+                await self.socket_manager_service.emit("paused", {})
 
+                while(True):
+                    if(not self.pause):
+                        break
+
+            
             (
                 data_messages,
                 houses_messages,

@@ -12,7 +12,7 @@ from app.services.experiment_manager import ExperimentManager
 class Container(containers.DeclarativeContainer):
     socket_manager_service = providers.Singleton(SocketManager)
 
-    client_manager_service = providers.Singleton(ClientManagerService)
+    client_manager_service = providers.Singleton(ClientManagerService,socket_manager_service=socket_manager_service)
 
     wandb_service = providers.Singleton(WandbManager)
 
@@ -36,4 +36,5 @@ class Container(containers.DeclarativeContainer):
         ExperimentManager,
         training_manager=training_manager,
         controller_manager=controller_manager,
+        client_manager_service=client_manager_service
     )

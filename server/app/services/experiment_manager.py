@@ -2,17 +2,20 @@ from app.services.controller_manager import ControllerManager
 from app.services.training_manager import TrainingManager
 from app.services.experiment import Experiment
 from app.utils.logger import logger
+from .client_manager_service import ClientManagerService
+
 
 
 class ExperimentManager:
     experiment: Experiment
 
     def __init__(
-        self, controller_manager: ControllerManager, training_manager: TrainingManager
+        self, controller_manager: ControllerManager, training_manager: TrainingManager, client_manager_service: ClientManagerService
     ) -> None:
         self.controller_manager = controller_manager
         self.training_manager = training_manager
         self.experiment = controller_manager
+        self.client_manager_service = client_manager_service
 
     def initialize(self, mode="simulation") -> None:
         if mode == "train":
@@ -30,3 +33,9 @@ class ExperimentManager:
 
     def update_experiment_state(self, stop: bool) -> None:
         self.experiment.stop = stop
+
+    def pause_simulation(self) -> None:
+        self.experiment.pause = True
+    
+    async def get_sim_at_timestep(self, time_step: int) -> None:
+        await self.client_manager_service.get_state_at(time_step)

@@ -58,6 +58,7 @@ class ControllerManager(Experiment):
     time_steps_test_log: int
     actors: Dict[int, Controller]
     stop: bool
+    pause: bool
     speed: float
 
     def __init__(
@@ -70,6 +71,7 @@ class ControllerManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
 
     def initialize(self) -> None:
         random.seed(1)
@@ -130,11 +132,21 @@ class ControllerManager(Experiment):
         self.obs_dict = self.env._reset()
 
         for step in range(self.nb_time_steps):
+            if self.pause:
+                await self.socket_manager_service.emit("paused", {})
+                logger.debug("simulation paused")
+                while(True):
+                    if(not self.pause or self.stop):
+                        break
+            
             if self.stop:
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
                 break
+            
 
+
+            
             (
                 data_messages,
                 houses_messages,

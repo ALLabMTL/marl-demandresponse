@@ -38,3 +38,11 @@ def register_endpoints(
     @sio.on("changeSpeed")
     async def change_speed(sid, speed: str, *args) -> None:
         experiment_manager.change_speed(float(speed))
+
+    @sio.on("pause")
+    async def pause_simulation(sid, *args) -> None:
+        experiment_manager.pause_simulation()
+
+    @sio.on("getSimAtTimeStep")
+    async def send_sim_state_at_timestep(sid, time_step, *args) -> None:
+        await experiment_manager.get_sim_at_timestep(time_step["timestep"])

@@ -5,16 +5,22 @@ import { SocketCommunicationService } from '@app/services/socket-communication/s
 @Component({
   selector: 'app-timestamp',
   templateUrl: './timestamp.component.html',
-  styleUrls: ['./timestamp.component.scss']
+  styleUrls: ['./timestamp.component.scss'],
 })
 export class TimestampComponent {
-
-  speed: string = "2"
+  speed = '2';
   speedOptions: number[] = [0, 1, 2, 3, 4, 5];
-  constructor(public simulationManager: SimulationManagerService, public socketCommunication: SocketCommunicationService) { }
+  constructor(
+    public simulationManager: SimulationManagerService,
+    public socketCommunication: SocketCommunicationService
+  ) {}
 
   setSpeed(speed: string): void {
     this.simulationManager.speed = speed;
     this.socketCommunication.changeSpeed(this.simulationManager.speed);
+  }
+
+  changeTimeStep(): void {
+    this.socketCommunication.setTimeStep();
   }
 }
