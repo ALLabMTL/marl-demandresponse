@@ -23,5 +23,5 @@ class Trainable(ABC):
     def save_model(self, path: str) -> None:
         pass
 
-    def test(self, env, config_dict, opt, tr_time_step, num_episodes=10):
+    def test(self, env, static_props, opt, tr_time_step, num_episodes=10):
         pass

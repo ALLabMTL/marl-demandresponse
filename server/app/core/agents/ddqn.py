@@ -1,12 +1,16 @@
 import torch.nn as nn
 
 from app.core.agents.buffer import Transition
-from app.core.agents.dqn import DQN
+from app.core.agents.dqn import DQN, DQNProperties
+
+
+class DDQNPropreties(DQNProperties):
+    pass
 
 
 class DDQN(DQN):
-    def __init__(self, config_dict, opt, num_state=20, num_action=2):
-        super().__init__(config_dict, opt, num_state, num_action)
+    def __init__(self, static_props: DDQNPropreties, opt, num_state=20, num_action=2):
+        super().__init__(static_props, opt, num_state, num_action)
 
     def update(self):
         if len(self.buffer) < self.static_props.batch_size:

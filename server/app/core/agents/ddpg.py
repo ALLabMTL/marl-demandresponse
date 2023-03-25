@@ -96,16 +96,6 @@ class DDPG:
         wandb_run=None,
         import_nets=None,
     ) -> None:
-        """
-        This is the main class for the DDPG agent.
-        @param config_dict: dictionary of parameters for the agent
-        @param opt: the option class
-        @param num_state: number of state variables
-        @param num_action: number of action variables
-        @param wandb_run: if wandb is used, this is the wandb run
-        @param import_nets: if the agent is imported from a predetermined model,
-                this is a dictionary of the networks. Used for parameter sharing.
-        """
         super(DDPG, self).__init__()
 
         self.seed = opt.net_seed
@@ -259,9 +249,9 @@ class MADDPG:
         # create Agent(actor-critic) and replay buffer for each agent
         self.agents = {}
         self.buffers = {}
-        # self.config_dict = config_dict
         self.opt = opt
         self.num_state = num_state
+        self.static_props = static_props
         self.capacity = static_props.buffer_capacity
         dim_info = get_dim_info(opt, num_state)
         global_state_action_dim = sum(sum(val) for val in dim_info.values())
@@ -292,7 +282,7 @@ class MADDPG:
 
         self.dim_info = dim_info
         self.wandb_run = wandb_run
-        self.batch_size = self.config_dict["DDPG_prop"]["batch_size"]
+        self.batch_size = self.static_props.batch_size
         self.result_dir = os.path.join(
             "./ddpg_results"
         )  # directory to save the training result
