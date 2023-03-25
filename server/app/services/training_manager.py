@@ -40,7 +40,7 @@ class TrainingManager(Experiment):
     save_actor_name: str
     speed: float
     time_steps_per_saving_actor: int
-
+    agent_name: str
     stop: bool
 
     def __init__(
@@ -63,9 +63,10 @@ class TrainingManager(Experiment):
         self.nb_time_steps_test = 300
         self.nb_test_logs = 100
         self.save_actor_name: str = "PPO"
+        self.agent_name = "PPO"
         self.nb_tr_logs = 100
         self.nb_tr_epochs = 20
-        self.speed: int = 2
+        self.speed = 0
         self.time_steps_per_saving_actor = 2
 
         self.obs_dict = self.env._reset()
@@ -89,7 +90,7 @@ class TrainingManager(Experiment):
 
         self.initialize()
         self.client_manager_service.initialize_data()
-
+        await self.socket_manager_service.emit("agent", self.agent_name)
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
         )

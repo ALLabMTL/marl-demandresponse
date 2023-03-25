@@ -6,3 +6,20 @@
 .button {
     margin-left: 1rem;
 }
+
+.speed {
+    display: inline-block;
+    margin-left: 1rem;
+    transform: translateY(-5px);
+}
+
+.speed-value {
+    width: 45px;
+    height: 40px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.speed-value option {
+    font-size: 15px;
+}

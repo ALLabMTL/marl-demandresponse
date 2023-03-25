@@ -9,23 +9,15 @@
         <mat-icon>stop</mat-icon>
     </button>
 
-    <!-- <mat-slider
-    min="-1"
-    max="1"
-    step="0.1"
-    showTickMarks
-    discrete
-    [disabled]="true"
-    >
-    <input matSliderThumb />
-    </mat-slider> -->
-
-    <!-- <div class="speed">
-        <mat-form-field class="example-form-field">
-            <mat-label>Clearable input</mat-label>
-            <input matInput type="number" (change)="this.simulationManager.updateSpeed($event)">
-        </mat-form-field>
-
-    </div> -->
+    <div class="speed">
+        <form>
+            <select class="speed-value" id="speed-value" [(ngModel)]="speed" (ngModelChange)="setSpeed($event)"
+                [ngModelOptions]="{standalone: true}">
+                <option *ngFor="let option of speedOptions" style="font-size: 12px" [value]="option">
+                    {{ option }}
+                </option>
+            </select>
+        </form>
+    </div>
 
 </div>

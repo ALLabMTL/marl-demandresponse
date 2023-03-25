@@ -10,7 +10,7 @@ from app.services.metrics_service import Metrics
 from app.utils.utils import normStateDict
 from app.core.agents.controllers.controller import Controller
 from app.services.experiment import Experiment
-from v0.agents import (
+from app.core.agents.controllers import (
     AlwaysOnController,
     BangBangController,
     BasicController,
@@ -82,7 +82,7 @@ class ControllerManager(Experiment):
         self.nb_logs = 100
         self.actor_name: str = "PPO"
         self.net_seed: int = 4
-        self.agent: str = "BangBang"
+        self.agent_name: str = "BangBang"
         self.start_stats_from = 0
         self.speed = 2.0
         self.obs_dict = self.env._reset()
@@ -105,7 +105,7 @@ class ControllerManager(Experiment):
                     {"actor_name": self.actor_name, "net_seed": self.net_seed}
                 )
 
-            self.actors[house_id] = agents_dict[self.agent](
+            self.actors[house_id] = agents_dict[self.agent_name](
                 agent_prop, config_dict, num_state=self.num_state
             )
 
@@ -123,7 +123,7 @@ class ControllerManager(Experiment):
 
         self.initialize()
         self.client_manager_service.initialize_data()
-
+        await self.socket_manager_service.emit("agent", self.agent_name)
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
         )

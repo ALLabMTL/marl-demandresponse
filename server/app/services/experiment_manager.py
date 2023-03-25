@@ -1,6 +1,7 @@
 from app.services.controller_manager import ControllerManager
 from app.services.training_manager import TrainingManager
 from app.services.experiment import Experiment
+from app.utils.logger import logger
 
 
 class ExperimentManager:
@@ -26,3 +27,6 @@ class ExperimentManager:
 
     def change_speed(self, speed: float) -> None:
         self.experiment.speed = speed
+
+    def update_experiment_state(self, stop: bool) -> None:
+        self.experiment.stop = stop

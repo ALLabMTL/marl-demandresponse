@@ -63,6 +63,10 @@ export class SocketCommunicationService {
       this.snackBarService.openSuccessSnackBar(data.message, '');
     });
 
+    this.socketService.on('agent', (data: string) => {
+      this.simulationManager.agentName = data;
+    })
+
 
   }
 
@@ -78,7 +82,7 @@ export class SocketCommunicationService {
     this.socketService.send('stop');
   }
 
-  changeSpeed(speed: number): void {
+  changeSpeed(speed: string): void {
     this.socketService.send('changeSpeed', speed);
   }
 }

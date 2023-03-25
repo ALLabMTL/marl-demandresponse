@@ -57,7 +57,7 @@ class DQN(Trainable):
             state = torch.from_numpy(state).float().unsqueeze(0)
             with torch.no_grad():
                 qs = self.policy_net(state)
-                return torch.argmax(qs).item()
+                return torch.argmax(qs).item(), None
         return action
 
     def store_transition(

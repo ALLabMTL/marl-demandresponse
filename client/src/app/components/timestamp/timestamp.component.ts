@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { SocketCommunicationService } from '@app/services/socket-communication/socket-communication.service';
 
@@ -9,9 +9,12 @@ import { SocketCommunicationService } from '@app/services/socket-communication/s
 })
 export class TimestampComponent {
 
+  speed: string = "2"
+  speedOptions: number[] = [0, 1, 2, 3, 4, 5];
   constructor(public simulationManager: SimulationManagerService, public socketCommunication: SocketCommunicationService) { }
 
-  updateSpeed(test: number): void {
-
+  setSpeed(speed: string): void {
+    this.simulationManager.speed = speed;
+    this.socketCommunication.changeSpeed(this.simulationManager.speed);
   }
 }

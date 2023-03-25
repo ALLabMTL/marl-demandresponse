@@ -18,10 +18,10 @@ class DeadbandBangBangController:
 
     def act(self, obs):
         obs = obs[self.id]
-        house_temp = obs["house_temp"]
-        house_target_temp = obs["house_target_temp"]
-        house_deadband = obs["house_deadband"]
-        hvac_turned_on = obs["hvac_turned_on"]
+        house_temp = obs["indoor_temp"]
+        house_target_temp = obs["target_temp"]
+        house_deadband = obs["deadband"]
+        hvac_turned_on = obs["turned_on"]
 
         if house_temp < house_target_temp - house_deadband / 2:
             action = False
@@ -47,8 +47,8 @@ class BangBangController:
 
     def act(self, obs):
         obs = obs[self.id]
-        house_temp = obs["house_temp"]
-        house_target_temp = obs["house_target_temp"]
+        house_temp = obs["indoor_temp"]
+        house_target_temp = obs["target_temp"]
 
         if house_temp <= house_target_temp:
             action = False
@@ -68,10 +68,10 @@ class BasicController:
 
     def act(self, obs):
         obs = obs[self.id]
-        house_temp = obs["house_temp"]
-        house_target_temp = obs["house_target_temp"]
-        house_deadband = obs["house_deadband"]
-        hvac_turned_on = obs["hvac_turned_on"]
+        house_temp = obs["indoor_temp"]
+        house_target_temp = obs["target_temp"]
+        house_deadband = obs["deadband"]
+        hvac_turned_on = obs["turned_on"]
 
         if house_temp < house_target_temp - house_deadband / 2:
             action = False

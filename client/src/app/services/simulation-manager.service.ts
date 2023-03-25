@@ -5,14 +5,14 @@ import { SidenavData, HouseData } from '@app/classes/sidenav-data';
   providedIn: 'root'
 })
 export class SimulationManagerService {
-
+  agentName: string;
   sidenavData: SidenavData[];
   propertyNames: string[];
   propertyValues: string[];
   housesData: HouseData[];
   started: boolean;
   stopped: boolean;
-  speed: number;
+  speed: string;
 
 
   constructor() {
@@ -22,7 +22,8 @@ export class SimulationManagerService {
     this.housesData = [];
     this.started = true;
     this.stopped = true;
-    this.speed = 2
+    this.speed = "2"
+    this.agentName = "";
   }
 
 
@@ -37,10 +38,10 @@ export class SimulationManagerService {
   }
 
   resetSimulation(): void {
-    this.sidenavData = [];
-    this.propertyNames = [];
-    this.propertyValues = [];
-    this.housesData = [];
+    // this.sidenavData = [];
+    // this.propertyNames = [];
+    // this.propertyValues = [];
+    // this.housesData = [];
     this.started = false;
     this.stopped = true;
   }
