@@ -1,3 +1,7 @@
+from collections import namedtuple
+from copy import deepcopy
+import os
+from typing import List
 import numpy as np
 import torch
 import torch.nn as nn
@@ -5,14 +9,32 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+from app.utils.utils import normStateDict
+from app.config import config_dict
 
-from app.core.agents.network import Actor, Critic
+from app.core.agents.trainables.network import Actor, Critic
+from app.core.agents.trainables.trainable import Trainable
+
+Transition = namedtuple(
+    "Transition",
+    [
+        "state",
+        "action",
+        "others_actions",
+        "a_log_prob",
+        "reward",
+        "next_state",
+        "done",
+    ],
+)
 
 
-class MAPPO:
-    def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None):
+class MAPPO(Trainable):
+    def __init__(
+        self, config_dict, opt, num_state=22, num_action=2, seed=1, wandb_run=None
+    ) -> None:
         super(MAPPO, self).__init__()
-        self.seed = opt.net_seed
+        self.seed = seed
         torch.manual_seed(self.seed)
 
         self.actor_net = Actor(
@@ -24,7 +46,8 @@ class MAPPO:
             num_state=num_state + opt.nb_agents - 1,
             layers=config_dict["MAPPO_prop"]["critic_layers"],
         )
-        self.buffer = []
+
+        self.buffer: List[Transition] = []
         self.batch_size = config_dict["MAPPO_prop"]["batch_size"]
         self.ppo_update_time = config_dict["MAPPO_prop"]["ppo_update_time"]
         self.max_grad_norm = config_dict["MAPPO_prop"]["max_grad_norm"]
@@ -69,11 +92,34 @@ class MAPPO:
     #        value = self.critic_net(state)
     #    return value.item()
 
-    def store_transition(self, transition):
-        self.buffer.append(transition)
-        self.counter += 1
+    def store_transition(
+        self,
+        obs_dict: dict,
+        next_obs_dict: dict,
+        action: dict,
+        action_prob: dict,
+        rewards_dict: dict,
+        done: bool,
+    ) -> None:
+        for k in obs_dict.keys():
+            # Make list of actions other than for agent k
+            action_k = deepcopy(action)
+            action_k.pop(k)
+            other_action_list = list(action_k.values())
+            # TODO: remove normStateDict and config_dict
+            transition = Transition(
+                normStateDict(obs_dict[k], config_dict),
+                action[k],
+                other_action_list,
+                action_prob[k],
+                rewards_dict[k],
+                normStateDict(next_obs_dict[k], config_dict),
+                done,
+            )
+            self.buffer.append(transition)
+            self.counter += 1
 
-    def update(self, t):
+    def update(self, t) -> None:
         print("UPDATING")
         state = torch.tensor([t.state for t in self.buffer], dtype=torch.float)
         action = torch.tensor([t.action for t in self.buffer], dtype=torch.long).view(
@@ -210,3 +256,15 @@ class MAPPO:
             )
 
         del self.buffer[:]  # clear experience
+
+    def save(self, path: str, time_step=None) -> None:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        actor_net = self.actor_net
+        if time_step:
+            torch.save(
+                actor_net.state_dict(),
+                os.path.join(path, "actor" + str(time_step) + ".pth"),
+            )
+        else:
+            torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))

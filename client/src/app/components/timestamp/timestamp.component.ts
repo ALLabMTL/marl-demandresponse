@@ -9,6 +9,9 @@ import { SocketCommunicationService } from '@app/services/socket-communication/s
 })
 export class TimestampComponent {
 
-  constructor(public simulationManager: SimulationManagerService, public socketCommunication: SocketCommunicationService) {}
+  constructor(public simulationManager: SimulationManagerService, public socketCommunication: SocketCommunicationService) { }
 
+  updateSpeed(test: number): void {
+
+  }
 }
