@@ -1,3 +1,6 @@
+from collections import namedtuple
+import os
+from typing import Dict, List, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
@@ -7,8 +10,10 @@ from pydantic import BaseModel, Field
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
-from app.core.agents.network import Actor, Critic
+from app.core.agents.trainables.network import Actor, Critic
 from app.utils.logger import logger
+from app.utils.utils import normStateDict
+from app.core.agents.trainables.trainable import Trainable
 
 
 class PPOProperties(BaseModel):
@@ -56,15 +61,15 @@ class PPOProperties(BaseModel):
     )
 
 
-class PPO:
+Transition = namedtuple(
+    "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
+)
+
+
+class PPO(Trainable):
     def __init__(
-        self,
-        static_props: PPOProperties,
-        num_state: int = 22,
-        num_action: int = 2,
-        seed: int = 1,
-        wandb_run=None,
-    ):
+        self, static_props: PPOProperties, num_state=22, num_action=2, seed=1
+    ) -> None:
         super(PPO, self).__init__()
         self.seed = seed
         torch.manual_seed(self.seed)
@@ -85,7 +90,7 @@ class PPO:
         self.nb_agents = 10
 
         # Initialize buffer
-        self.buffer = {}
+        self.buffer: Dict[int, List[Transition]] = {}
         for agent in range(self.nb_agents):
             self.buffer[agent] = []
 
@@ -109,11 +114,11 @@ class PPO:
             self.critic_net.parameters(), self.static_props.lr_critic
         )
 
-    def select_action(self, state):
-        state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
+    def select_action(self, obs_dict) -> Tuple[int, int]:
+        obs_dict = torch.from_numpy(obs_dict).float().unsqueeze(0).to(self.device)
         with torch.no_grad():
             # pylint: disable=not-callable
-            action_prob = self.actor_net(state)
+            action_prob = self.actor_net(obs_dict)
         c = Categorical(action_prob.cpu())
         action = c.sample()
         return action.item(), action_prob[:, action.item()].item()
@@ -126,13 +131,31 @@ class PPO:
             value = self.critic_net(state)
         return value.cpu().item()
 
-    def reset_buffer(self):
+    def reset_buffer(self) -> None:
         self.buffer = {}
         for agent in range(self.nb_agents):
             self.buffer[agent] = []
 
-    def store_transition(self, transition, agent):
-        self.buffer[agent].append(transition)
+    def store_transition(
+        self,
+        obs_dict: dict,
+        next_obs_dict: dict,
+        action: dict,
+        action_prob: dict,
+        rewards_dict: dict,
+        done: bool,
+    ) -> None:
+        for agent_id in obs_dict.keys():
+            transition = Transition(
+                normStateDict(obs_dict[agent_id], config_dict),
+                action[agent_id],
+                action_prob[agent_id],
+                rewards_dict[agent_id],
+                normStateDict(next_obs_dict[agent_id], config_dict),
+                done,
+            )
+
+            self.buffer[agent_id].append(transition)
 
     def update(self, t):
         sequential_buffer = []
@@ -246,3 +269,16 @@ class PPO:
                 self.training_step += 1
 
         self.reset_buffer()  # clear experience
+
+    # TODO: Move this to abstract class
+    def save(self, path: str, time_step=None) -> None:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        actor_net = self.actor_net
+        if time_step:
+            torch.save(
+                actor_net.state_dict(),
+                os.path.join(path, "actor" + str(time_step) + ".pth"),
+            )
+        else:
+            torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))

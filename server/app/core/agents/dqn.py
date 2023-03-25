@@ -1,4 +1,6 @@
 import os
+import random
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -50,20 +52,17 @@ class DQNProperties(BaseModel):
 from app.core.agents.agent import Agent
 
 
-class DQN:
-    def __init__(
-        self,
-        static_props: DQNProperties,
-        opt,
-        num_state=22,
-        num_action=2,
-        wandb_run=None,
-    ):
+from server.app.core.agents.trainables.network import DQN_network
+from server.app.core.agents.trainables.trainable import Trainable
+
+
+class DQN(Trainable):
+    def __init__(self, static_props, num_state=22, num_action=2, seed=2) -> None:
         super().__init__()
-        self.seed = opt.net_seed
+        self.seed = seed
+        self.epsilon = 1.0
+
         torch.manual_seed(self.seed)
-        if opt.save_actor_name:
-            self.path = os.path.join(".", "actors", opt.save_actor_name)
 
         self.static_props = static_props
 
@@ -86,23 +85,30 @@ class DQN:
             self.policy_net.parameters(), self.static_props.lr
         )
 
-    def save(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        torch.save(self.policy_net.state_dict(), os.path.join(self.path, "actor.pth"))
-
     def select_action(self, state):
-        state = torch.from_numpy(state).float().unsqueeze(0)
-        with torch.no_grad():
-            qs = self.policy_net(state)
-            return torch.argmax(qs).item()
+        # Select action with epsilon-greedy strategy
+        if random.random() < self.epsilon:
+            action = random.randint(0, 1)
+        else:
+            state = torch.from_numpy(state).float().unsqueeze(0)
+            with torch.no_grad():
+                qs = self.policy_net(state)
+                return torch.argmax(qs).item()
+        return action
 
-    def store_transition(self, s, a, r, s_next):
-        s = torch.tensor(s, dtype=torch.float).unsqueeze(0)
-        a = torch.tensor([[a]], dtype=torch.long)
-        r = torch.tensor([[r]], dtype=torch.float)
-        s_next = torch.tensor(s_next, dtype=torch.float).unsqueeze(0)
-        self.buffer.push(s, a, r, s_next)
+    def store_transition(
+        self, obs_dict, action, rewards_dict, next_obs_dict, action_prob, done
+    ):
+        for agent_id in obs_dict.keys():
+            single_obs = torch.tensor(obs_dict[agent_id], dtype=torch.float).unsqueeze(
+                0
+            )
+            single_action = torch.tensor([[action[agent_id]]], dtype=torch.long)
+            single_rewards = torch.tensor([[rewards_dict[agent_id]]], dtype=torch.float)
+            single_next_obs = torch.tensor(
+                next_obs_dict[agent_id], dtype=torch.float
+            ).unsqueeze(0)
+            self.buffer.push(single_obs, single_action, single_rewards, single_next_obs)
 
     def convert_batch(self, batch):
         s = torch.cat(batch.state)
@@ -153,6 +159,24 @@ class DQN:
 
         self.update_target_network()
 
+        self.decrease_epsilon()
+
+    def decrease_epsilon(self) -> None:
+        new_epsilon = self.agent_prop["epsilon_decay"]
+        self.epsilon = np.maximum(new_epsilon, self.agent_prop["min_epsilon"])
+
+    # TODO: Move this to abstract class
+    def save(self, path, t=None) -> None:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        actor_net = self.policy_net
+        if t:
+            torch.save(
+                actor_net.state_dict(), os.path.join(path, "actor" + str(t) + ".pth")
+            )
+        else:
+            torch.save(actor_net.state_dict(), os.path.join(path, "actor.pth"))
+
 
 class DQNAgent(Agent):
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
@@ -160,6 +184,7 @@ class DQNAgent(Agent):
         self.agent_name = agent_properties["actor_name"]
         self.agent_path = os.path.join(".", "actors", self.agent_name)
         self.config_dict = config_dict
+        super().__init__(config_dict, num_state, num_action)
 
         self.seed = agent_properties["net_seed"]
         torch.manual_seed(self.seed)
