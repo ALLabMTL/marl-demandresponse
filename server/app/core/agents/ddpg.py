@@ -16,9 +16,6 @@ def copy_model(src, dst):
     return dst
 
 
-# TODO(Victor): ddpg, mappo, ppo,
-
-
 class DDPGProperties(BaseModel):
     """Properties for MAPPO agent."""
 
@@ -249,22 +246,28 @@ def get_dim_info(opt, n_state, n_action=2):
     return dim_info
 
 
+class MADDPGPropreties(DDPGProperties):
+    pass
+
+
 class MADDPG:
-    def __init__(self, config_dict, opt, num_state, wandb_run) -> None:
+    def __init__(
+        self, static_props: MADDPGPropreties, opt, num_state, wandb_run
+    ) -> None:
         # sum all the dims of each agent to get input dim for critic
         # global_obs_act_dim = sum(sum(val) for val in dim_info.values())
         # create Agent(actor-critic) and replay buffer for each agent
         self.agents = {}
         self.buffers = {}
-        self.config_dict = config_dict
+        # self.config_dict = config_dict
         self.opt = opt
         self.num_state = num_state
-        self.capacity = self.config_dict["DDPG_prop"]["buffer_capacity"]
+        self.capacity = static_props.buffer_capacity
         dim_info = get_dim_info(opt, num_state)
         global_state_action_dim = sum(sum(val) for val in dim_info.values())
         for agent_id, (state_dim, action_dim) in dim_info.items():
             self.agents[agent_id] = DDPG(
-                self.config_dict,
+                static_props,
                 self.opt,
                 global_state_action_dim,
                 state_dim,
