@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -10,16 +10,23 @@ Chart.register(zoomPlugin);
   templateUrl: './graphs.component.html',
   styleUrls: ['./graphs.component.scss']
 })
-export class GraphsComponent implements OnInit {
+export class GraphsComponent implements AfterViewInit {
   constructor(
     public sms: SimulationManagerService,
   ) {
   }
 
-  @ViewChildren(BaseChartDirective)
+  @ViewChildren(BaseChartDirective) // Works, gets all charts.
   charts!: QueryList<BaseChartDirective>
 
-  ngOnInit(): void {
+  @ViewChild("aaa", { static: false }) // Works?
+  chartOne!: BaseChartDirective
+
+  @ViewChild("bbb", { static: false }) // Doesn't work? Takes in the first lineChart instead?
+  chartTwo!: BaseChartDirective
+
+
+  ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
     this.sms.sidenavObservable.subscribe((data) => {
       {
@@ -56,7 +63,10 @@ export class GraphsComponent implements OnInit {
         this.lineChartData2.datasets = datasets;
         this.lineChartData2.labels = Array.from(Array(data.length).keys());
       };
-        this.charts.forEach((e) => e.chart!.update("none"));
+      // this.charts.forEach((e) => e.chart!.update("none"));
+      this.chartOne.chart!.update('none')
+      this.chartTwo.chart!.update('none')
+      //this.lineChart.chart!.update('none');
     })
   }
 
@@ -96,7 +106,7 @@ export class GraphsComponent implements OnInit {
     responsive: true,
     display: true,
     align: 'center',
-    
+
     plugins: {
       zoom: {
         zoom: {
@@ -111,13 +121,21 @@ export class GraphsComponent implements OnInit {
           },*/
           mode: 'x',
         },
-        pan:{
-          enabled:true,
-          mode:'xy',
+        pan: {
+          enabled: true,
+          mode: 'xy',
         }
       }
     }
   } as ChartOptions<'line'>;
 
   public lineChartLegend = true;
+
+  public resetZoomGraph(index: number): void {
+    // The code(this.charts.get(index)!.chart as any).resetZoom() is likely used to reset the zoom level of a chart.this.charts.get(index)
+    // is used to get a reference to the chart object at the specified index. .chart as 
+    // any is used to cast the chart object to any type, which allows accessing the resetZoom() method.
+    // The resetZoom() method is then called to reset the zoom level of the chart.
+    (this.charts.get(index)!.chart as any).resetZoom()
+  }
 }
