@@ -117,25 +117,30 @@ class PPO(Trainable):
             self.buffer[agent_id].append(transition)
 
     def update(self, t):
-        sequential_buffer = []
-        for agent in range(self.nb_agents):
-            sequential_buffer += self.buffer[agent]
+        if len(self.buffer[0]) < self.batch_size:
+            return
+        else:
+            sequential_buffer = []
+            for agent in range(self.nb_agents):
+                sequential_buffer += self.buffer[agent]
 
-        state_np = np.array([t.state for t in sequential_buffer])
-        next_state_np = np.array([t.next_state for t in sequential_buffer])
-        action_np = np.array([t.action for t in sequential_buffer])
-        old_action_log_prob_np = np.array([t.a_log_prob for t in sequential_buffer])
+            state_np = np.array([t.state for t in sequential_buffer])
+            next_state_np = np.array([t.next_state for t in sequential_buffer])
+            action_np = np.array([t.action for t in sequential_buffer])
+            old_action_log_prob_np = np.array([t.a_log_prob for t in sequential_buffer])
 
-        state = torch.tensor(state_np, dtype=torch.float).to(self.device)
-        next_state = torch.tensor(next_state_np, dtype=torch.float).to(self.device)
-        action = torch.tensor(action_np, dtype=torch.long).view(-1, 1).to(self.device)
-        reward = [t.reward for t in sequential_buffer]
-        old_action_log_prob = (
-            torch.tensor(old_action_log_prob_np, dtype=torch.float)
-            .view(-1, 1)
-            .to(self.device)
-        )
-        done = [t.done for t in sequential_buffer]
+            state = torch.tensor(state_np, dtype=torch.float).to(self.device)
+            next_state = torch.tensor(next_state_np, dtype=torch.float).to(self.device)
+            action = (
+                torch.tensor(action_np, dtype=torch.long).view(-1, 1).to(self.device)
+            )
+            reward = [t.reward for t in sequential_buffer]
+            old_action_log_prob = (
+                torch.tensor(old_action_log_prob_np, dtype=torch.float)
+                .view(-1, 1)
+                .to(self.device)
+            )
+            done = [t.done for t in sequential_buffer]
 
         """
         # Changed to accelerate process. UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
