@@ -9,7 +9,7 @@ import torch.optim as optim
 from torch import Tensor
 
 from app.core.agents.buffer import DDPGBuffer as Buffer
-from app.core.agents.network import DDPG_Network
+from app.core.agents.trainables.network import DDPG_Network
 
 
 def copy_model(src, dst):
@@ -28,7 +28,7 @@ class DDPG:
         num_action=2,
         wandb_run=None,
         import_nets=None,
-    ):
+    ) -> None:
         """
         This is the main class for the DDPG agent.
         @param config_dict: dictionary of parameters for the agent
@@ -148,20 +148,20 @@ class DDPG:
             else self.critic_net(x).squeeze(1)
         )  # tensor with a given length
 
-    def update_actor(self, loss):
+    def update_actor(self, loss) -> None:
         self.actor_optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.actor_net.parameters(), 0.5)
         self.actor_optimizer.step()
 
-    def update_critic(self, loss):
+    def update_critic(self, loss) -> None:
         self.critic_optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.critic_net.parameters(), 0.5)
         self.critic_optimizer.step()
 
     @staticmethod
-    def soft_update(from_network, to_network, soft_tau):
+    def soft_update(from_network, to_network, soft_tau) -> None:
         """copy the parameters of `from_network` to `to_network` with a proportion of tau"""
         for from_p, to_p in zip(from_network.parameters(), to_network.parameters()):
             to_p.data.copy_(soft_tau * from_p.data + (1.0 - soft_tau) * to_p.data)
@@ -182,7 +182,7 @@ def get_dim_info(opt, n_state, n_action=2):
 
 
 class MADDPG:
-    def __init__(self, config_dict, opt, num_state, wandb_run):
+    def __init__(self, config_dict, opt, num_state, wandb_run) -> None:
         # sum all the dims of each agent to get input dim for critic
         # global_obs_act_dim = sum(sum(val) for val in dim_info.values())
         # create Agent(actor-critic) and replay buffer for each agent
@@ -294,12 +294,12 @@ class MADDPG:
             self.logger.info(f"{agent} action: {actions[agent]}")
         return actions
 
-    def update_target(self):
+    def update_target(self) -> None:
         # update target network for all the agents
         for agent in self.agents.values():
             agent.update_target()
 
-    def update(self):
+    def update(self) -> None:
         for agent_id, agent in self.agents.items():
             state, action, reward, next_state, done, next_action = self.sample(
                 self.batch_size

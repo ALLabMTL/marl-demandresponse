@@ -29,12 +29,6 @@ export class SharedService {
     const middleLowerBound = -middleUpperBound;
     const lowerBound = -upperBound;
     const boundRange = upperBound - middleUpperBound;
-    console.log(data);
-    console.log(upperBound);
-    console.log(middleUpperBound);
-    console.log(center);
-    console.log(middleLowerBound);
-    console.log(lowerBound);
 
 
     if (data < lowerBound) {
