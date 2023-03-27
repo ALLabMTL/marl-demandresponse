@@ -1,5 +1,6 @@
 import random
 from datetime import timedelta
+from typing import Dict, Union
 
 from app.core.environment.simulatable import Simulatable
 
@@ -112,3 +113,14 @@ class HVAC(Simulatable):
             power_cons = 0
 
         return power_cons
+
+    def message(self, hvac: bool) -> Dict[str, int]:
+        message = {
+            "seconds_since_off": self.seconds_since_off,
+            "curr_consumption": self.get_power_consumption(),
+            "max_consumption": self.max_consumption,
+            "lockout_duration": self.init_props.lockout_duration,
+        }
+        if hvac:
+            message.update(self.initial_properties.dict(exclude={"lockout_duration"}))
+        return message

@@ -2,7 +2,7 @@ import random
 from abc import ABC
 from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict, List, Union
 
 import numpy as np
 
@@ -17,9 +17,9 @@ from app.core.environment.simulatable import Simulatable
 class Building(Simulatable):
     initial_properties: BuildingProperties
     noise_properties: BuildingNoiseProperties
-    indoor_temp: int
-    current_mass_temp: int
-    current_solar_gain: int
+    indoor_temp: float
+    current_mass_temp: float
+    current_solar_gain: float
     hvacs: List[HVAC]
     max_consumption: int
 
@@ -80,32 +80,21 @@ class Building(Simulatable):
             )
         return state_dict
 
-    def message(self, thermal: bool, hvac: bool) -> dict:
+    def message(self, thermal: bool, hvac: bool) -> Dict[str, Union[int, float]]:
         """
         Message sent by the house to other agents
         """
         # TODO: make this apply to all hvacs
-        message = {
-            "current_temp_diff_to_target": self.indoor_temp
-            - self.initial_properties.target_temp,
-            "hvac_seconds_since_off": self.hvacs[0].seconds_since_off,
-            "hvac_curr_consumption": self.hvacs[0].get_power_consumption(),
-            "hvac_max_consumption": self.hvacs[0].max_consumption,
-            "hvac_lockout_duration": self.hvacs[0].init_props.lockout_duration,
-        }
+        message = self.hvacs[0].message(hvac)
 
         if thermal:
             message.update(
                 self.initial_properties.dict(include={"Ua", "Ca", "Hm", "Cm"})
             )
-        if hvac:
-            message.update(
-                self.hvacs[0].initial_properties.dict(exclude={"lockout_duration"})
-            )
         return message
 
     def update_temperature(
-        self, od_temp: int, time_step: timedelta, date_time: datetime
+        self, od_temp: float, time_step: timedelta, date_time: datetime
     ) -> None:
         """
         Update the temperature of the house

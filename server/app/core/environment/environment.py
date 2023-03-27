@@ -38,7 +38,7 @@ class Environment:
         self.build_environment()
         return self._get_obs()
 
-    def _step(self, action_dict: Dict[int, dict]):
+    def _step(self, action_dict: Dict[int, bool]):
         self.date_time += self.init_props.time_step
         # Cluster step
         self.cluster._step(
@@ -81,7 +81,6 @@ class Environment:
             self.cluster.buildings[0].initial_properties.solar_gain,
         )
         self.power_grid._step(self.date_time, self.init_props.start_datetime)
-        # TODO: compute OD_temp after step of cluster
 
     def compute_rewards(self):
         """
