@@ -30,6 +30,7 @@ class TrainingManager(Experiment):
     nb_tr_logs: int
     nb_tr_epochs: int
     nb_time_steps_test: int
+    nb_tr_episodes: int
     agent: Trainable
     num_state: int
     metrics: Metrics
@@ -68,14 +69,14 @@ class TrainingManager(Experiment):
         self.nb_tr_epochs = 20
         self.speed = 0
         self.time_steps_per_saving_actor = 2
-
+        self.nb_tr_episodes = 1
         self.obs_dict = self.env._reset()
         self.num_state = len(
             normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
         )
         # TODO: Get agent from config file
         self.agent = PPO(config_dict, self.num_state)
-        self.time_steps_per_episode = int(self.nb_time_steps / self.nb_tr_epochs)
+        self.time_steps_per_episode = int(self.nb_time_steps / self.nb_tr_episodes)
         self.time_steps_per_epoch = int(self.nb_time_steps / self.nb_tr_epochs)
         self.time_steps_train_log = int(self.nb_time_steps / self.nb_tr_logs)
         self.time_steps_test_log = int(self.nb_time_steps / self.nb_test_logs)
@@ -115,6 +116,7 @@ class TrainingManager(Experiment):
             sleep(self.speed)
 
             # Select action with probabilities
+
             action_and_prob = {
                 k: self.agent.select_action(
                     normStateDict(self.obs_dict[k], config_dict)
@@ -150,7 +152,7 @@ class TrainingManager(Experiment):
             self.obs_dict = next_obs_dict
 
             # New episode, reset environment
-            if done:
+            if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
                 logger.info("New episode at time %d", step)
                 await self.socket_manager_service.emit(
                     "success", {"message": f"New episode at time {step}"}
@@ -159,58 +161,15 @@ class TrainingManager(Experiment):
                 self.obs_dict = self.env._reset()
 
             # Epoch: update agent
-            if (
-                step % self.time_steps_per_epoch == self.time_steps_per_epoch - 1
-                and len(self.agent.buffer[0]) >= self.agent.batch_size
-            ):
-                logger.info("Updating agent at time %d", step)
-                await self.socket_manager_service.emit(
-                    "success", {"message": f"Updating agent at time {step}"}
-                )
-
-                self.agent.update(step)
+            await self.update_agent(step)
 
             # Log train statistics
-            if step % self.time_steps_train_log == self.time_steps_train_log - 1:
-                logger.info("Logging stats at time %d", step)
-                await self.socket_manager_service.emit(
-                    "success", {"message": f"Logging stats at time {step}"}
-                )
-
-                self.metrics_service.log(
-                    step, self.time_steps_train_log, self.env.date_time
-                )
-                self.metrics_service.reset()
+            await self.log_train_stats(step)
 
             # Test policy
-            if step % self.time_steps_test_log == self.time_steps_test_log - 1:
-                logger.info("Testing at time %d", step)
-                await self.socket_manager_service.emit(
-                    "success", {"message": f"Testing at time {step}"}
-                )
-                self.test(step)
+            self.test_policy(step)
 
-            if (
-                self.save_actor_name
-                and step % self.time_steps_per_saving_actor == 0
-                and step != 0
-            ):
-                path = os.path.join(".", "actors", self.save_actor_name)
-                self.agent.save(path, step)
-                self.metrics_service.save_actor(
-                    os.path.join(path, "actor" + str(step) + ".pth")
-                )
-
-        if self.save_actor_name:
-            path = os.path.join(".", "actors", self.save_actor_name)
-            self.agent.save(path)
-            self.metrics_service.save_actor(os.path.join(path, "actor.pth"))
-
-        logger.info("Simulation ended")
-        await self.socket_manager_service.emit("stopped", {})
-        await self.socket_manager_service.emit(
-            "success", {"message": "Simulation ended"}
-        )
+        await self.end_simulation()
 
     def test(self, tr_time_steps: int) -> None:
         """
@@ -244,4 +203,53 @@ class TrainingManager(Experiment):
 
         self.metrics_service.log_test_results(
             mean_avg_return, mean_temp_error, mean_signal_error, tr_time_steps
+        )
+
+    def test_policy(self, step: int) -> None:
+        if step % self.time_steps_test_log == self.time_steps_test_log - 1:
+            logger.info("Testing at time %d", step)
+            self.test(step)
+
+        if (
+            self.save_actor_name
+            and step % self.time_steps_per_saving_actor == 0
+            and step != 0
+        ):
+            path = os.path.join(".", "actors", self.save_actor_name)
+            self.agent.save(path, step)
+            self.metrics_service.save_actor(
+                os.path.join(path, "actor" + str(step) + ".pth")
+            )
+
+    async def update_agent(self, step: int) -> None:
+        if step % self.time_steps_per_epoch == self.time_steps_per_epoch - 1:
+            logger.info("Updating agent at time %d", step)
+            await self.socket_manager_service.emit(
+                "success", {"message": f"Updating agent at time {step}"}
+            )
+
+            self.agent.update(step)
+
+    async def log_train_stats(self, step: int) -> None:
+        if step % self.time_steps_train_log == self.time_steps_train_log - 1:
+            logger.info("Logging stats at time %d", step)
+            await self.socket_manager_service.emit(
+                "success", {"message": f"Logging stats at time {step}"}
+            )
+
+            self.metrics_service.log(
+                step, self.time_steps_train_log, self.env.date_time
+            )
+        self.metrics_service.reset()
+
+    async def end_simulation(self) -> None:
+        if self.save_actor_name:
+            path = os.path.join(".", "actors", self.save_actor_name)
+            self.agent.save(path)
+            self.metrics_service.save_actor(os.path.join(path, "actor.pth"))
+
+        logger.info("Simulation ended")
+        await self.socket_manager_service.emit("stopped", {})
+        await self.socket_manager_service.emit(
+            "success", {"message": "Simulation ended"}
         )
