@@ -111,7 +111,6 @@ class TestHouse(unittest.TestCase):
         self.house2.hvacs["a1"].turned_on = False
 
     def testSolarGainTime(self):
-
         # Test time of day
         datetime_0 = datetime(2021, 6, 15, 0, 0, 0, 0)
         datetime_1 = datetime(2021, 6, 15, 7, 29, 0, 0)

@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 import random
@@ -19,7 +19,7 @@ from v0.utils import (
     test_dqn_agent,
 )
 
-#%% Functions
+# %% Functions
 
 
 def decrease(epsilon, opt):
@@ -53,7 +53,6 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     obs_dict = env.reset()
 
     for t in range(opt.nb_time_steps):
-
         # Render observation
         if render:
             renderer.render(obs_dict)
@@ -142,7 +141,7 @@ def train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             wandb.save(os.path.join(path, "DQN.pth"))
 
 
-#%% Train
+# %% Train
 
 if __name__ == "__main__":
     import os
@@ -156,7 +155,7 @@ if __name__ == "__main__":
     agent = DQN(config_dict, opt)
     train_dqn(env, agent, opt, config_dict, render, log_wandb, wandb_run)
 
-#%% Test
+# %% Test
 # from plotting import plot_agent_test
 # import torch
 # agent.policy_net.load_state_dict(torch.load('actors/dqn/actor.pth'))

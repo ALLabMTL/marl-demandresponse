@@ -26,8 +26,7 @@ export class SimulationManagerService {
   originalHousesData: HouseData[];
   started: boolean;
   stopped: boolean;
-
-
+  speed: number = 2;
 
   //sidebar
   isSortingSelected: boolean;
@@ -36,12 +35,12 @@ export class SimulationManagerService {
   isFilteredHvac: boolean;
   isTempFiltered: boolean;
   hvacStatus: string;
-  tempSelectRange : {min: number, max:number};
+  tempSelectRange: { min: number, max: number };
   sortingOptionSelected: string;
   hvacChosen: HouseData[];
   chipSelected: any;
   tempDiffHousesData: HouseData[];
- // isChipSelected: boolean;
+  // isChipSelected: boolean;
   maxPage: number = 1;
   housesPerPage: number = 100;
   pages: PageData[];
@@ -52,39 +51,39 @@ export class SimulationManagerService {
 
   constructor(public sharedService: SharedService) {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
-      this.sidenavData = [];
-      this.propertyNames = [];
-      this.propertyValues = [];
-      this.housesData = [];
+    this.sidenavData = [];
+    this.propertyNames = [];
+    this.propertyValues = [];
+    this.housesData = [];
 
-      this.started = true;
-      this.stopped = true;
-      this.pages = [];
-      this.houseDataFiltered = [];
-      this.originalHousesData = [];
-      this.maxPage = -1;
-      this.housesPerPage = 100;
+    this.started = true;
+    this.stopped = true;
+    this.pages = [];
+    this.houseDataFiltered = [];
+    this.originalHousesData = [];
+    this.maxPage = -1;
+    this.housesPerPage = 100;
 
-      this.isSortingSelected = false;
-      this.isHvacChecked = false;
-      this.isTempChecked = false;
-      this.isFilteredHvac = false;
-      this.isTempFiltered = false;
-      this.hvacStatus = " ";
-      this.tempSelectRange = {min: -1, max: 1 }
-      this.sortingOptionSelected = " ";
-      this.hvacChosen = [];
-      this.chipSelected = false;
-      this.tempDiffHousesData = [];
-     // this.isChipSelected = false;
+    this.isSortingSelected = false;
+    this.isHvacChecked = false;
+    this.isTempChecked = false;
+    this.isFilteredHvac = false;
+    this.isTempFiltered = false;
+    this.hvacStatus = " ";
+    this.tempSelectRange = { min: -1, max: 1 }
+    this.sortingOptionSelected = " ";
+    this.hvacChosen = [];
+    this.chipSelected = false;
+    this.tempDiffHousesData = [];
+    // this.isChipSelected = false;
 
   }
 
 
   addTimeStep(data: SidenavData): void {
     this.sidenavData.push(data);
-    this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length -1]);
-    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length -1])
+    this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
+    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1])
   }
 
   updateHousesData(data: HouseData[]): void {
@@ -93,16 +92,16 @@ export class SimulationManagerService {
     console.log(this.housesData);
     this.originalHousesData = data;
 
-    if(this.isSortingSelected) {
+    if (this.isSortingSelected) {
       this.sortByOptionSelected(this.sortingOptionSelected);
-    } 
-    if(this.isFilteredHvac) {
+    }
+    if (this.isFilteredHvac) {
       this.filteredByHvacStatus();
-    } 
+    }
 
-    if(this.isTempFiltered) {
+    if (this.isTempFiltered) {
       this.filterByTempDiff();
-    } 
+    }
 
     this.pages = [];
     this.maxPage = Math.ceil(this.housesData.length / this.nbSquares);
@@ -125,29 +124,32 @@ export class SimulationManagerService {
     this.stopped = true;
   }
 
+  updateSpeed(test: Event): void {
+    throw new Error('Method not implemented.');
+  }
   updateFilteredHouses(): void {
     // housesData will get updated with new values before calling
     this.housesData = this.originalHousesData;
 
-    if(this.isSortingSelected) {
+    if (this.isSortingSelected) {
       this.housesData = this.housesData.filter(x => {
         return this.houseDataFiltered.find(y => y.id === x.id) !== undefined;
       });
-      }  
-
-    if(this.isFilteredHvac) {
-        this.housesData = this.housesData.filter(x => {
-          return this.hvacChosen.find(y => y.hvacStatus === x.hvacStatus) !== undefined;
-        });   
     }
 
-    if(this.isTempFiltered) {
+    if (this.isFilteredHvac) {
+      this.housesData = this.housesData.filter(x => {
+        return this.hvacChosen.find(y => y.hvacStatus === x.hvacStatus) !== undefined;
+      });
+    }
+
+    if (this.isTempFiltered) {
       this.housesData = this.housesData.filter(x => {
         return this.tempDiffHousesData.find(y => y.tempDifference === x.tempDifference) !== undefined;
       });
-      
+
     }
-    if(this.housesData.length === 0) {
+    if (this.housesData.length === 0) {
       this.sharedService.changeCount(0);
     } else {
       this.sharedService.changeCount(1);
@@ -157,33 +159,33 @@ export class SimulationManagerService {
   sortByTempDiffIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1: 1); // a negative, then a comes before b  
+    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1 : 1); // a negative, then a comes before b
   }
 
   sortByTempDiffDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1: 1); // a negative, then a comes before b
+    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1 : 1); // a negative, then a comes before b
 
   }
 
   sortByIndoorTempIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1 : 1); // a negative, then a comes before b
   }
 
   sortByIndoorTempDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1: 1); // a negative, then a comes before b
+    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1 : 1); // a negative, then a comes before b
 
   }
 
   sortByOptionSelected(option: string): void {
     this.sortingOptionSelected = option;
-    
-    switch(option) {
+
+    switch (option) {
       case "indoorTempInc":
         this.sortByIndoorTempIncreasing();
         break;
@@ -217,7 +219,7 @@ export class SimulationManagerService {
     this.housesData = this.originalHousesData;
     this.hvacStatus = event.source.value;
 
-    if(this.chipSelected) {
+    if (this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
     } else { // if un-select manually
       this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
@@ -230,7 +232,7 @@ export class SimulationManagerService {
   filteredByHvacStatus(): void {
     this.housesData = this.originalHousesData;
 
-    if(this.chipSelected) {
+    if (this.chipSelected) {
       this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
     } else { // if un-select manually
       this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
