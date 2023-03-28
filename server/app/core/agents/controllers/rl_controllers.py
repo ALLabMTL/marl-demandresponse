@@ -4,15 +4,13 @@ import sys
 import torch
 from torch.distributions import Categorical
 
+from app.core.agents.controllers.controller import Controller
 from v0.agents.network import Actor, DDPG_Network, DQN_network
 from v0.utils import normStateDict
 
-sys.path.append("..")
 
-
-class PPOAgent:
+class PPOController(Controller):
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
-        super(PPOAgent, self).__init__()
         self.id = agent_properties["id"]
         self.actor_name = agent_properties["actor_name"]
         self.actor_path = os.path.join(".", "actors", self.actor_name)
@@ -44,9 +42,8 @@ class PPOAgent:
         return action.item()
 
 
-class DQNAgent:
+class DQNController(Controller):
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
-        super(DQNAgent, self).__init__()
         self.id = agent_properties["id"]
         self.agent_name = agent_properties["actor_name"]
         self.agent_path = os.path.join(".", "actors", self.agent_name)
@@ -74,9 +71,8 @@ class DQNAgent:
         return action
 
 
-class DDPGAgent:
+class DDPGController(Controller):
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
-        super(DDPGAgent, self).__init__()
         self.id = agent_properties["id"]
         self.agent_name = agent_properties["actor_name"]
         self.agent_path = os.path.join(".", "actors", self.agent_name)
