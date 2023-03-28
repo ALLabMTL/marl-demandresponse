@@ -10,17 +10,20 @@ from app.services.metrics_service import Metrics
 from app.utils.utils import normStateDict
 from app.core.agents.controllers.controller import Controller
 from app.services.experiment import Experiment
-from v0.agents import (
-    AlwaysOnController,
+from app.core.agents.controllers.bangbang_controllers import (
     BangBangController,
-    BasicController,
-    DDPGAgent,
     DeadbandBangBangController,
-    DQNAgent,
-    GreedyMyopic,
-    MPCController,
-    PPOAgent,
+    AlwaysOnController,
+    BasicController,
 )
+from app.core.agents.controllers.greedy_myopic_controller import GreedyMyopic
+from app.core.agents.controllers.mpc_controller import MPCController
+from app.core.agents.controllers.rl_controllers import (
+    PPOController,
+    DQNController,
+    DDPGController,
+)
+from app.services.parser_service import ParserService
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager
@@ -31,59 +34,34 @@ agents_dict = {
     "DeadbandBangBang": DeadbandBangBangController,
     "Basic": BasicController,
     "AlwaysOn": AlwaysOnController,
-    "PPO": PPOAgent,
-    "MAPPO": PPOAgent,
-    "DQN": DQNAgent,
+    "PPO": PPOController,
+    "MAPPO": PPOController,
+    "DQN": DQNController,
     "GreedyMyopic": GreedyMyopic,
     "MPC": MPCController,
-    "MADDPG": DDPGAgent,
+    "DDPG": DDPGController,
 }
 
 
 class ControllerManager(Experiment):
-    env: Environment
-    nb_agents: int
-    obs_dict: Dict[int, List[Union[float, str, bool, datetime]]]
-    nb_episodes: int
-    nb_time_steps: int
-    nb_test_logs: int
-    nb_logs: int
-    start_stats_from: int
-    num_state: int
-    actor_name: str
-    agent: str
-    net_seed: int
-    time_steps_per_episode: int
-    time_steps_train_log: int
-    time_steps_test_log: int
-    actors: Dict[int, Controller]
-    stop: bool
-    speed: float
-
     def __init__(
         self,
         socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
+        parser_service: ParserService,
     ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.static_props = parser_service.config.controller_props
+        self.parser_service = parser_service
 
     def initialize(self) -> None:
         random.seed(1)
-        self.env = Environment()
+        self.env = Environment(self.parser_service.config.env_prop)
         self.nb_agents = self.env.cluster.nb_agents
-        # TODO: Get these arguments from config file (parser)
-        self.nb_episodes = 3
-        self.nb_time_steps = 1000
-        self.nb_test_logs = 100
-        self.nb_logs = 100
-        self.actor_name: str = "PPO"
-        self.net_seed: int = 4
-        self.agent: str = "BangBang"
-        self.start_stats_from = 0
         self.speed = 2.0
         self.obs_dict = self.env._reset()
         self.num_state = len(
@@ -91,7 +69,9 @@ class ControllerManager(Experiment):
         )
 
         self.metrics_service.initialize(
-            self.nb_agents, self.start_stats_from, self.nb_time_steps
+            self.nb_agents,
+            self.static_props.start_stats_from,
+            self.static_props.nb_time_steps,
         )
 
         # TODO: Get agent from config file
@@ -100,18 +80,27 @@ class ControllerManager(Experiment):
         for house_id in range(self.nb_agents):
             agent_prop: Dict[str, Union[str, int]] = {"id": house_id}
             # TODO: Change how we init agents (not all configdict is necessary, only agent props)
-            if self.actor_name:
+            if self.static_props.actor_name:
                 agent_prop.update(
-                    {"actor_name": self.actor_name, "net_seed": self.net_seed}
+                    {
+                        "actor_name": self.static_props.actor_name,
+                        "net_seed": self.static_props.net_seed,
+                    }
                 )
 
-            self.actors[house_id] = agents_dict[self.agent](
+            self.actors[house_id] = agents_dict[self.static_props.agent](
                 agent_prop, config_dict, num_state=self.num_state
             )
 
-        self.time_steps_per_episode = int(self.nb_time_steps / self.nb_episodes)
-        self.time_steps_train_log = int(self.nb_time_steps / self.nb_logs)
-        self.time_steps_test_log = int(self.nb_time_steps / self.nb_test_logs)
+        self.time_steps_per_episode = int(
+            self.static_props.nb_time_steps / self.static_props.nb_episodes
+        )
+        self.time_steps_train_log = int(
+            self.static_props.nb_time_steps / self.static_props.nb_logs
+        )
+        self.time_steps_test_log = int(
+            self.static_props.nb_time_steps / self.static_props.nb_test_logs
+        )
         logger.info("Number of states: %d", self.num_state)
 
     async def start(self) -> None:
@@ -129,7 +118,7 @@ class ControllerManager(Experiment):
         )
         self.obs_dict = self.env._reset()
 
-        for step in range(self.nb_time_steps):
+        for step in range(self.static_props.nb_time_steps):
             if self.stop:
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})

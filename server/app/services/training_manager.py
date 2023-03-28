@@ -16,6 +16,8 @@ from app.utils.logger import logger
 from app.services.metrics_service import Metrics
 from app.utils.utils import normStateDict
 from app.services.experiment import Experiment
+from app.services.parser_service import ParserService
+from app.services.parser_service import MarlConfig
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager
@@ -24,23 +26,6 @@ from .socket_manager_service import SocketManager
 class TrainingManager(Experiment):
     env: Environment
     obs_dict: Dict[int, List[Union[float, str, bool, datetime]]]
-    nb_time_steps: int
-    nb_agents: int
-    nb_test_logs: int
-    nb_tr_logs: int
-    nb_tr_epochs: int
-    nb_time_steps_test: int
-    agent: Trainable
-    num_state: int
-    metrics: Metrics
-    time_steps_per_episode: int
-    time_steps_per_epoch: int
-    time_steps_train_log: int
-    time_steps_test_log: int
-    save_actor_name: str
-    speed: float
-    time_steps_per_saving_actor: int
-
     stop: bool
 
     def __init__(
@@ -48,15 +33,17 @@ class TrainingManager(Experiment):
         socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
+        parser_service: ParserService,
     ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.initialize(parser_service.config)
 
-    def initialize(self) -> None:
+    def initialize(self, marl_config: MarlConfig) -> None:
         random.seed(1)
-        self.env = Environment()
+        self.env = Environment(marl_config.env_prop)
         self.nb_agents = self.env.cluster.nb_agents
         # TODO: Get these arguments from config file (parser)
         self.nb_time_steps = 1000
