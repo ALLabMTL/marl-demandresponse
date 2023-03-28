@@ -1,9 +1,10 @@
 import pandas as pd
+from app.core.agents.controllers.controller import Controller
 
 global_myopic_memory = [None, None]
 
 
-class GreedyMyopic:
+class GreedyMyopic(Controller):
     """Try to distribute the energy budget among all the agents prioritizing the agents
     with a high temperature compared to the target temperature in a greedy way"""
 
@@ -37,7 +38,7 @@ class GreedyMyopic:
         obs = pd.DataFrame(obs).transpose()
         obs["temperature_difference"] = -(obs["indoor_temp"] - obs["target_temp"])
 
-        obs["power_consumption"] = obs["cooling_capacity"] / obs["COP"]
+        obs["power_consumption"] = obs["cooling_capacity"] / obs["cop"]
         obs = obs[
             [
                 "temperature_difference",

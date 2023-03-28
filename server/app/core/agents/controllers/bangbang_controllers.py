@@ -1,27 +1,31 @@
-class AlwaysOnController:
+from app.core.agents.controllers.controller import Controller
+from typing import Literal
+
+
+class AlwaysOnController(Controller):
     """Bang bang controller taking deadband into account: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
 
-    def act(self, obs):
+    def act(self, obs_dict) -> Literal[True]:
         return True
 
 
-class DeadbandBangBangController:
+class DeadbandBangBangController(Controller):
     """Bang bang controller taking deadband into account: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
 
-    def act(self, obs):
-        obs = obs[self.id]
-        house_temp = obs["indoor_temp"]
-        house_target_temp = obs["target_temp"]
-        house_deadband = obs["deadband"]
-        hvac_turned_on = obs["turned_on"]
+    def act(self, obs_dict):
+        obs_dict = obs_dict[self.id]
+        house_temp = obs_dict["indoor_temp"]
+        house_target_temp = obs_dict["target_temp"]
+        house_deadband = obs_dict["deadband"]
+        hvac_turned_on = obs_dict["turned_on"]
 
         if house_temp < house_target_temp - house_deadband / 2:
             action = False
@@ -36,7 +40,7 @@ class DeadbandBangBangController:
         return action
 
 
-class BangBangController:
+class BangBangController(Controller):
     """
     Cools when temperature is hotter than target (no interest for deadband). Limited on the hardware side by lockout (but does not know about it)
     """
@@ -45,10 +49,10 @@ class BangBangController:
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
 
-    def act(self, obs):
-        obs = obs[self.id]
-        house_temp = obs["indoor_temp"]
-        house_target_temp = obs["target_temp"]
+    def act(self, obs_dict) -> bool:
+        obs_dict = obs_dict[self.id]
+        house_temp = obs_dict["indoor_temp"]
+        house_target_temp = obs_dict["target_temp"]
 
         if house_temp <= house_target_temp:
             action = False
@@ -59,27 +63,24 @@ class BangBangController:
         return action
 
 
-class BasicController:
+class BasicController(Controller):
     """Not really a bang bang controller but: turns on when too hot, turns off when too cold, sticks to current state otherwise"""
 
     def __init__(self, agent_properties, config_dict, num_state=None):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
 
-    def act(self, obs):
-        obs = obs[self.id]
-        house_temp = obs["indoor_temp"]
-        house_target_temp = obs["target_temp"]
-        house_deadband = obs["deadband"]
-        hvac_turned_on = obs["turned_on"]
+    def act(self, obs_dict) -> bool:
+        obs_dict = obs_dict[self.id]
+        house_temp = obs_dict["indoor_temp"]
+        house_target_temp = obs_dict["target_temp"]
+        house_deadband = obs_dict["deadband"]
+        hvac_turned_on = obs_dict["turned_on"]
 
         if house_temp < house_target_temp - house_deadband / 2:
             action = False
-            # print("Too cold!")
-
         elif house_temp > house_target_temp + house_deadband / 2:
             action = True
-            # print("Too hot!")
         else:
             action = hvac_turned_on
 
