@@ -37,6 +37,7 @@ class TrainingManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.static_config = parser_service.config
         self.initialize(parser_service.config)
 
     def initialize(self, marl_config: MarlConfig) -> None:
@@ -72,7 +73,7 @@ class TrainingManager(Experiment):
             "success", {"message": "Initializing environment..."}
         )
 
-        self.initialize()
+        self.initialize(self.static_config)
         self.client_manager_service.initialize_data()
 
         await self.socket_manager_service.emit(
