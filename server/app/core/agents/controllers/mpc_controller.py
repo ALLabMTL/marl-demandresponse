@@ -1,11 +1,6 @@
-import sys
-
-from app.core.agents.controllers.controller import Controller
-
-sys.path.append("../marl-demandresponse")
-
 import pandas as pd
 
+from app.core.agents.controllers.controller import Controller
 from v0.agents.MPC import best_MPC_action
 from v0.utils import house_solar_gain
 

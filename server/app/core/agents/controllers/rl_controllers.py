@@ -8,8 +8,6 @@ from app.core.agents.controllers.controller import Controller
 from v0.agents.network import Actor, DDPG_Network, DQN_network
 from v0.utils import normStateDict
 
-sys.path.append("..")
-
 
 class PPOController(Controller):
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):

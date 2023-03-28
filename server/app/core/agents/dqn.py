@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 from app.core.agents.buffer import ReplayBuffer, Transition
-from server.app.core.agents.trainables.network import DQN_network
-from server.app.core.agents.trainables.trainable import Trainable
+from app.core.agents.trainables.network import DQN_network
+from app.core.agents.trainables.trainable import Trainable
 
 
 class DQNProperties(pydantic.BaseModel):
