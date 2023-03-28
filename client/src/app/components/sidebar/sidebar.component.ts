@@ -31,7 +31,6 @@ export class SidebarComponent {
   @ViewChild('on_check', {static: false}) onChecked!: MatCheckbox;
   @ViewChild('lockout_check', {static: false}) lockoutChecked!: MatCheckbox;
   @ViewChild('off_check', {static: false}) offChecked!: MatCheckbox;
-  @ViewChild('slider', {static: false}) slider!: MatSlider;
 
   constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
     this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy

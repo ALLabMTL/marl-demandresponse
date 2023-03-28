@@ -47,6 +47,7 @@ export class SimulationManagerService {
   maxPage: number = 1;
   housesPerPage: number = 100;
   pages: PageData[];
+  currentPage: number = 1;
   nbSquares = 100;
 
   // houseData1: HouseData[];
@@ -54,6 +55,9 @@ export class SimulationManagerService {
 
   constructor(public sharedService: SharedService) {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
+    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+
+
       this.sidenavData = [];
       this.propertyNames = [];
       this.propertyValues = [];
@@ -151,10 +155,13 @@ export class SimulationManagerService {
       }); 
     }
 
-    if(this.housesData.length === 0) {
-      this.sharedService.changeCount(0);
-    } else {
+    // if(this.housesData.length === 0) {
+    //   this.sharedService.changeCount(0);
+    // }
+     if(this.currentPage > this.maxPage) {
       this.sharedService.changeCount(1);
+    } else {
+      this.sharedService.changeCount(this.currentPage);
     }
   }
 
