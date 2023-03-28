@@ -15,6 +15,13 @@ from app.config import config_dict
 from app.core.agents.trainables.network import Actor, Critic
 from app.core.agents.trainables.trainable import Trainable
 
+from app.core.agents.ppo import PPO, PPOProperties
+
+
+class MAPPOProperties(PPOProperties):
+    pass
+
+
 Transition = namedtuple(
     "Transition",
     [

@@ -15,6 +15,56 @@ from app.utils.utils import normStateDict
 from app.config import config_dict
 from app.core.agents.trainables.trainable import Trainable
 
+import pydantic
+
+
+class PPOProperties(pydantic.BaseModel):
+    """Properties for PPO agent."""
+
+    actor_layers: list[int] = pydantic.Field(
+        default=[100, 100],
+        description="List of layer sizes for the actor network.",
+    )
+    critic_layers: list[int] = pydantic.Field(
+        default=[100, 100],
+        description="List of layer sizes for the critic network.",
+    )
+    gamma: float = pydantic.Field(
+        default=0.99,
+        description="Discount factor for the reward.",
+    )
+    lr_critic: float = pydantic.Field(
+        default=3e-3,
+        description="Learning rate for the critic network.",
+    )
+    lr_actor: float = pydantic.Field(
+        default=3e-3,
+        description="Learning rate for the actor network.",
+    )
+    clip_param: float = pydantic.Field(
+        default=0.2,
+        description="Clipping parameter for the PPO loss.",
+    )
+    max_grad_norm: float = pydantic.Field(
+        default=0.5,
+        description="Maximum norm for the gradient clipping.",
+    )
+    ppo_update_time: int = pydantic.Field(
+        default=10,
+        description="Update time for the PPO agent.",
+    )
+    batch_size: int = pydantic.Field(
+        default=256,
+        description="Batch size for the PPO agent.",
+    )
+    zero_eoepisode_return: bool = pydantic.Field(
+        default=False,
+    )
+
+
+Transition = namedtuple(
+    "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]
+)
 
 Transition = namedtuple(
     "Transition", ["state", "action", "a_log_prob", "reward", "next_state", "done"]

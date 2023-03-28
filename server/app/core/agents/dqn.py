@@ -9,6 +9,44 @@ import torch.optim as optim
 from app.core.agents.buffer import ReplayBuffer, Transition
 from server.app.core.agents.trainables.network import DQN_network
 from server.app.core.agents.trainables.trainable import Trainable
+import pydantic
+
+
+class DQNProperties(pydantic.BaseModel):
+    """Properties for DQN agent."""
+
+    network_layers: list[int] = pydantic.Field(
+        default=[100, 100],
+        description="List of layer sizes for the DQN network.",
+    )
+    gamma: float = pydantic.Field(
+        default=0.99,
+        description="Discount factor for the reward.",
+    )
+    tau: float = pydantic.Field(
+        default=0.001,
+        description="Soft target update parameter.",
+    )
+    lr: float = pydantic.Field(
+        default=3e-3,
+        description="Learning rate for the DQN network.",
+    )
+    buffer_capacity: int = pydantic.Field(
+        default=524288,
+        description="Capacity of the replay buffer.",
+    )
+    batch_size: int = pydantic.Field(
+        default=256,
+        description="Batch size for the DQN agent.",
+    )
+    epsilon_decay: float = pydantic.Field(
+        default=0.99998,
+        description="Epsilon decay rate for the DQN agent.",
+    )
+    min_epsilon: float = pydantic.Field(
+        default=0.01,
+        description="Minimum epsilon for the DQN agent.",
+    )
 
 
 class DQN(Trainable):

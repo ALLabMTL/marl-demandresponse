@@ -11,11 +11,82 @@ from torch import Tensor
 from app.core.agents.buffer import DDPGBuffer as Buffer
 from app.core.agents.trainables.network import DDPG_Network
 
+import pydantic
+
 
 def copy_model(src, dst):
     for src_param, dst_param in zip(src.parameters(), dst.parameters()):
         dst_param.data.copy_(src_param.data)
     return dst
+
+
+class DDPGProperties(pydantic.BaseModel):
+    """Properties for MAPPO agent."""
+
+    actor_hidden_dim: int = pydantic.Field(
+        default=256,
+        description="Hidden dimension for the actor network.",
+    )
+    critic_hidden_dim: int = pydantic.Field(
+        default=256,
+        description="Hidden dimension for the critic network.",
+    )
+    lr_critic: float = pydantic.Field(
+        default=3e-3,
+        description="Learning rate for the critic network.",
+    )
+    lr_actor: float = pydantic.Field(
+        default=3e-3,
+        description="Learning rate for the actor network.",
+    )
+    soft_tau: float = pydantic.Field(
+        default=0.01,
+        description="Soft target update parameter.",
+    )
+    clip_param: float = pydantic.Field(
+        default=0.2,
+        description="Clipping parameter for the PPO loss.",
+    )
+    max_grad_norm: float = pydantic.Field(
+        default=0.5,
+        description="Maximum norm for the gradient clipping.",
+    )
+    ddpg_update_time: int = pydantic.Field(
+        default=10,
+        description="Update time for the DDPG agent.",
+    )
+    batch_size: int = pydantic.Field(
+        default=64,
+        description="Batch size for the DDPG agent.",
+    )
+    buffer_capacity: int = pydantic.Field(
+        default=524288,
+        description="Capacity of the replay buffer.",
+    )
+    episode_num: int = pydantic.Field(
+        default=10000,
+        # description="Number of episodes for the MAPPO agent.",
+    )
+    learn_interval: int = pydantic.Field(
+        default=100,
+        description="Learning interval for the MAPPO agent.",
+    )
+    random_steps: int = pydantic.Field(
+        default=100,
+        # description="Number of random steps for the MAPPO agent.",
+    )
+    gumbel_softmax_tau: float = pydantic.Field(
+        default=1.0,
+        description="Temperature for the gumbel softmax distribution.",
+    )
+    DDPG_shared: bool = pydantic.Field(
+        default=True,
+        # description="Whether to use the shared DDPG network.",
+    )
+    gamma: float = pydantic.Field(
+        default=0.99,
+        description="Discount factor for the reward.",
+    )
 
 
 class DDPG:
