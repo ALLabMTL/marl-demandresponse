@@ -1,6 +1,5 @@
 import abc
-
-from typing import Union, Dict
+from typing import Dict, Union
 
 
 class Controller(abc.ABC):

@@ -1,5 +1,6 @@
-from app.core.agents.controllers.controller import Controller
 from typing import Literal
+
+from app.core.agents.controllers.controller import Controller
 
 
 class AlwaysOnController(Controller):

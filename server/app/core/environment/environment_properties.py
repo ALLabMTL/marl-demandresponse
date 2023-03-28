@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import BaseModel, Field
 

@@ -1,7 +1,8 @@
+import os
 from collections import namedtuple
 from copy import deepcopy
-import os
 from typing import List
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,13 +10,12 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from app.utils.utils import normStateDict
-from app.config import config_dict
 
+from app.config import config_dict
+from app.core.agents.ppo import PPOProperties
 from app.core.agents.trainables.network import Actor, Critic
 from app.core.agents.trainables.trainable import Trainable
-
-from app.core.agents.ppo import PPO, PPOProperties
+from app.utils.utils import normStateDict
 
 
 class MAPPOProperties(PPOProperties):

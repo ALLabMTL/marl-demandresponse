@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import numpy as np
+import pydantic
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -10,8 +11,6 @@ from torch import Tensor
 
 from app.core.agents.buffer import DDPGBuffer as Buffer
 from app.core.agents.trainables.network import DDPG_Network
-
-import pydantic
 
 
 def copy_model(src, dst):

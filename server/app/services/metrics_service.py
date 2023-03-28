@@ -1,8 +1,10 @@
-from datetime import datetime
-import numpy as np
 from cmath import nan
-from app.utils.logger import logger
+from datetime import datetime
+
+import numpy as np
+
 from app.services.wandb_service import WandbManager
+from app.utils.logger import logger
 
 
 class Metrics:

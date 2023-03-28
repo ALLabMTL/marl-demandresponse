@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
 from typing import Literal
+
+from pydantic import BaseModel, Field
+
 from app.core.agents.ddpg import DDPGProperties
 from app.core.agents.dqn import DQNProperties
 from app.core.agents.mappo import MAPPOProperties
@@ -8,10 +10,7 @@ from app.core.environment.cluster.building_properties import (
     BuildingNoiseProperties,
     BuildingProperties,
 )
-from app.core.environment.cluster.hvac import (
-    HvacNoiseProperties,
-    HvacProperties,
-)
+from app.core.environment.cluster.hvac import HvacNoiseProperties, HvacProperties
 from app.core.environment.environment_properties import EnvironmentProperties
 from app.services.controller_propreties import ControllerPropreties
 

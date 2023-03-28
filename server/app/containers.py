@@ -1,13 +1,13 @@
 from dependency_injector import containers, providers
 
 from app.services.client_manager_service import ClientManagerService
-from app.services.socket_manager_service import SocketManager
 from app.services.controller_manager import ControllerManager
-from app.services.wandb_service import WandbManager
-from app.services.metrics_service import Metrics
-from app.services.training_manager import TrainingManager
 from app.services.experiment_manager import ExperimentManager
+from app.services.metrics_service import Metrics
 from app.services.parser_service import ParserService
+from app.services.socket_manager_service import SocketManager
+from app.services.training_manager import TrainingManager
+from app.services.wandb_service import WandbManager
 
 
 class Container(containers.DeclarativeContainer):

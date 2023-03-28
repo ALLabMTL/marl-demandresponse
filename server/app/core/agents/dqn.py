@@ -1,7 +1,8 @@
 import os
 import random
-import numpy as np
 
+import numpy as np
+import pydantic
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,7 +10,6 @@ import torch.optim as optim
 from app.core.agents.buffer import ReplayBuffer, Transition
 from server.app.core.agents.trainables.network import DQN_network
 from server.app.core.agents.trainables.trainable import Trainable
-import pydantic
 
 
 class DQNProperties(pydantic.BaseModel):

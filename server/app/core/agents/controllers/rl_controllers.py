@@ -2,9 +2,10 @@ import os
 import sys
 
 import torch
+from torch.distributions import Categorical
+
 from app.core.agents.controllers.controller import Controller
 from v0.agents.network import Actor, DDPG_Network, DQN_network
-from torch.distributions import Categorical
 from v0.utils import normStateDict
 
 sys.path.append("..")

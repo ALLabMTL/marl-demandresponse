@@ -1,10 +1,10 @@
 import random
 from datetime import timedelta
-
-from app.core.environment.simulatable import Simulatable
+from typing import List
 
 import pydantic
-from typing import List
+
+from app.core.environment.simulatable import Simulatable
 
 
 class HvacNoiseProperties(pydantic.BaseModel):

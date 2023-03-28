@@ -9,15 +9,13 @@ import numpy as np
 import torch
 
 from app.config import config_dict
-from app.core.agents.trainables.trainable import Trainable
 from app.core.agents.ppo import PPO
 from app.core.environment.environment import Environment
-from app.utils.logger import logger
-from app.services.metrics_service import Metrics
-from app.utils.utils import normStateDict
 from app.services.experiment import Experiment
-from app.services.parser_service import ParserService
-from app.services.parser_service import MarlConfig
+from app.services.metrics_service import Metrics
+from app.services.parser_service import MarlConfig, ParserService
+from app.utils.logger import logger
+from app.utils.utils import normStateDict
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager
