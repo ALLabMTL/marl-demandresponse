@@ -1,20 +1,19 @@
 import { Component } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSliderModule } from '@angular/material/slider';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { AbstractControl, FormControl, Validators } from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 import { SharedService } from '@app/services/shared/shared.service';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
+interface Filter {
+  id: number;
+  type: string;
+  value?: any;
+}
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
-  isTempChecked = false;
-  isHvacChecked = false;
   precisionValueSelected = 0.5;
   negMin = -0.5;
   negMidMin = -0.25;
@@ -23,20 +22,26 @@ export class SidebarComponent {
   posMax = 0.5;
 
   numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
+
+  nbSquares = 100;
+  nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
   
-  constructor(public sharedService: SharedService){}
+  constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
+    this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
+  }
 
   ngOnInit() {
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
+    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
   }
 
   formatLabel(value: number): string {
     return `${value}`;
   }
 
-  tempCheckbox(): void {
-    this.isTempChecked = !this.isTempChecked;
-  }
+  // tempCheckbox(): void {
+  //   this.isTempChecked = !this.isTempChecked;
+  // }
 
   // floorCheckbox(): void {
   //   this.isFloorChecked = !this.isFloorChecked;
@@ -52,6 +57,11 @@ export class SidebarComponent {
       this.posMidMax = this.posMax / 2
       console.log("precision: %d", this.precisionValueSelected)
     }
+  }
+
+  setSquareNb(event: Event): void {
+    this.sharedService.changeSquareNb(Number(event));
+    this.sharedService.changeCount(1);
   }
 
 }

@@ -90,7 +90,7 @@ class PPO(Trainable):
             num_state=num_state, layers=config_dict["PPO_prop"]["critic_layers"]
         ).to(self.device)
         # TODO: change this static value (only for tests)
-        self.nb_agents = 10
+        self.nb_agents = 256
         self.batch_size = config_dict["PPO_prop"]["batch_size"]
         self.ppo_update_time = config_dict["PPO_prop"]["ppo_update_time"]
         self.max_grad_norm = config_dict["PPO_prop"]["max_grad_norm"]

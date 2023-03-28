@@ -13,10 +13,12 @@ import { GridComponent } from '../grid/grid.component';
 })
 export class DialogComponent {
   id: number;
+  currentPage: number = 1;
   
   // TODO: Do this in a prettier way
   constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService, public sharedService: SharedService) {
     this.id = data;
+    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
   }
 
 }
