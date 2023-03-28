@@ -11,7 +11,7 @@ import { SnackbarMessage } from '@app/classes/snackbar-message';
 })
 export class SocketCommunicationService {
 
-  constructor(        
+  constructor(
     public socketService: SocketService,
     private snackBarService: NotificationService,
     private simulationManager: SimulationManagerService
@@ -19,16 +19,16 @@ export class SocketCommunicationService {
 
   connect(): void {
     if (!this.socketService.isSocketAlive()) {
-        this.socketService.connect();
-        const timeout = 2000;
-        setTimeout(() => {
-            if (!this.socketService.isSocketAlive()) {
-                const message = 'Error: cannot connect to server';
-                const action = '';
-                this.snackBarService.openFailureSnackBar(message, action);
-            }
-        }, timeout);
-        this.configureSocket();
+      this.socketService.connect();
+      const timeout = 2000;
+      setTimeout(() => {
+        if (!this.socketService.isSocketAlive()) {
+          const message = 'Error: cannot connect to server';
+          const action = '';
+          this.snackBarService.openFailureSnackBar(message, action);
+        }
+      }, timeout);
+      this.configureSocket();
 
     }
   }
@@ -36,6 +36,7 @@ export class SocketCommunicationService {
   configureSocket() {
     this.socketService.on('connected', () => {
       this.snackBarService.openSuccessSnackBar('Connected to server', '');
+      this.changeSpeed(this.simulationManager.speed)
       this.startTraining()
     });
 
@@ -61,7 +62,7 @@ export class SocketCommunicationService {
     });
 
     this.socketService.on('success', (data: SnackbarMessage) => {
-        this.snackBarService.openSuccessSnackBar(data.message, '');
+      this.snackBarService.openSuccessSnackBar(data.message, '');
     });
 
 
@@ -77,5 +78,9 @@ export class SocketCommunicationService {
     this.snackBarService.openSuccessSnackBar('Stopping simulation...', '');
     this.simulationManager.stopped = true;
     this.socketService.send('stop');
+  }
+
+  changeSpeed(speed: number): void {
+    this.socketService.send('changeSpeed', speed);
   }
 }

@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 import random
@@ -50,7 +50,7 @@ def main():
     train[opt.agent_type](env, agent, opt, config_dict, render, log_wandb, wandb_run)
 
 
-#%%
+# %%
 
 if __name__ == "__main__":
     main()

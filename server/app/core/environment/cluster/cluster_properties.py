@@ -1,22 +1,36 @@
-from pydantic import BaseModel
+import pydantic
 
 
-class TemperatureProperties(BaseModel):
-    mode: str = "noisy_sinusoidal"
-    day_temp: float = 30.0
-    night_temp: float = 23.0
-    temp_std_deviation: float = 0.5
-    random_phase_offset: bool = False
-    phase: float = 0.0
+class TemperatureProperties(pydantic.BaseModel):
+    day_temp: float = pydantic.Field(
+        default=26.0,
+        description="Day temperature.",
+    )
+    night_temp: float = pydantic.Field(
+        default=20.0,
+        description="Night temperature.",
+    )
+    temp_std: float = pydantic.Field(
+        default=1.0,
+        description="Standard deviation of the temperature.",
+    )
+    random_phase_offset: bool = pydantic.Field(
+        default=False,
+        description="Whether to add a random phase offset to the temperature.",
+    )
+    phase: float = pydantic.Field(
+        default=0.0,
+        description="Phase offset of the temperature.",
+    )
 
 
-class AgentsCommunicationProperties(BaseModel):
+class AgentsCommunicationProperties(pydantic.BaseModel):
     mode: str = "neighbours"
     row_size: int = 5
     max_communication_distance: int = 2
     max_nb_agents_communication: int = 10
 
 
-class MessageProperties(BaseModel):
+class MessageProperties(pydantic.BaseModel):
     thermal: bool = False
     hvac: bool = False

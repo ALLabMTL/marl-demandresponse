@@ -191,7 +191,6 @@ class PPO:
                 self.training_step += 1
 
         if self.log_wandb:
-
             max_ratio = np.max(ratios)
             mean_ratio = np.mean(ratios)
             median_ratio = np.median(ratios)
