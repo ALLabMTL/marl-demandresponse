@@ -1,9 +1,6 @@
 import random
-from abc import ABC
-from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
-
 import numpy as np
 
 from app.core.environment.cluster.building_properties import (
@@ -55,13 +52,11 @@ class Building(Simulatable):
         time_step: timedelta, time step duration
         date_time: datetime, current date and time
         """
-        super()._step()
         for hvac in self.hvacs:
             hvac._step(action, time_step)
         self.update_temperature(od_temp, time_step, date_time)
 
     def _get_obs(self) -> dict:
-        super()._get_obs()
         # TODO: this doesnt work with multiple hvacs
         state_dict = {}
         for hvac in self.hvacs:

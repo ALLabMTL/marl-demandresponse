@@ -20,7 +20,7 @@ class AgentCommunicationBuilder:
             (nb_agents - 1),
         )
         self.nb_agents = nb_agents
-        self.agent_ids = [i for i in range(nb_agents)]
+        self.agent_ids = list(range(nb_agents))
 
     def get_comm_link_list(self) -> Dict[int, List[int]]:
         mode = {

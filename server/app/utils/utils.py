@@ -126,3 +126,10 @@ def normStateDict(sDict, config_dict, returnDict=False):
         result = np.array(list(result.values()) + flat_messages)
 
     return result
+
+
+def sort_dict_keys(point, dict_keys):
+    sorted_point = {}
+    for key in dict_keys:
+        sorted_point[key] = point[key]
+    return sorted_point

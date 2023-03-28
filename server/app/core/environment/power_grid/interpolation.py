@@ -1,31 +1,42 @@
+import csv
+import json
+import random
 import sys
+from typing import Dict, List
+from datetime import datetime
+from copy import deepcopy
+import numpy as np
+from scipy.interpolate import interpn
+from app.core.environment.cluster.building import Building
+from app.core.environment.cluster.building_properties import BuildingProperties
+from app.utils.utils import sort_dict_keys
 
 sys.path.insert(1, "../marl-demandresponse")
 
-import copy
-import datetime
-import itertools as it
-import time
-from copy import deepcopy
-
-import numpy as np
-import pandas as pd
-from scipy.interpolate import LinearNDInterpolator, interpn
 
 SECOND_IN_A_HOUR = 3600
 NB_TIME_STEPS_BY_SIM = 450
 
 
 class PowerInterpolator(object):
-    def __init__(self, path, parameters_dict, dict_keys):
-        self.parameters_dict = parameters_dict  # All parameters used in the dataframe
-        self.dict_keys = dict_keys
+    def __init__(
+        self,
+        path_datafile: str,
+        path_parameter_dict: str,
+        path_dict_keys: str,
+        default_building_props: BuildingProperties,
+    ) -> None:
+        with open(path_parameter_dict) as json_file:
+            self.parameters_dict = json.load(json_file)
+        with open(path_dict_keys) as f:
+            reader = csv.reader(f)
+            self.dict_keys = list(reader)[0]
 
         self.nb_params = []
         for key in self.dict_keys:
             self.nb_params.append(len(self.parameters_dict[key]))
 
-        self.nb_params_multi = []
+        self.nb_params_multi: List[int] = []
         combined_nb = 1
         for nb_param in reversed(self.nb_params):
             self.nb_params_multi = [combined_nb] + self.nb_params_multi
@@ -37,7 +48,8 @@ class PowerInterpolator(object):
             len(self.parameters_dict[key]) for key in self.dict_keys
         ]
 
-        self.values = np.load(path).reshape(*self.dimensions_array, 1)
+        self.values = np.load(path_datafile).reshape(*self.dimensions_array, 1)
+        self.default_building_props = default_building_props
 
     def param2index(self, point_dict):
         "Return the index for a given set of parameters. ! If date in point_dict, must be the day # in the year (timetuple().tm_yday property of datetime)"
@@ -59,13 +71,13 @@ class PowerInterpolator(object):
 
         return index_df
 
-    def interpolateGrid(self, point_dict):
+    def interpolate_grid(self, point_dict):
         point_coordinates = list(point_dict.values())
         result = interpn(self.points, self.values, point_coordinates)
         # print(result)
         return result
 
-    def interpolateGridFast(self, point_dict):
+    def interpolate_grid_fast(self, point_dict) -> float:
         """
         Returns a fast interpolation, using nearest neighbour for the house thermal parameters and linear interpolation for the other parameters.
         """
@@ -98,7 +110,7 @@ class PowerInterpolator(object):
         del points_cut[3]
         del point_coordinates[3]
 
-        result = interpn(points_cut, values_cut, point_coordinates)
+        result = interpn(points_cut, values_cut, point_coordinates)[0][0]
         # print(result)
         return result
 
@@ -108,53 +120,121 @@ class PowerInterpolator(object):
         indices_two_closest = np.argsort(distances)[:2]
         return array[indices_two_closest]
 
+    def interpolate_power(
+        self,
+        date_time: datetime,
+        current_od_temp: float,
+        solar_gain: bool,
+        interp_nb_agents,
+        buildings: List[Building],
+    ) -> float:
+        base_power = 0.0
 
-if __name__ == "__main__":
-    parameters_dict = {
-        "Ua_ratio": [1, 1.1],
-        "Cm_ratio": [1, 1.1],
-        "Ca_ratio": [1, 1.1],
-        "Hm_ratio": [1, 1.1],
-        "air_temp": [0, 1],
-        "mass_temp": [0, 1],
-        "OD_temp": [11, 13],
-        "HVAC_power": [10000, 15000],
-        "hour": [0.0, 10800.0],
-        "date": [0, 79],
-    }
+        if solar_gain:
+            point = {
+                "date": date_time.timetuple().tm_yday,
+                "hour": (
+                    date_time
+                    - date_time.replace(hour=0, minute=0, second=0, microsecond=0)
+                ).total_seconds(),
+            }
+        else:  # No solar gain - make it think it is midnight
+            point = {
+                "date": 0.0,
+                "hour": 0.0,
+            }
 
-    dict_keys = [
-        "Ua_ratio",
-        "Cm_ratio",
-        "Ca_ratio",
-        "Hm_ratio",
-        "air_temp",
-        "mass_temp",
-        "OD_temp",
-        "HVAC_power",
-        "hour",
-        "date",
-    ]
+        all_ids = list(range(len(buildings)))
+        if len(all_ids) <= interp_nb_agents:
+            interp_house_ids = all_ids
+            multi_factor = 1.0
+        else:
+            interp_house_ids = random.choices(all_ids, k=interp_nb_agents)
+            multi_factor = float(len(all_ids)) / float(interp_nb_agents)
+        # Adding the interpolated power for each house
+        for house_id in interp_house_ids:
+            house = buildings[house_id]
+            point["Ua_ratio"] = (
+                house.initial_properties.Ua / self.default_building_props.Ua
+            )  # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
+            point["Cm_ratio"] = (
+                house.initial_properties.Cm / self.default_building_props.Cm
+            )
+            point["Ca_ratio"] = (
+                house.initial_properties.Ca / self.default_building_props.Ca
+            )
+            point["Hm_ratio"] = (
+                house.initial_properties.Hm / self.default_building_props.Hm
+            )
+            point["air_temp"] = house.indoor_temp - house.initial_properties.target_temp
+            point["mass_temp"] = (
+                house.current_mass_temp - house.initial_properties.target_temp
+            )
+            point["OD_temp"] = current_od_temp - house.initial_properties.target_temp
+            point["HVAC_power"] = house.hvacs[0].init_props.cooling_capacity
+            point = self.clip_interpolation_point(point)
+            point = sort_dict_keys(point, self.dict_keys)
+            base_power += self.interpolate_grid_fast(point)
+        base_power *= multi_factor
 
-    power_inter = PowerInterpolator(
-        "./mergedGridSearchResultFinal.npy", parameters_dict, dict_keys
-    )
+        return base_power
 
-    try_0 = {
-        "Ua_ratio": 1.1,
-        "Cm_ratio": 1.1,
-        "Ca_ratio": 1.1,
-        "Hm_ratio": 1.1,
-        "air_temp": 0,
-        "mass_temp": 0,
-        "OD_temp": 13,
-        "HVAC_power": 10000,
-        "hour": 0,
-        "date": 0,
-    }
+    def clip_interpolation_point(self, point: Dict[str, float]) -> Dict[str, float]:
+        for key in point.keys():
+            values = np.array(self.parameters_dict[key])
+            if point[key] > np.max(values):
+                point[key] = np.max(values)
+            elif point[key] < np.min(values):
+                point[key] = np.min(values)
+        return point
 
-    id0 = power_inter.interpolateGridFast(try_0)
-    id1 = power_inter.interpolateGrid(try_0)
 
-    print("Fast: {}".format(id0))
-    print("Normal: {}".format(id1))
+# if __name__ == "__main__":
+# parameters_dict = {
+#     "Ua_ratio": [1, 1.1],
+#     "Cm_ratio": [1, 1.1],
+#     "Ca_ratio": [1, 1.1],
+#     "Hm_ratio": [1, 1.1],
+#     "air_temp": [0, 1],
+#     "mass_temp": [0, 1],
+#     "OD_temp": [11, 13],
+#     "HVAC_power": [10000, 15000],
+#     "hour": [0.0, 10800.0],
+#     "date": [0, 79],
+# }
+
+# dict_keys = [
+#     "Ua_ratio",
+#     "Cm_ratio",
+#     "Ca_ratio",
+#     "Hm_ratio",
+#     "air_temp",
+#     "mass_temp",
+#     "OD_temp",
+#     "HVAC_power",
+#     "hour",
+#     "date",
+# ]
+
+# power_inter = PowerInterpolator(
+#     "./mergedGridSearchResultFinal.npy", parameters_dict, dict_keys
+# )
+
+# try_0 = {
+#     "Ua_ratio": 1.1,
+#     "Cm_ratio": 1.1,
+#     "Ca_ratio": 1.1,
+#     "Hm_ratio": 1.1,
+#     "air_temp": 0,
+#     "mass_temp": 0,
+#     "OD_temp": 13,
+#     "HVAC_power": 10000,
+#     "hour": 0,
+#     "date": 0,
+# }
+
+# id0 = power_inter.interpolate_grid_fast(try_0)
+# id1 = power_inter.interpolate_grid(try_0)
+
+# print("Fast: {}".format(id0))
+# print("Normal: {}".format(id1))

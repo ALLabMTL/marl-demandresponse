@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 from pydantic import BaseModel
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class SignalProperties(BaseModel):
     # TODO: implement other modes
     mode: str = "regular_steps"
-    amplitude_ratios: List[float] = [0.1, 0.3]
+    amplitude_ratios: Union[float, List[float]] = [0.1, 0.3]
     amplitude_per_hvac: int = 6000
     nb_octaves: int = 5
     octaves_step: int = 5

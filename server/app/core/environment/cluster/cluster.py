@@ -1,8 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
 
-import numpy as np
-
 from app.core.environment.cluster.building import Building
 from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
@@ -48,13 +46,15 @@ class Cluster(Simulatable):
         )
         self.agent_communicators = self.communication_builder.get_comm_link_list()
 
+        return self._get_obs()
+
     def _step(
         self,
         od_temp: float,
         action_dict: Dict[int, bool],
         date_time: datetime,
         time_step: timedelta,
-    ) -> None:
+    ) -> dict:
         self.current_power_consumption = 0
         for building_id, building in enumerate(self.buildings):
             if building_id in action_dict.keys():
@@ -63,6 +63,7 @@ class Cluster(Simulatable):
                 command = False
             building._step(od_temp, time_step, date_time, command)
             self.current_power_consumption += building.get_power_consumption()
+        return self._get_obs()
 
     def message(self, building_id: int) -> List[Dict[str, Union[int, float]]]:
         if self.agents_comm_properties.mode == "random_sample":
@@ -98,4 +99,5 @@ class Cluster(Simulatable):
         return state_dict
 
     def apply_noise(self) -> None:
-        (building.apply_noise() for building in self.buildings)
+        for building in self.buildings:
+            building.apply_noise()

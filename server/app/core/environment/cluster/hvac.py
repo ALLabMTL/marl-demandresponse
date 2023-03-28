@@ -66,7 +66,7 @@ class HVAC(Simulatable):
     def apply_noise(self) -> None:
         self.init_props.cooling_capacity = random.choices(
             self.noise_props.cooling_capacity_list
-        )
+        )[0]
 
     def _get_obs(self) -> dict:
         obs_dict = self.init_props.dict()
