@@ -1,19 +1,14 @@
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { FormControl, Validators, NgControl } from '@angular/forms';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatSlider } from '@angular/material/slider';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
-interface Filter {
-  id: number;
-  type: string;
-  value?: any;
-}
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss']
+  styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent {
   precisionValueSelected = 0.5;
@@ -46,8 +41,8 @@ export class SidebarComponent {
   }
 
   resetSlider(): void {
-    this.simulationManager.tempSelectRange.min = -1;
-    this.simulationManager.tempSelectRange.max = 1;
+    this.simulationManager.tempSelectRange.min = this.simulationManager.minValueSliderInit;
+    this.simulationManager.tempSelectRange.max = this.simulationManager.maxValueSliderInit;
     this.simulationManager.removeTempDiffFilter();
   }
 

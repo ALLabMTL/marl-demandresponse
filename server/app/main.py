@@ -1,6 +1,5 @@
 import os
 import sys
-from time import sleep
 
 import socketio
 from dependency_injector.wiring import Provide, inject
@@ -9,12 +8,10 @@ from fastapi import FastAPI
 # We do this to be able to have app as the main directory regardless of where we run the code
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.config import config_dict
 from app.containers import Container
 from app.routers.endpoints import endpointRoute
 from app.routers.websockets import register_endpoints
 from app.services.socket_manager_service import SocketManager
-from app.services.training_service import TrainingService
 from app.utils.const import Color
 from app.utils.logger import logger
 from app.utils.settings import settings

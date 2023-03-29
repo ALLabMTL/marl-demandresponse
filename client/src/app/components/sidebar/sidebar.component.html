@@ -11,8 +11,8 @@
       >Temperature difference</mat-checkbox
     > -->
     <mat-slider
-      min="-1"
-      max="1"
+      [min]="this.simulationManager.minValueSliderInit"
+      [max]="this.simulationManager.maxValueSliderInit"
       step="0.01"
       name = "tempDiff"
       ngDefaultControl
@@ -22,12 +22,15 @@
       [disabled]="!this.simulationManager.isTempChecked"
       (mouseup)="this.simulationManager.filterByTempDiff()"
     >
-      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRange.min"/>
-      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRange.max"/>
+      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"/>
+      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"/>
     </mat-slider>
+    <div class="values_temp_selected" *ngIf ="this.simulationManager.isTempFiltered">
+    <p tag="temp_interval"> Interval selected: [{{this.simulationManager.tempSelectRangeInput.min}}, {{this.simulationManager.tempSelectRangeInput.max}}]</p>
+    </div>
     <div class="values_temp">
-    <p tag="min_temp">Min: {{this.simulationManager.tempSelectRange.min}}</p>
-    <p tag="max_temp">Max: {{this.simulationManager.tempSelectRange.max}}</p>
+    <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
+    <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
     </div>
   </div>
 
