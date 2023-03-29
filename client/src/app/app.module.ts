@@ -58,3 +58,6 @@ import { MatDialogModule } from '@angular/material/dialog';
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+// providers: [SidebarComponent],
+//   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],
