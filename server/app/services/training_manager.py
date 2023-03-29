@@ -9,13 +9,13 @@ import numpy as np
 import torch
 
 from app.config import config_dict
-from app.core.agents.trainables.trainable import Trainable
 from app.core.agents.ppo import PPO
 from app.core.environment.environment import Environment
-from app.utils.logger import logger
-from app.services.metrics_service import Metrics
-from app.utils.utils import normStateDict
 from app.services.experiment import Experiment
+from app.services.metrics_service import Metrics
+from app.services.parser_service import MarlConfig, ParserService
+from app.utils.logger import logger
+from app.utils.utils import normStateDict
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager
@@ -23,25 +23,7 @@ from .socket_manager_service import SocketManager
 
 class TrainingManager(Experiment):
     env: Environment
-    obs_dict: Dict[int, List[Union[float, str, bool, datetime]]]
-    nb_time_steps: int
-    nb_agents: int
-    nb_test_logs: int
-    nb_tr_logs: int
-    nb_tr_epochs: int
-    nb_time_steps_test: int
-    nb_tr_episodes: int
-    agent: Trainable
-    num_state: int
-    metrics: Metrics
-    time_steps_per_episode: int
-    time_steps_per_epoch: int
-    time_steps_train_log: int
-    time_steps_test_log: int
-    save_actor_name: str
-    speed: float
-    time_steps_per_saving_actor: int
-    agent_name: str
+    obs_dict: dict
     stop: bool
 
     def __init__(
@@ -49,27 +31,30 @@ class TrainingManager(Experiment):
         socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
+        parser_service: ParserService,
     ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.static_config = parser_service.config
+        self.initialize(parser_service.config)
 
-    def initialize(self) -> None:
+    def initialize(self, marl_config: MarlConfig) -> None:
         random.seed(1)
-        self.env = Environment()
+        self.env = Environment(marl_config.env_prop)
         self.nb_agents = self.env.cluster.nb_agents
         # TODO: Get these arguments from config file (parser)
         self.nb_time_steps = 1000
         self.nb_time_steps_test = 300
         self.nb_test_logs = 100
         self.save_actor_name: str = "PPO"
-        self.agent_name = "PPO"
         self.nb_tr_logs = 100
         self.nb_tr_epochs = 20
-        self.speed = 0
+        self.nb_tr_episodes = 2
+        self.speed: int = 2
         self.time_steps_per_saving_actor = 2
-        self.nb_tr_episodes = 1
+
         self.obs_dict = self.env._reset()
         self.num_state = len(
             normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
@@ -89,9 +74,10 @@ class TrainingManager(Experiment):
             "success", {"message": "Initializing environment..."}
         )
 
-        self.initialize()
+        self.initialize(self.static_config)
         self.client_manager_service.initialize_data()
         await self.socket_manager_service.emit("agent", self.agent_name)
+
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
         )
@@ -116,7 +102,6 @@ class TrainingManager(Experiment):
             sleep(self.speed)
 
             # Select action with probabilities
-
             action_and_prob = {
                 k: self.agent.select_action(
                     normStateDict(self.obs_dict[k], config_dict)
@@ -152,7 +137,7 @@ class TrainingManager(Experiment):
             self.obs_dict = next_obs_dict
 
             # New episode, reset environment
-            if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
+            if done:
                 logger.info("New episode at time %d", step)
                 await self.socket_manager_service.emit(
                     "success", {"message": f"New episode at time {step}"}
@@ -176,9 +161,9 @@ class TrainingManager(Experiment):
         Test ppo agent on an episode of nb_test_timesteps, with
         """
         env = deepcopy(self.env)
-        cumul_avg_reward = 0
-        cumul_temp_error = 0
-        cumul_signal_error = 0
+        cumul_avg_reward = 0.0
+        cumul_temp_error = 0.0
+        cumul_signal_error = 0.0
         obs_dict = env._reset()
         with torch.no_grad():
             for _ in range(self.nb_time_steps_test):

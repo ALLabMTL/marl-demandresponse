@@ -11,9 +11,14 @@ from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 from app.utils.utils import normStateDict
 from app.config import config_dict
-
+from app.core.agents.ppo import PPOProperties
 from app.core.agents.trainables.network import Actor, Critic
 from app.core.agents.trainables.trainable import Trainable
+
+
+class MAPPOProperties(PPOProperties):
+    pass
+
 
 Transition = namedtuple(
     "Transition",

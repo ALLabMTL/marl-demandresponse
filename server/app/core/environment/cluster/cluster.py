@@ -31,7 +31,7 @@ class Cluster(Simulatable):
         # TODO: Initialize values with parser service
         self.agents_comm_properties = AgentsCommunicationProperties()
         self.message_properties = MessageProperties()
-        self.nb_agents = 10
+        self.nb_agents = 256
         self.buildings = [Building() for _ in range(self.nb_agents)]
         self.max_power = 0
         self.nb_hvacs = 0

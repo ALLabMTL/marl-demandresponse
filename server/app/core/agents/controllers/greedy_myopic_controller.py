@@ -10,7 +10,7 @@ class GreedyMyopic(Controller):
 
     actions_df = []
 
-    def __init__(self, agent_properties, config_dict, num_state=None) -> None:
+    def __init__(self, agent_properties, config_dict, num_state=None):
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
         self.last_obs = pd.DataFrame(

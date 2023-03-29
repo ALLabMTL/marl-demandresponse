@@ -3,9 +3,9 @@ import sys
 sys.path.append("../marl-demandresponse")
 
 import pandas as pd
-from v0.utils import house_solar_gain
 
 from v0.agents.MPC import best_MPC_action
+from v0.utils import house_solar_gain
 
 global_mpc_memory = [None, None]
 
@@ -48,9 +48,9 @@ class MPCController:
             initial_air_temperature = df["indoor_temp"].to_list()
             initial_mass_temperature = df["mass_temp"].to_list()
             target_temperature = df["target_temp"].to_list()
-            remaining_lockout = (
-                df["lockout_duration"] - df["seconds_since_off"]
-            ) * df["turned_on"]
+            remaining_lockout = (df["lockout_duration"] - df["seconds_since_off"]) * df[
+                "turned_on"
+            ]
 
             rolling_horizon = self.rolling_horizon
             if self.solar_gain:
@@ -67,9 +67,7 @@ class MPCController:
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
             od_temp = [df["OD_temp"][0]] * rolling_horizon
             HVAC_consumption = df["cooling_capacity"] / df["cop"]
-            HVAC_cooling = df["cooling_capacity"] / (
-                1 + df["latent_cooling_fraction"]
-            )
+            HVAC_cooling = df["cooling_capacity"] / (1 + df["latent_cooling_fraction"])
 
             global_mpc_memory[1] = best_MPC_action(
                 nb_agents,

@@ -26,12 +26,11 @@ class Environment:
     date_time: datetime
     current_od_temp: float
 
-    def __init__(self) -> None:
-        self.init_props = EnvironmentProperties()
+    def __init__(self, env_props: EnvironmentProperties) -> None:
+        self.init_props = env_props
         self.date_time = self.init_props.start_datetime
         # TODO: compute phase inside TemperatureProperties dataclass
         # TODO: get properties from parser_service, needs to be changed
-        self.temp_properties = TemperatureProperties()
         self.default_building_props = BuildingProperties()
         self.cluster = Cluster()
         self.power_grid = PowerGrid(
@@ -46,7 +45,7 @@ class Environment:
         self.compute_od_temp()
 
     def _reset(self) -> dict:
-        self.build_environment()
+        self.build_environment(self.init_props)
         return self._get_obs()
 
     def _step(
@@ -89,9 +88,9 @@ class Environment:
             )
         return obs_dict
 
-    def build_environment(self) -> None:
-        self.init_props = EnvironmentProperties()
-        self.temp_properties = TemperatureProperties()
+    def build_environment(self, env_props: EnvironmentProperties) -> None:
+        self.init_props = env_props
+        self.temp_properties = env_props.cluster_prop.temp_parameters
         self.cluster = Cluster()
         self.apply_noise()
         self.date_time = self.init_props.start_datetime
@@ -131,7 +130,7 @@ class Environment:
         )
 
         # Adding noise
-        temperature += random.gauss(0, self.temp_properties.temp_std_deviation)
+        temperature += random.gauss(0, self.temp_properties.temp_std)
         self.current_od_temp = temperature
 
     def apply_noise(self) -> None:

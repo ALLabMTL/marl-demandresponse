@@ -1,8 +1,7 @@
 from dependency_injector.wiring import Provide, inject
 
-from app.services.socket_manager_service import SocketManager
-from app.services.controller_manager import ControllerManager
 from app.services.experiment_manager import ExperimentManager
+from app.services.socket_manager_service import SocketManager
 from app.utils.logger import logger
 
 

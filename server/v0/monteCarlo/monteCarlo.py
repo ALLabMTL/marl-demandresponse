@@ -161,7 +161,6 @@ def eval_parameters_bangbang_average_consumption(
     hour,
     date,
 ):
-
     config = copy.deepcopy(config_dict)
     date = d0 + timedelta(days=date)
     hour_int = int(hour // 3600)
