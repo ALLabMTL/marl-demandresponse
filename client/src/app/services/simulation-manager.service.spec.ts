@@ -237,9 +237,12 @@ fdescribe('SimulationManagerService', () => {
     expect(service.hvacChosen).toEqual([{ id: 3, hvacStatus: 'Lockout', secondsSinceOff: 1800, indoorTemp: 23, targetTemp: 22, tempDifference: 1 }]);
    // const spy = spyOn(service, 'updateFilteredHouses').and.callThrough();
    // expect(spy).toHaveBeenCalled();
+
+   // service.updateFilteredHouses();
+   // service.isFilteredHvac = true;
     
     //expect(service.isFilteredHvac).toBeTrue();
-    //expect(service.housesData).toEqual([{ id: 1, hvacStatus: 'ON', secondsSinceOff: 10, indoorTemp: 25, targetTemp: 22, tempDifference: 3 }, { id: 4, hvacStatus: 'ON', secondsSinceOff: 20, indoorTemp: 20, targetTemp: 22, tempDifference: -2 }]);
+    // expect(service.housesData).toEqual([{ id: 1, hvacStatus: 'ON', secondsSinceOff: 10, indoorTemp: 25, targetTemp: 22, tempDifference: 3 }, { id: 4, hvacStatus: 'ON', secondsSinceOff: 20, indoorTemp: 20, targetTemp: 22, tempDifference: -2 }]);
   });
 
   it('should remove hvac status filter when all status are unchecked', () => {
@@ -254,6 +257,7 @@ fdescribe('SimulationManagerService', () => {
     expect(service.hvacChosen).toEqual([{ id: 1, hvacStatus: 'ON', secondsSinceOff: 10, indoorTemp: 25, targetTemp: 22, tempDifference: 3 }, { id: 4, hvacStatus: 'ON', secondsSinceOff: 20, indoorTemp: 20, targetTemp: 22, tempDifference: -2 }]);
     expect(service.hvacStatus).toEqual('ON');
     expect(service.isHvacChecked).toBeTrue();
+    //expect(service.isOnChecked).toBeTrue();
 
     service.filterByHvacStatus(true, 'OFF');
     expect(service.hvacStatus).toEqual('OFF');
