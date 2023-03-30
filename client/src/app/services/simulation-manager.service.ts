@@ -7,11 +7,6 @@ interface PageData {
   content: HouseData[];
 }
 
-interface PageData {
-  id: number;
-  content: HouseData[];
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -248,14 +243,11 @@ export class SimulationManagerService {
 
     this.hvacStatus = hvac;
     this.isHvacChecked = checked;
-    console.log('status', this.hvacStatus);
+
     if(this.isHvacChecked) {
       this.hvacChosen = [...this.hvacChosen, ...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)];
-      console.log('chosen', this.hvacChosen);
     } else { // if un-select manually
       this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus)];
-      console.log('unchosen', this.hvacChosen);
-
     }
 
     this.isFilteredHvac = true;  
@@ -263,16 +255,13 @@ export class SimulationManagerService {
     this.updateFilteredHouses(); 
     
     if(this.isOnChecked == false && this.isOffChecked == false && this.isLockoutChecked == false) {
-      console.log('ummm');
       this.removeHvacFilter();
     }
   }
 
   removeHvacFilter(): void {
-    console.log('remove hvac')
     this.housesData = this.originalHousesData;
     this.isFilteredHvac = false;
-    console.log('new data', this.housesData);
   }
 
   filterByTempDiff(): void {
