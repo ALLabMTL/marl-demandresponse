@@ -5,7 +5,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 
-@Component({
+@Component({ 
   selector: 'app-graphs',
   templateUrl: './graphs.component.html',
   styleUrls: ['./graphs.component.scss']
@@ -38,8 +38,9 @@ export class GraphsComponent implements AfterViewInit {
             label: category,
             fill: false,
             tension: 0,
-            borderColor: 'black',
-            backgroundColor: 'rgba(255,0,0,0.3)',
+            borderColor: ['blue', 'yellow'],
+            backgroundColor: ['blue', 'yellow'],
+            pointBackgroundColor: 'black',
           }
         }
         );
@@ -55,8 +56,9 @@ export class GraphsComponent implements AfterViewInit {
             label: category,
             fill: false,
             tension: 0,
-            borderColor: 'black',
-            backgroundColor: 'rgba(255,0,0,0.3)',
+            borderColor: ['green', 'orange'],
+            backgroundColor: ['green', 'orange'],
+            pointBackgroundColor: 'black',
           }
         }
         );
@@ -125,7 +127,15 @@ export class GraphsComponent implements AfterViewInit {
           enabled: true,
           mode: 'xy',
         }
-      }
+      },
+      legend: {
+        display: true,
+        labels: {
+            color: 'black',
+            boxWidth: 5,
+            boxHeight: 5,
+        }
+    }
     }
   } as ChartOptions<'line'>;
 
