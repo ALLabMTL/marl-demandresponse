@@ -4,15 +4,15 @@
   </p>
 
   <div class="temp_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.simulationManager.removeTempDiffFilter()">
+    <mat-slide-toggle class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetSlider()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
       >Temperature difference</mat-checkbox
     > -->
     <mat-slider
-      min="-1"
-      max="1"
+      [min]="this.simulationManager.minValueSliderInit"
+      [max]="this.simulationManager.maxValueSliderInit"
       step="0.01"
       name = "tempDiff"
       ngDefaultControl
@@ -22,32 +22,35 @@
       [disabled]="!this.simulationManager.isTempChecked"
       (mouseup)="this.simulationManager.filterByTempDiff()"
     >
-      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRange.min"/>
-      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRange.max"/>
+      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"/>
+      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"/>
     </mat-slider>
+    <div class="values_temp_selected" *ngIf ="this.simulationManager.isTempFiltered">
+    <p tag="temp_interval"> Interval selected: [{{this.simulationManager.tempSelectRangeInput.min}}, {{this.simulationManager.tempSelectRangeInput.max}}]</p>
+    </div>
     <div class="values_temp">
-    <p tag="min_temp">Min: {{this.simulationManager.tempSelectRange.min}}</p>
-    <p tag="max_temp">Max: {{this.simulationManager.tempSelectRange.max}}</p>
+    <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
+    <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
     </div>
   </div>
 
   <mat-divider></mat-divider>
 
   <div class="hvac_filter">
-    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacChecked" (click)="this.simulationManager.removeHvacFilter()">
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled" (click)="this.resetHvacFilter()">
       HVAC status
     </mat-slide-toggle>
-    <mat-chip-listbox [disabled]="!this.simulationManager.isHvacChecked">
-      <mat-chip-option class="on_chip" color = "primary" value = "ON" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+    <div>
+      <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
         ON
-      </mat-chip-option>
-      <mat-chip-option class="lockout_chip" color = "grey" value = "Lockout" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      </mat-checkbox>
+      <mat-checkbox class="lockout_chip" #lockout_check color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
         Lockout
-      </mat-chip-option>
-      <mat-chip-option class="off_chip" color = "warn" value = "OFF" (selectionChange)="this.simulationManager.filterByHvacStatus($event)">
+      </mat-checkbox>
+      <mat-checkbox class="off_chip" #off_check color = "warn" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
         OFF
-      </mat-chip-option>
-    </mat-chip-listbox>
+      </mat-checkbox>
+    </div>
   </div>
 
   <mat-divider></mat-divider>
