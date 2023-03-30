@@ -31,12 +31,12 @@ export class GraphsComponent implements AfterViewInit {
     this.sms.sidenavObservable.subscribe((data) => {
       {
         // get the categories
-        const categories = ['Average temperature difference (°C)'];
+        const categories = ['Current consumption', 'Regulation signal'];
         let datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
-            fill: true,
+            fill: false,
             tension: 0,
             borderColor: 'black',
             backgroundColor: 'rgba(255,0,0,0.3)',
@@ -48,12 +48,12 @@ export class GraphsComponent implements AfterViewInit {
       };
       {
         // get the categories
-        const categories = ['Average indoor temperature (°C)'];
+        const categories = ['Mean temperature error (°C)', 'Average temperature difference (°C)'];
         let datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
-            fill: true,
+            fill: false,
             tension: 0,
             borderColor: 'black',
             backgroundColor: 'rgba(255,0,0,0.3)',

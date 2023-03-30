@@ -9,9 +9,6 @@ GRAPH_MEMORY = 5000
 
 class ClientManagerService:
     def __init__(self) -> None:
-        self.initialize_data()
-
-    def initialize_data(self) -> None:
         self.data_messages = {}
         self.temp_diff = np.array([])
         self.temp_err = np.array([])
@@ -74,39 +71,43 @@ class ClientManagerService:
 
     def update_data_messages(self, df: pd.DataFrame):
         # TODO: refactor this
-        self.data_messages = {}
-        self.data_messages["Number of HVAC"] = str(df.shape[0])
-        self.data_messages["Number of locked HVAC"] = str(
-            np.where(df["lockout"] & (df["turned_on"] == False), 1, 0).sum()
-        )
-        self.data_messages["Outdoor temperature (°C)"] = str(round(df["OD_temp"][0], 2))
-        self.data_messages["Average indoor temperature (°C)"] = str(
-            round(df["indoor_temp"].mean(), 2)
-        )
-        self.data_messages["Average temperature difference (°C)"] = str(
-            round(df["temperature_difference"].mean(), 2)
-        )
-        self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
-        self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
-        self.data_messages["Consumption error (%)"] = "{:.3f}".format(
-            (df["reg_signal"][0] - df["cluster_hvac_power"][0])
-            / df["reg_signal"][0]
-            * 100
-        )
-        self.data_messages["RMSE"] = "{:.0f}".format(
-            np.sqrt(
-                np.mean(
-                    (
-                        self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                        - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
+        self.data_messages = {
+            "Number of HVAC": str(df.shape[0]),
+            "Number of locked HVAC": str(
+                np.where(df["lockout"] & (df["turned_on"] == False), 1, 0).sum()
+            ),
+            "Outdoor temperature (°C)": str(round(df["OD_temp"][0], 2)),
+            "Average indoor temperature (°C)": round(df["indoor_temp"].mean(), 2),
+            "Average temperature difference (°C)": round(
+                df["temperature_difference"].mean(), 2
+            ),
+            "Regulation signal": str(df["reg_signal"][0]),
+            "Current consumption": str(df["cluster_hvac_power"][0]),
+            "Consumption error (%)": "{:.3f}".format(
+                (df["reg_signal"][0] - df["cluster_hvac_power"][0])
+                / df["reg_signal"][0]
+                * 100
+            ),
+            "RMSE": "{:.0f}".format(
+                np.sqrt(
+                    np.mean(
+                        (
+                            self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
+                            - self.consumption[
+                                max(-GRAPH_MEMORY, -len(self.consumption)) :
+                            ]
+                        )
+                        ** 2
                     )
-                    ** 2
                 )
-            )
-        )
-        self.data_messages["Cumulative average offset"] = "{:.0f}".format(
-            np.mean(
-                self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
-            )
-        )
+            ),
+            "Cumulative average offset": "{:.0f}".format(
+                np.mean(
+                    self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
+                    - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
+                )
+            ),
+            "Mean temperature error (°C)": "{:.2f}".format(
+                np.mean(self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :])
+            ),
+        }

@@ -78,7 +78,6 @@ class TrainingService:
         )
 
         self.initialize()
-        self.client_manager_service.initialize_data()
 
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
