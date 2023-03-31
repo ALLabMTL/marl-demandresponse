@@ -114,14 +114,14 @@ export class SimulationManagerService {
     } 
     this.updateFilteredHouses();
 
-    this.tempSelectRange.min = this.housesData.length > 0 ?
-    Math.min(...this.housesData.map((data) => data.tempDifference)) :
+    this.tempSelectRange.min = this.originalHousesData.length > 0 ?
+    Math.min(...this.originalHousesData.map((data) => data.tempDifference)) :
     0;
     
     this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
 
-    this.tempSelectRange.max = this.housesData.length > 0 ?
-    Math.max(...this.housesData.map((data) => data.tempDifference)) : -1;
+    this.tempSelectRange.max = this.originalHousesData.length > 0 ?
+    Math.max(...this.originalHousesData.map((data) => data.tempDifference)) : 0;
 
     this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));
 

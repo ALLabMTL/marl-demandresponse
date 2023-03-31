@@ -3,7 +3,7 @@ import { HouseData } from '@app/classes/sidenav-data';
 
 import { SimulationManagerService } from './simulation-manager.service';
 
-fdescribe('SimulationManagerService', () => {
+describe('SimulationManagerService', () => {
   const originalHousesData: HouseData[] = [
     { id: 1, hvacStatus: 'ON', secondsSinceOff: 10, indoorTemp: 25, targetTemp: 22, tempDifference: 3 },
     { id: 2, hvacStatus: 'OFF', secondsSinceOff: 600, indoorTemp: 22, targetTemp: 22, tempDifference: 0 },
