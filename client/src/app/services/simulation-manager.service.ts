@@ -24,7 +24,7 @@ export class SimulationManagerService {
     this.started = true;
     this.stopped = true;
     this.paused = false;
-    this.speed = '2';
+    this.speed = '4';
     this.agentName = '';
     this.nbTimeSteps = 0;
     // TODO: send step from server

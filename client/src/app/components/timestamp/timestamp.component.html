@@ -55,11 +55,11 @@
         [ngModelOptions]="{ standalone: true }"
       >
         <option
-          *ngFor="let option of speedOptions"
+          *ngFor="let option of speedOptionsMapped"
           style="font-size: 12px"
-          [value]="option"
+          [value]="option.value"
         >
-          {{ option }}
+          {{ option.label }}
         </option>
       </select>
     </form>

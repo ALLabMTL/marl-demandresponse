@@ -86,7 +86,7 @@ class ControllerManager(Experiment):
         self.net_seed: int = 4
         self.agent_name: str = "BangBang"
         self.start_stats_from = 0
-        self.speed = 2.0
+        self.speed = 4.0
         self.obs_dict = self.env._reset()
         self.num_state = len(
             normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
