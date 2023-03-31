@@ -41,8 +41,8 @@ export class SidebarComponent {
   }
 
   resetSlider(): void {
-    this.simulationManager.tempSelectRange.min = this.simulationManager.minValueSliderInit;
-    this.simulationManager.tempSelectRange.max = this.simulationManager.maxValueSliderInit;
+    this.simulationManager.tempSelectRangeInput.min = this.simulationManager.minValueSliderInit;
+    this.simulationManager.tempSelectRangeInput.max = this.simulationManager.maxValueSliderInit;
     this.simulationManager.removeTempDiffFilter();
   }
 
