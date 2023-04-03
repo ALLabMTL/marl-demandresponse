@@ -6,11 +6,11 @@ sms.sidenavData
     <canvas baseChart #aaa=base-chart width="250" height="250" [type]="'line'" [data]="lineChartData"
         [options]="lineChartOptions" [legend]="lineChartLegend" *ngIf="lineChartData">
     </canvas>
-    <button (click)="resetZoomGraph(0)">Reset Zoom</button>
+    <button mat-raised-button (click)="resetZoomGraph(0)">Reset Zoom</button>
 </div>
 <div style="display: block;">
     <canvas baseChart #bbb=base-chart width="250" height="250" [type]="'line'" [data]="lineChartData2"
         [options]="lineChartOptions" [legend]="lineChartLegend" *ngIf="lineChartData2">
     </canvas>
-    <button (click)="resetZoomGraph(1)">Reset Zoom</button>
+    <button mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
 </div>

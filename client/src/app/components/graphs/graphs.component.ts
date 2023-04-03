@@ -41,6 +41,8 @@ export class GraphsComponent implements AfterViewInit {
             borderColor: ['blue', 'yellow'],
             backgroundColor: ['blue', 'yellow'],
             pointBackgroundColor: 'black',
+            pointRadius: 0,
+            pointHoverRadius: 15,
           }
         }
         );
@@ -59,6 +61,8 @@ export class GraphsComponent implements AfterViewInit {
             borderColor: ['green', 'orange'],
             backgroundColor: ['green', 'orange'],
             pointBackgroundColor: 'black',
+            pointRadius: 0,
+            pointHoverRadius: 15,
           }
         }
         );
@@ -118,9 +122,6 @@ export class GraphsComponent implements AfterViewInit {
           pinch: {
             enabled: true,
           },
-          /*drag:{
-            enabled: true,
-          },*/
           mode: 'x',
         },
         pan: {
