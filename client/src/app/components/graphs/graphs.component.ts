@@ -25,12 +25,14 @@ export class GraphsComponent implements AfterViewInit {
   @ViewChild("bbb", { static: false }) // Doesn't work? Takes in the first lineChart instead?
   chartTwo!: BaseChartDirective
 
+  @ViewChild("ccc", { static: false }) // Doesn't work? Takes in the first lineChart instead?
+  chartThree!: BaseChartDirective
 
   ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
     this.sms.sidenavObservable.subscribe((data) => {
       {
-        // get the categories
+        //First graph
         const categories = ['Current consumption', 'Regulation signal'];
         let datasets = categories.map((category) => {
           return {
@@ -38,8 +40,8 @@ export class GraphsComponent implements AfterViewInit {
             label: category,
             fill: false,
             tension: 0,
-            borderColor: ['blue', 'yellow'],
-            backgroundColor: ['blue', 'yellow'],
+            borderColor: ['blue', 'white'],
+            backgroundColor: ['blue', 'white'],
             pointBackgroundColor: 'black',
             pointRadius: 0,
             pointHoverRadius: 15,
@@ -50,8 +52,8 @@ export class GraphsComponent implements AfterViewInit {
         this.lineChartData.labels = Array.from(Array(data.length).keys());
       };
       {
-        // get the categories
-        const categories = ['Mean temperature error (°C)', 'Average temperature difference (°C)'];
+        //Second graph
+        const categories = ['Average temperature error', 'Average temperature difference'];
         let datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
@@ -69,9 +71,30 @@ export class GraphsComponent implements AfterViewInit {
         this.lineChartData2.datasets = datasets;
         this.lineChartData2.labels = Array.from(Array(data.length).keys());
       };
+      {
+        //Third graph
+        const categories = ['Outdoor temperature', 'Mass temperature', 'Target temperature'];
+        let datasets = categories.map((category) => {
+          return {
+            data: data.map((elem) => Number(elem[category])),
+            label: category,
+            fill: false,
+            tension: 0,
+            borderColor: ['purple', 'red', 'yellow'],
+            backgroundColor: ['purple', 'red', 'yellow'],
+            pointBackgroundColor: 'black',
+            pointRadius: 0,
+            pointHoverRadius: 15,
+          }
+        }
+        );
+        this.lineChartData3.datasets = datasets;
+        this.lineChartData3.labels = Array.from(Array(data.length).keys());
+      };
       // this.charts.forEach((e) => e.chart!.update("none"));
-      this.chartOne.chart!.update('none')
-      this.chartTwo.chart!.update('none')
+      this.chartOne.chart!.update('none');
+      this.chartTwo.chart!.update('none');
+      this.chartThree.chart!.update('none');
       //this.lineChart.chart!.update('none');
     })
   }
@@ -82,7 +105,7 @@ export class GraphsComponent implements AfterViewInit {
     datasets: [
       {
         data: [],
-        label: 'Average temperature difference (°C)',
+        label: 'Average temperature difference',
         fill: false,
         tension: 0,
         borderColor: 'black',
@@ -97,7 +120,23 @@ export class GraphsComponent implements AfterViewInit {
     datasets: [
       {
         data: [],
-        label: 'Average indoor temperature (°C)',
+        label: 'Average indoor temperature',
+        fill: false,
+        tension: 0,
+        borderColor: 'black',
+        backgroundColor: 'rgba(0,0,255,0.3)'
+      }
+    ],
+
+  };
+
+  //Third graph
+  public lineChartData3: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'Outdoor temperature',
         fill: false,
         tension: 0,
         borderColor: 'black',
