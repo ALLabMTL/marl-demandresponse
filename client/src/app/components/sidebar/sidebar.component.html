@@ -2,40 +2,57 @@
   <p class="filter-title">
     <b>Filters:</b>
   </p>
+
   <div class="temp_filter">
-    <mat-slide-toggle
-      class="temp_checkbox"
-      [(ngModel)]="isTempChecked">
+    <mat-slide-toggle class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetSlider()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
       >Temperature difference</mat-checkbox
     > -->
     <mat-slider
-      min="-1"
-      max="1"
-      step="0.1"
+      [min]="this.simulationManager.minValueSliderInit"
+      [max]="this.simulationManager.maxValueSliderInit"
+      step="0.01"
+      name = "tempDiff"
+      ngDefaultControl
       showTickMarks
       discrete
       [displayWith]="formatLabel"
-      [disabled]="!isTempChecked"
+      [disabled]="!this.simulationManager.isTempChecked"
+      (mouseup)="this.simulationManager.filterByTempDiff()"
     >
-      <input matSliderThumb />
+      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"/>
+      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"/>
     </mat-slider>
+    <div class="values_temp_selected" *ngIf ="this.simulationManager.isTempFiltered">
+    <p tag="temp_interval"> Interval selected: [{{this.simulationManager.tempSelectRangeInput.min}}, {{this.simulationManager.tempSelectRangeInput.max}}]</p>
+    </div>
+    <div class="values_temp">
+    <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
+    <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
+    </div>
   </div>
+
   <mat-divider></mat-divider>
+
   <div class="hvac_filter">
-    <mat-slide-toggle
-    class="temp_checkbox"
-    [(ngModel)]="isHvacChecked">
-    HVAC status
-  </mat-slide-toggle>
-  <mat-chip-listbox [disabled] = "!isHvacChecked">
-    <mat-chip-option> ON </mat-chip-option>
-    <mat-chip-option> Lockout </mat-chip-option>
-    <mat-chip-option> OFF </mat-chip-option>
-  </mat-chip-listbox>
+    <mat-slide-toggle class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled" (click)="this.resetHvacFilter()">
+      HVAC status
+    </mat-slide-toggle>
+    <div>
+      <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
+        ON
+      </mat-checkbox>
+      <mat-checkbox class="lockout_chip" #lockout_check color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
+        Lockout
+      </mat-checkbox>
+      <mat-checkbox class="off_chip" #off_check color = "warn" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
+        OFF
+      </mat-checkbox>
+    </div>
   </div>
+
   <mat-divider></mat-divider>
   <!-- <div class="floor_filter">
     <mat-checkbox class="floor_checkbox" (click)="floorCheckbox()"
@@ -58,26 +75,61 @@
     <mat-checkbox class="vehicule_checkbox">Vehicules</mat-checkbox>
     <mat-checkbox class="compagnie_checkbox">Compagnies</mat-checkbox>
   </div> -->
+
   <div class="filter">
     <mat-form-field appearance="fill">
       <mat-label>Sort by</mat-label>
       <mat-select>
-        <mat-option style="font-size: 14px" value="one"
+        <mat-option 
+          style="font-size: 14px" 
+          value="indoorTempInc"
+          (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')"
           >Indoor temp. : increasing</mat-option
         >
-        <mat-option style="font-size: 14px" value="two"
+        <mat-option
+          style="font-size: 14px"
+          value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : decreasing</mat-option
         >
-        <mat-option style="font-size: 14px" value="one"
-        >Temp. diff. : increasing</mat-option
-      >
-      <mat-option style="font-size: 14px" value="two"
-        >Temp. diff. : decreasing</mat-option
-      >
+        <mat-option
+          style="font-size: 14px"
+          value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
+          >Temp. diff. : increasing</mat-option
+        >
+        <mat-option
+          style="font-size: 14px"
+          value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
+          >Temp. diff. : decreasing</mat-option
+        >
+        <mat-option
+          style="font-size: 14px"
+          value="noSorting"
+          (click)="this.simulationManager.removeSorting()"
+          >No sorting</mat-option
+        >
       </mat-select>
     </mat-form-field>
   </div>
   <mat-divider></mat-divider>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Agents per Page</mat-label>
+      <mat-select
+        placeholder="{{ this.nbSquares }}"
+        (selectionChange)="setSquareNb($event.value)"
+      >
+        <mat-option
+          *ngFor="let option of nbSquareOptions"
+          style="font-size: 12px"
+          value="{{ option }}"
+          >{{ option }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-divider></mat-divider>
+
   <div class="scale">
     <p class="scale_text"><b>Color Temperature Scale</b></p>
     <mat-form-field class="precision">
@@ -127,7 +179,9 @@
     <mat-divider></mat-divider>
     <div class="hvac_status">
       <p class="hvac-status-title"><b>HVAC Status: </b></p>
-      <div  class="circle_lockout"><p class="hvac-status-legend">Lockout</p></div>
+      <div class="circle_lockout">
+        <p class="hvac-status-legend">Lockout</p>
+      </div>
       <div class="circle_hvac_on"><p class="hvac-status-legend">ON</p></div>
       <div class="circle_hvac_off"><p class="hvac-status-legend">OFF</p></div>
     </div>

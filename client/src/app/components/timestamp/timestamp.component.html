@@ -1,12 +1,14 @@
 <div class="container">
-    <button mat-mini-fab color="primary" class="button" (click) = this.socketCommunication.startTraining() [disabled] = this.simulationManager.started>
+    <button mat-mini-fab color="primary" class="button" (click)=this.socketCommunication.startTraining()
+        [disabled]=this.simulationManager.started>
         <mat-icon>play_arrow</mat-icon>
     </button>
-    
-    <button mat-mini-fab color="warn" class="button" (click) = this.socketCommunication.stopTraining() [disabled] = this.simulationManager.stopped>
+
+    <button mat-mini-fab color="warn" class="button" (click)=this.socketCommunication.stopTraining()
+        [disabled]=this.simulationManager.stopped>
         <mat-icon>stop</mat-icon>
     </button>
-    
+
     <!-- <mat-slider
     min="-1"
     max="1"
@@ -17,5 +19,13 @@
     >
     <input matSliderThumb />
     </mat-slider> -->
+
+    <!-- <div class="speed">
+        <mat-form-field class="example-form-field">
+            <mat-label>Clearable input</mat-label>
+            <input matInput type="number" (change)="this.simulationManager.updateSpeed($event)">
+        </mat-form-field>
+
+    </div> -->
 
 </div>

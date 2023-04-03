@@ -36,6 +36,7 @@ export class SocketCommunicationService {
   configureSocket() {
     this.socketService.on('connected', () => {
       this.snackBarService.openSuccessSnackBar('Connected to server', '');
+      this.changeSpeed(this.simulationManager.speed)
       this.startTraining()
     });
 
@@ -44,11 +45,13 @@ export class SocketCommunicationService {
     });
 
     this.socketService.on('houseChange', (data: HouseData[]) => {
-      this.simulationManager.updateHousesData(data)
+      this.simulationManager.updateHousesData(data);
     })
 
     this.socketService.on('stopped', () => {
-      this.simulationManager.resetSimulation();
+      // this.simulationManager.resetSimulation();
+      this.simulationManager.started = false;
+      this.simulationManager.stopped = true;
       this.snackBarService.openSuccessSnackBar('Simulation stopped', '');
 
     })
@@ -74,5 +77,9 @@ export class SocketCommunicationService {
     this.snackBarService.openSuccessSnackBar('Stopping simulation...', '');
     this.simulationManager.stopped = true;
     this.socketService.send('stop');
+  }
+
+  changeSpeed(speed: number): void {
+    this.socketService.send('changeSpeed', speed);
   }
 }

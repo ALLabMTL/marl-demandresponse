@@ -60,3 +60,6 @@ import { NgChartsModule } from 'ng2-charts';
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+// providers: [SidebarComponent],
+//   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],

@@ -1,7 +1,8 @@
-import numpy as np
-import cvxpy as cp
-import sys
 import os
+import sys
+
+import cvxpy as cp
+import numpy as np
 
 id_rng = np.random.default_rng()
 unique_ID = str(int(id_rng.random() * 1000000))

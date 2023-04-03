@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 
@@ -8,7 +8,7 @@ import torch.optim as optim
 from agents.buffer import ReplayBuffer, Transition
 from agents.network import DQN_network
 
-#%% Classes
+# %% Classes
 
 
 class DQN:
@@ -151,7 +151,7 @@ class DDQN(DQN):
         self.policy_optimizer.step()
 
 
-#%% Testing
+# %% Testing
 
 if __name__ == "__main__":
     pass

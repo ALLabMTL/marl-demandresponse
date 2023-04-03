@@ -1,20 +1,16 @@
-import { Component } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSliderModule } from '@angular/material/slider';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { AbstractControl, FormControl, Validators } from '@angular/forms';
+import { Component, ViewChild } from '@angular/core';
+import { FormControl, Validators, NgControl } from '@angular/forms';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSlider } from '@angular/material/slider';
 import { SharedService } from '@app/services/shared/shared.service';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss']
+  styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent {
-  isTempChecked = false;
-  isHvacChecked = false;
   precisionValueSelected = 0.5;
   negMin = -0.5;
   negMidMin = -0.25;
@@ -24,19 +20,42 @@ export class SidebarComponent {
 
   numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
 
-  constructor(public sharedService: SharedService) { }
+  nbSquares = 100;
+  nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
+  
+  @ViewChild('on_check', {static: false}) onChecked!: MatCheckbox;
+  @ViewChild('lockout_check', {static: false}) lockoutChecked!: MatCheckbox;
+  @ViewChild('off_check', {static: false}) offChecked!: MatCheckbox;
+
+  constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
+    this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
+  }
 
   ngOnInit() {
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
+    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
   }
 
   formatLabel(value: number): string {
     return `${value}`;
   }
 
-  tempCheckbox(): void {
-    this.isTempChecked = !this.isTempChecked;
+  resetSlider(): void {
+    this.simulationManager.tempSelectRangeInput.min = this.simulationManager.minValueSliderInit;
+    this.simulationManager.tempSelectRangeInput.max = this.simulationManager.maxValueSliderInit;
+    this.simulationManager.removeTempDiffFilter();
   }
+
+  resetHvacFilter(): void {
+    this.onChecked.checked = false;
+    this.offChecked.checked = false;
+    this.lockoutChecked.checked = false;
+    this.simulationManager.removeHvacFilter();
+  }
+
+  // tempCheckbox(): void {
+  //   this.isTempChecked = !this.isTempChecked;
+  // }
 
   // floorCheckbox(): void {
   //   this.isFloorChecked = !this.isFloorChecked;
@@ -52,6 +71,11 @@ export class SidebarComponent {
       this.posMidMax = this.posMax / 2
       // console.log("precision: %d", this.precisionValueSelected)
     }
+  }
+
+  setSquareNb(event: Event): void {
+    this.sharedService.changeSquareNb(Number(event));
+    this.sharedService.changeCount(1);
   }
 
 }
