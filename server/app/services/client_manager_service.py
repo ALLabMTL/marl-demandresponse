@@ -92,13 +92,19 @@ class ClientManagerService:
             ).sum()
         )
         description["Outdoor temperature"] = (
-            str(round(self.data_frame["OD_temp"][0], 2)) + " °C"
+            str(round(self.data_frame["OD_temp"][0], 2)) 
+        )
+        description["Mass temperature"] = (
+            str(round(self.data_frame["mass_temp"][0], 2)) 
+        )
+        description["Target temperature"] = (
+            str(round(self.data_frame["target_temp"][0], 2)) 
         )
         description["Average indoor temperature"] = (
-            str(round(self.data_frame["indoor_temp"].mean(), 2)) + " °C"
+            str(round(self.data_frame["indoor_temp"].mean(), 2)) 
         )
         description["Average temperature difference"] = (
-            str(round(self.data_frame["temperature_difference"].mean(), 2)) + " °C"
+            str(round(self.data_frame["temperature_difference"].mean(), 2)) 
         )
         description["Regulation signal"] = str(self.data_frame["reg_signal"][0])
         description["Current consumption"] = str(
@@ -112,6 +118,9 @@ class ClientManagerService:
             / self.data_frame["reg_signal"][0]
             * 100
         )
+        description["Average temperature error"] = "{:.2f}".format(
+                np.mean(self.temp_err[max(-GRAPH_MEMORY, -len(self.temp_err)) :])
+        )
         description["RMSE"] = "{:.0f}".format(
             np.sqrt(
                 np.mean(
@@ -119,7 +128,6 @@ class ClientManagerService:
                         self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
                         - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
                     )
-                    ** 2
                 )
             )
         )

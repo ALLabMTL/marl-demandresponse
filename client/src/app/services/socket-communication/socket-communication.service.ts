@@ -42,7 +42,6 @@ export class SocketCommunicationService {
 
     this.socketService.on('dataChange', (data: SidenavData) => {
       this.simulationManager.addTimeStep(data)
-
     });
 
     this.socketService.on('houseChange', (data: HouseData[]) => {

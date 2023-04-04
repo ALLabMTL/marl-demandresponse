@@ -64,12 +64,12 @@ export class SidebarComponent {
   scaleChartPrecision(): void {
     const precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
     this.sharedService.changePrecisionValue(parseFloat(precisionValue));
-    if(this.precisionValueSelected >= 0){
+    if (this.precisionValueSelected >= 0) {
       this.negMin = -(this.precisionValueSelected);
       this.negMidMin = this.negMin / 2;
       this.posMax = Math.abs(this.precisionValueSelected);
       this.posMidMax = this.posMax / 2
-      console.log("precision: %d", this.precisionValueSelected)
+      // console.log("precision: %d", this.precisionValueSelected)
     }
   }
 
