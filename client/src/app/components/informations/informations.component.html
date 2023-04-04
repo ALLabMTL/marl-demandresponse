@@ -1,3 +1,13 @@
+<!--
+<div class="container">
+    <div class="box">
+        <p class="title">Description:</p>
+        <ul class="text" *ngFor="let attribute of this.simulationManager.propertyNames; let i=index;">
+            <mat-checkbox (click)="this.simulationManager.updateChart($event, attribute)" value="attribute">{{attribute}}: {{this.simulationManager.propertyValues[i]}}</mat-checkbox>
+        </ul>  
+    </div>
+</div>-->
+
 <div class="container">
     <div class="box">
         <p class="title">Description:</p>
@@ -6,3 +16,4 @@
         </ul>  
     </div>
 </div>
+

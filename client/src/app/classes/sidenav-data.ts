@@ -1,5 +1,5 @@
 export interface SidenavData {
-    [key: string]: string
+    [key: string]: string;
 }
 
 export interface HouseData {
