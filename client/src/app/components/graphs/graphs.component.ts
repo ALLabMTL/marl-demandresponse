@@ -16,16 +16,16 @@ export class GraphsComponent implements AfterViewInit {
   ) {
   }
 
-  @ViewChildren(BaseChartDirective) // Works, gets all charts.
+  @ViewChildren(BaseChartDirective)
   charts!: QueryList<BaseChartDirective>
 
-  @ViewChild("aaa", { static: false }) // Works?
+  @ViewChild("aaa", { static: false })
   chartOne!: BaseChartDirective
 
-  @ViewChild("bbb", { static: false }) // Doesn't work? Takes in the first lineChart instead?
+  @ViewChild("bbb", { static: false })
   chartTwo!: BaseChartDirective
 
-  @ViewChild("ccc", { static: false }) // Doesn't work? Takes in the first lineChart instead?
+  @ViewChild("ccc", { static: false })
   chartThree!: BaseChartDirective
 
   ngAfterViewInit(): void {
@@ -91,11 +91,9 @@ export class GraphsComponent implements AfterViewInit {
         this.lineChartData3.datasets = datasets;
         this.lineChartData3.labels = Array.from(Array(data.length).keys());
       };
-      // this.charts.forEach((e) => e.chart!.update("none"));
       this.chartOne.chart!.update('none');
       this.chartTwo.chart!.update('none');
       this.chartThree.chart!.update('none');
-      //this.lineChart.chart!.update('none');
     })
   }
 
