@@ -107,9 +107,9 @@ class TrainingManager(Experiment):
             if(self.pause):
                 await self.socket_manager_service.emit("paused", {})
 
-                while(True):
-                    if(not self.pause):
-                        break
+            while(True):
+                if(not self.pause):
+                    break
 
             
             (

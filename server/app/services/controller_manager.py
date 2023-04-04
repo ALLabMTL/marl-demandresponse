@@ -133,10 +133,12 @@ class ControllerManager(Experiment):
 
         for step in range(self.nb_time_steps):
             if self.pause:
-                await self.socket_manager_service.emit("paused", {})
                 logger.debug("simulation paused")
+                await self.socket_manager_service.emit("paused", {})
+                await self.socket_manager_service.sleep(0)
                 while(True):
                     if(not self.pause or self.stop):
+                        await self.socket_manager_service.sleep(0)
                         break
             
             if self.stop:

@@ -46,4 +46,17 @@ export class SimulationManagerService {
     this.propertyNames = Object.getOwnPropertyNames(data);
     this.propertyValues = Object.values(data);
   }
+
+  reset(): void {
+    this.started = true;
+    if (this.stopped) {
+      this.nbTimeSteps = 0;
+      this.currentTimeStep = 0;
+      this.propertyNames = [];
+      this.propertyValues = [];
+      this.housesData = [];
+    }
+    // this.paused = false;
+    this.stopped = false;
+  }
 }

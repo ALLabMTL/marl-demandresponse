@@ -55,7 +55,6 @@ export class SocketCommunicationService {
     this.socketService.on('paused', () => {
       this.simulationManager.started = false;
       this.simulationManager.stopped = false;
-      console.log('paused');
       this.snackBarService.openSuccessSnackBar('Simulation paused', '');
     });
 
@@ -77,9 +76,11 @@ export class SocketCommunicationService {
   }
 
   startSimulation(): void {
+    this.simulationManager.reset();
+    // this.simulationManager.started = true;
+    // this.simulationManager.stopped = false;
+    // this.simulationManager.paused = false;
     this.socketService.send('train');
-    this.simulationManager.started = true;
-    this.simulationManager.stopped = false;
   }
 
   stopSimulation(): void {
