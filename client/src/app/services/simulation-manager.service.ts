@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SidenavData, HouseData } from '@app/classes/sidenav-data';
+import { Observable, Subject } from 'rxjs';
 import { SharedService } from './shared/shared.service';
 
 interface PageData {
@@ -13,6 +14,8 @@ interface PageData {
 export class SimulationManagerService {
 
   sidenavData: SidenavData[];
+  sidenavObservable: Subject<SidenavData[]> = new Subject<SidenavData[]>();
+
   propertyNames: string[];
   propertyValues: string[];
   housesData: HouseData[];
@@ -92,8 +95,9 @@ export class SimulationManagerService {
 
   addTimeStep(data: SidenavData): void {
     this.sidenavData.push(data);
+    this.sidenavObservable.next(this.sidenavData);
     this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
-    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1])
+    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1]);
   }
 
   updateHousesData(data: HouseData[]): void {
