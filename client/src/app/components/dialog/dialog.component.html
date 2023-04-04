@@ -82,13 +82,13 @@
       <canvas baseChart #a=base-chart width="250" height="250" [type]="'line'" [data]="lineChartData"
           [options]="lineChartOptions" *ngIf="lineChartData">
       </canvas>
-      <button mat-raised-button (click)="resetZoomGraph(0)">Reset Zoom</button>
+      <button id="zoom1" mat-raised-button (click)="resetZoomGraph(0)">Reset Zoom</button>
     </div>
     <div style="display: block;">
       <canvas baseChart #b=base-chart width="250" height="250" [type]="'line'" [data]="lineChartData2"
           [options]="lineChartOptions" *ngIf="lineChartData2">
       </canvas>
-      <button mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
+      <button id="zoom2" mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
     </div>
   </div>
 </div>

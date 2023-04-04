@@ -39,8 +39,6 @@ export class DialogComponent {
         //First graph
         const categories = ['Actual temperature'];
         let datasets = categories.map((category) => {
-          console.log(data)
-          console.log(this.id)
           return {
             data: data.map((e) => e.find((f) => f.id === this.id)?.indoorTemp).filter((val) => val !== undefined) as number[],
             label: category,
@@ -61,8 +59,6 @@ export class DialogComponent {
         //Second graph
         const categories = ['Temperature difference'];
         let datasets = categories.map((category) => {
-          console.log(data)
-          console.log(this.id)
           return {
             data: data.map((e) => e.find((f) => f.id === this.id)?.tempDifference).filter((val) => val !== undefined) as number[],
             label: category,
