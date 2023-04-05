@@ -2,7 +2,7 @@ import enum
 import json
 import pathlib
 from typing import List, Literal, Union
-
+from app.utils.logger import logger
 from pydantic import BaseModel, Field
 
 from app.core.agents.trainables.ddpg import DDPGProperties
@@ -54,5 +54,8 @@ class MarlConfig(BaseModel):
 
 class ParserService:
     def __init__(self) -> None:
-        self.config = MarlConfig.parse_file("core/config/MARLconfig.json")
-        # self.config = MarlConfig()
+        try:
+            self.config = MarlConfig.parse_file("core/config/MARLconfig.json")
+        except FileNotFoundError:
+            logger.warning("MARLconfig.json not found, using default config.")
+            self.config = MarlConfig()

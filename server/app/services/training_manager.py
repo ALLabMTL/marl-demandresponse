@@ -5,6 +5,7 @@ from time import sleep
 from typing import Dict, List, Tuple
 
 import numpy as np
+from app.core.agents.trainables.trainable import Trainable
 import torch
 
 from app.core.agents.trainables.ddpg import DDPG

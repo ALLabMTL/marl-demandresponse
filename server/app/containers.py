@@ -24,6 +24,7 @@ class Container(containers.DeclarativeContainer):
         ControllerManager,
         client_manager_service=client_manager_service,
         metrics_service=metrics_service,
+        socket_manager_service=socket_manager_service,
     )
 
     training_manager = providers.Singleton(

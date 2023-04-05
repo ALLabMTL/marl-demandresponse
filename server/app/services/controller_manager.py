@@ -1,3 +1,4 @@
+import datetime
 import random
 from time import sleep
 from typing import Dict, List, Union
@@ -24,6 +25,7 @@ from app.services.parser_service import MarlConfig
 from app.services.simulation_properties import SimulationProperties
 from app.utils.logger import logger
 from app.utils.norm import norm_state_dict
+from app.services.socket_manager_service import SocketManager
 
 from .client_manager_service import ClientManagerService
 
@@ -61,9 +63,11 @@ class ControllerManager(Experiment):
     def __init__(
         self,
         client_manager_service: ClientManagerService,
+        socket_manager_service: SocketManager,
         metrics_service: Metrics,
     ) -> None:
         self.client_manager_service = client_manager_service
+        self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
 
@@ -103,6 +107,21 @@ class ControllerManager(Experiment):
 
         for step in range(self.static_props.nb_time_steps):
             # Check if UI stopped or paused simulation
+
+            if self.pause:
+                logger.debug("simulation paused")
+                await self.socket_manager_service.emit("paused", {})
+                await self.socket_manager_service.sleep(0)
+                while True:
+                    if not self.pause or self.stop:
+                        await self.socket_manager_service.sleep(0)
+                        break
+
+            if self.stop:
+                logger.info("Training stopped at time %d", step)
+                await self.socket_manager_service.emit("stopped", {})
+                break
+
             if await self.should_stop(step):
                 break
 

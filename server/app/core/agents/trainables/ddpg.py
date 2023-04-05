@@ -178,9 +178,7 @@ class DDPG(Trainable):
         logits += -torch.log(-torch.log(epsilon + eps) + eps)
         return F.softmax(logits / tau, dim=-1)
 
-    def select_actions(
-        self, state, output_logits=False, is_target=False
-    ) -> tuple[Tensor, Any] | Tensor:
+    def select_actions(self, state, output_logits=False, is_target=False):
         if not is_target:
             logits = self.actor_net(state)  # torch.Size([batch_size, action_size])
         else:

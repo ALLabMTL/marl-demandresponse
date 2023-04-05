@@ -21,8 +21,6 @@ export class SharedService {
   rowHeights = new BehaviorSubject(`repeat(10, ${100 / 10}%)`);
   rowHeightsValue = this.rowHeights.asObservable();
 
-  constructor() { }
-
 
   changeSquareNb(squareNb: number) {
     this.squareNb.next(squareNb);
@@ -42,7 +40,7 @@ export class SharedService {
   houseColor(data: number) {
     const upperBound = this.precisionValueSelected.value;
     const middleUpperBound = upperBound / 2;
-    const center = 0
+    const center = 0;
     const middleLowerBound = -middleUpperBound;
     const lowerBound = -upperBound;
     const boundRange = upperBound - middleUpperBound;

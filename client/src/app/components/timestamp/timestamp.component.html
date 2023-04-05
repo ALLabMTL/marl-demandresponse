@@ -1,23 +1,58 @@
 <div class="container">
-    <button mat-mini-fab color="primary" class="button" (click)=this.socketCommunication.startTraining()
-        [disabled]=this.simulationManager.started>
-        <mat-icon>play_arrow</mat-icon>
-    </button>
+  <button
+    mat-mini-fab
+    color="primary"
+    class="button"
+    (click)="this.socketCommunication.startSimulation()"
+    [disabled]="this.simulationManager.started"
+  >
+    <mat-icon>play_arrow</mat-icon>
+  </button>
 
-    <button mat-mini-fab color="warn" class="button" (click)=this.socketCommunication.stopTraining()
-        [disabled]=this.simulationManager.stopped>
-        <mat-icon>stop</mat-icon>
-    </button>
+  <button
+    mat-mini-fab
+    color="warn"
+    class="button"
+    (click)="this.socketCommunication.stopSimulation()"
+    [disabled]="this.simulationManager.stopped"
+  >
+    <mat-icon>stop</mat-icon>
+  </button>
 
-    <div class="speed">
-        <form>
-            <select class="speed-value" id="speed-value" [(ngModel)]="speed" (ngModelChange)="setSpeed($event)"
-                [ngModelOptions]="{standalone: true}">
-                <option *ngFor="let option of speedOptions" style="font-size: 12px" [value]="option">
-                    {{ option }}
-                </option>
-            </select>
-        </form>
-    </div>
+  <mat-slider
+    class="example-margin"
+    [disabled]="this.simulationManager.started"
+    [max]="this.simulationManager.nbTimeSteps"
+    min="1"
+    step="1"
+    discrete="true"
+    showTickMarks="true"
+    (change)="changeTimeStep()"
+    (value)="(this.simulationManager.currentTimeStep)"
+  >
+    <input
+      matSliderThumb
+      [(ngModel)]="this.simulationManager.currentTimeStep"
+    />
+  </mat-slider>
 
+  <div class="speed">
+    <form>
+      <select
+        class="speed-value"
+        id="speed-value"
+        [(ngModel)]="speed"
+        (ngModelChange)="setSpeed($event)"
+        [ngModelOptions]="{ standalone: true }"
+      >
+        <option
+          *ngFor="let option of speedOptionsMapped"
+          style="font-size: 12px"
+          [value]="option.value"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+    </form>
+  </div>
 </div>

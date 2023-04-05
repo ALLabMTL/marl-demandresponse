@@ -9,13 +9,16 @@
 </div>-->
 
 <div class="container">
-    <div class="box">
-        <p class="title">Description:</p>
-        <ul class="text">
-            <li class="text">Agent Name: {{this.simulationManager.agentName}}</li>
-        </ul>
-        <ul class="text" *ngFor="let attribute of this.simulationManager.propertyNames; let i=index;">
-            <li>{{attribute}}: {{this.simulationManager.propertyValues[i]}}</li>
-        </ul>
-    </div>
+  <div class="box">
+    <p class="title">Description:</p>
+    <ul class="text">
+      <li class="text">Agent Name: {{ this.simulationManager.agentName }}</li>
+    </ul>
+    <ul class="text" *ngFor="
+        let attribute of this.simulationManager.propertyNames;
+        let i = index
+      ">
+      <li>{{ attribute }}: {{ this.simulationManager.propertyValues[i] }}</li>
+    </ul>
+  </div>
 </div>

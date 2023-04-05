@@ -1,5 +1,6 @@
-import json
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Dict, List, Tuple, Union, Any
+from .socket_manager_service import SocketManager
 
 import numpy as np
 import pandas as pd
@@ -192,3 +193,7 @@ class ClientManagerService:
             await self.socket_manager.emit(endpoint, data)
         if text != "":
             logger.info(text)
+
+    async def get_state_at(self, time_step: int) -> None:
+        await self.log(endpoint="timeStepData", data=self.description[time_step])
+        await self.log(endpoint="houseChange", data=self.houses_data[time_step])
