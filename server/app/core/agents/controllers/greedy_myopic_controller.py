@@ -11,14 +11,14 @@ class GreedyMyopic(Controller):
 
     actions_df = []
 
-    def __init__(self, agent_properties, config_dict, num_state=None):
+    def __init__(self, agent_properties, config_dict, num_state=None) -> None:
         self.agent_properties = agent_properties
         self.id = agent_properties["id"]
         self.last_obs = pd.DataFrame(
             columns=(
                 "temperature_difference",
                 "power_consumption",
-                "hvac_lockout",
+                "lockout",
                 "reg_signal",
             )
         )
@@ -35,7 +35,7 @@ class GreedyMyopic(Controller):
 
         return action
 
-    def get_action(self, obs):
+    def get_action(self, obs) -> None:
         obs = pd.DataFrame(obs).transpose()
         obs["temperature_difference"] = -(obs["indoor_temp"] - obs["target_temp"])
 

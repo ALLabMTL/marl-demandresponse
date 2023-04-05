@@ -24,8 +24,9 @@ export class DialogComponent {
   charts!: QueryList<BaseChartDirective>
 
   id: number;
-  currentPage: number = 1;
+  currentPage = 1;
 
+  // TODO: Do this in a prettier way
   constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService, public sharedService: SharedService) {
     this.id = data;
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
@@ -96,20 +97,20 @@ export class DialogComponent {
     ]
   };
 
-    //Second Graph
-    public lineChartData2: ChartConfiguration<'line'>['data'] = {
-      labels: [],
-      datasets: [
-        {
-          data: [],
-          label: 'Temperature difference',
-          fill: false,
-          tension: 0,
-          borderColor: 'black',
-          backgroundColor: 'rgba(255,0,0,0.3)'
-        }
-      ]
-    };
+  //Second Graph
+  public lineChartData2: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'Temperature difference',
+        fill: false,
+        tension: 0,
+        borderColor: 'black',
+        backgroundColor: 'rgba(255,0,0,0.3)'
+      }
+    ]
+  };
 
 
   //Graphs options

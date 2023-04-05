@@ -1,5 +1,6 @@
 import os
 import random
+from typing import Dict, List
 
 import numpy as np
 import pydantic
@@ -7,9 +8,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from app.core.agents.buffer import ReplayBuffer, Transition
+from app.core.agents.trainables.buffer import ReplayBuffer, Transition
 from app.core.agents.trainables.network import DQN_network
 from app.core.agents.trainables.trainable import Trainable
+from app.core.environment.environment_properties import EnvironmentObsDict
 
 
 class DQNProperties(pydantic.BaseModel):
@@ -50,30 +52,31 @@ class DQNProperties(pydantic.BaseModel):
 
 
 class DQN(Trainable):
-    def __init__(self, config_dict, num_state=22, num_action=2, seed=2) -> None:
-        super().__init__()
+    def __init__(
+        self, config: DQNProperties, num_state=22, num_action=2, seed=1
+    ) -> None:
         self.seed = seed
         self.epsilon = 1.0
+        self.last_actions: Dict[int, bool] = {}
 
         torch.manual_seed(self.seed)
-
-        self.agent_prop = config_dict["DQN_prop"]
-        self.inner_layers = self.agent_prop["network_layers"]
-        self.gamma = self.agent_prop["gamma"]
-        self.tau = self.agent_prop["tau"]
-        self.buffer_cap = self.agent_prop["buffer_capacity"]
-        self.lr = self.agent_prop["lr"]
-        self.batch_size = self.agent_prop["batch_size"]
+        self.agent_prop = config
+        self.inner_layers = config.network_layers
+        self.gamma = config.gamma
+        self.tau = config.tau
+        self.buffer_cap = config.buffer_capacity
+        self.lr = config.lr
+        self.batch_size = config.batch_size
 
         self.policy_net = DQN_network(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["DQN_prop"]["network_layers"],
+            layers=config.network_layers,
         )
         self.target_net = DQN_network(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["DQN_prop"]["network_layers"],
+            layers=config.network_layers,
         )
         self.target_net.load_state_dict(self.policy_net.state_dict())  # same weights
 
@@ -87,32 +90,41 @@ class DQN(Trainable):
         # TODO weight decay?
         self.policy_optimizer = optim.Adam(self.policy_net.parameters(), self.lr)
 
-    def select_action(self, state):
+    def select_actions(self, observations: List[np.ndarray]) -> Dict[int, bool]:
         # Select action with epsilon-greedy strategy
-        if random.random() < self.epsilon:
-            action = random.randint(0, 1)
-        else:
-            state = torch.from_numpy(state).float().unsqueeze(0)
-            with torch.no_grad():
-                qs = self.policy_net(state)
-                return torch.argmax(qs).item()
-        return action
+        actions: Dict[int, bool] = {}
+        for observation_id, observation in enumerate(observations):
+            if random.random() < self.epsilon:
+                actions[observation_id] = bool(random.randint(0, 1))
+            else:
+                state = torch.from_numpy(observation).float().unsqueeze(0)
+                with torch.no_grad():
+                    qs = self.policy_net(state)
+                    actions[observation_id] = bool(torch.argmax(qs).item())
+        self.last_actions = actions
+        return actions
 
     def store_transition(
-        self, obs_dict, action, rewards_dict, next_obs_dict, action_prob, done
-    ):
-        for agent_id in obs_dict.keys():
-            single_obs = torch.tensor(obs_dict[agent_id], dtype=torch.float).unsqueeze(
-                0
+        self,
+        observations: Dict[int, EnvironmentObsDict],
+        next_observations: Dict[int, EnvironmentObsDict],
+        rewards: Dict[int, float],
+        done: bool,
+    ) -> None:
+        for agent_id, observation in enumerate(observations):
+            single_obs = torch.tensor(observation, dtype=torch.float).unsqueeze(0)
+            single_action = torch.tensor(
+                [[self.last_actions[agent_id]]], dtype=torch.long
             )
-            single_action = torch.tensor([[action[agent_id]]], dtype=torch.long)
-            single_rewards = torch.tensor([[rewards_dict[agent_id]]], dtype=torch.float)
+            single_rewards = torch.tensor([[rewards[agent_id]]], dtype=torch.float)
             single_next_obs = torch.tensor(
-                next_obs_dict[agent_id], dtype=torch.float
+                next_observations[agent_id], dtype=torch.float
             ).unsqueeze(0)
             self.buffer.push(single_obs, single_action, single_rewards, single_next_obs)
 
-    def convert_batch(self, batch):
+    def convert_batch(
+        self, batch
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         s = torch.cat(batch.state)
         a = torch.cat(batch.action)
         r = torch.cat(batch.reward)
@@ -124,7 +136,7 @@ class DQN(Trainable):
         #    s_next.to(self.device)
         return s, a, r, s_next
 
-    def update_target_network(self):
+    def update_target_network(self) -> None:
         new_params = self.policy_net.state_dict()
         params = self.target_net.state_dict()
         for k in params.keys():
@@ -132,7 +144,7 @@ class DQN(Trainable):
             params[k] = (1 - self.tau) * params[k] + self.tau * new_params[k]
         self.target_net.load_state_dict(params)
 
-    def update(self):
+    def update(self) -> None:
         if len(self.buffer) < self.batch_size:
             return  # exit if there are not enough transitions in buffer
 
@@ -165,8 +177,8 @@ class DQN(Trainable):
         self.decrease_epsilon()
 
     def decrease_epsilon(self) -> None:
-        new_epsilon = self.agent_prop["epsilon_decay"]
-        self.epsilon = np.maximum(new_epsilon, self.agent_prop["min_epsilon"])
+        new_epsilon = self.agent_prop.epsilon_decay
+        self.epsilon = np.maximum(new_epsilon, self.agent_prop.min_epsilon)
 
     # TODO: Move this to abstract class
     def save(self, path, t=None) -> None:
@@ -182,10 +194,12 @@ class DQN(Trainable):
 
 
 class DDQN(DQN):
-    def __init__(self, config_dict, num_state=20, num_action=2):
-        super().__init__(config_dict, num_state, num_action)
+    def __init__(
+        self, config: DQNProperties, num_state=22, num_action=2, seed=1
+    ) -> None:
+        super().__init__(config, num_state, num_action, seed)
 
-    def update(self):
+    def update(self) -> None:
         if len(self.buffer) < self.batch_size:
             return  # exit if there are not enough transitions in buffer
 
@@ -214,8 +228,6 @@ class DDQN(DQN):
             param.grad.data.clamp_(-1, 1)  # clamp gradients
         self.policy_optimizer.step()
 
-
-# %% Testing
 
 if __name__ == "__main__":
     pass

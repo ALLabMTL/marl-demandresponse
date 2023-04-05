@@ -22,10 +22,10 @@ export class SidebarComponent {
 
   nbSquares = 100;
   nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
-  
-  @ViewChild('on_check', {static: false}) onChecked!: MatCheckbox;
-  @ViewChild('lockout_check', {static: false}) lockoutChecked!: MatCheckbox;
-  @ViewChild('off_check', {static: false}) offChecked!: MatCheckbox;
+
+  @ViewChild('on_check', { static: false }) onChecked!: MatCheckbox;
+  @ViewChild('lockout_check', { static: false }) lockoutChecked!: MatCheckbox;
+  @ViewChild('off_check', { static: false }) offChecked!: MatCheckbox;
 
   constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
     this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
@@ -68,8 +68,7 @@ export class SidebarComponent {
       this.negMin = -(this.precisionValueSelected);
       this.negMidMin = this.negMin / 2;
       this.posMax = Math.abs(this.precisionValueSelected);
-      this.posMidMax = this.posMax / 2
-      // console.log("precision: %d", this.precisionValueSelected)
+      this.posMidMax = this.posMax / 2;
     }
   }
 

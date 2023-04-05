@@ -271,7 +271,7 @@ describe('SimulationManagerService', () => {
       service.removeHvacFilter();
       expect(service.housesData).toEqual(service.originalHousesData);
       expect(service.isFilteredHvac).toBeFalse();
-  }) 
+  }); 
   
   it('should remove hvac filters when no status is checked', () => {
     service.isOnChecked = false;
@@ -285,7 +285,7 @@ describe('SimulationManagerService', () => {
     // service.removeHvacFilter();
     // expect(service.housesData).toEqual(service.originalHousesData);
     // expect(service.isFilteredHvac).toBeFalse();
-  })
+  });
 
   it('should filter houses based on temperature difference', () => { 
     service.tempSelectRangeInput = { min: 1, max: 3 };
@@ -294,12 +294,12 @@ describe('SimulationManagerService', () => {
     expect(service.housesData.length).toEqual(2);
     expect(service.housesData[0].id).toEqual(1);
     expect(service.housesData[1].id).toEqual(3);
-  })
+  });
 
   it('should removetemperature difference filter', () => {
     service.removeTempDiffFilter();
     expect(service.isTempFiltered).toBeFalse();
     expect(service.housesData).toEqual(originalHousesData);
-  })
+  });
 
 });

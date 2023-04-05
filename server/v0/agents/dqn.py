@@ -58,7 +58,7 @@ class DQN:
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
             qs = self.policy_net(state)
-            return torch.argmax(qs).item()
+            return torch.argmax(qs).item(), None
 
     def store_transition(self, s, a, r, s_next):
         s = torch.tensor(s, dtype=torch.float).unsqueeze(0)

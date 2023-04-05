@@ -1,8 +1,7 @@
 import random
 from time import sleep
-from typing import Dict, Union
+from typing import Dict, List, Union
 
-from app.config import config_dict
 from app.core.agents.controllers.bangbang_controllers import (
     AlwaysOnController,
     BangBangController,
@@ -18,14 +17,16 @@ from app.core.agents.controllers.rl_controllers import (
     PPOController,
 )
 from app.core.environment.environment import Environment
+from app.core.environment.environment_properties import EnvironmentObsDict
 from app.services.experiment import Experiment
 from app.services.metrics_service import Metrics
-from app.services.parser_service import ParserService
+from app.services.parser_service import MarlConfig
+from app.services.simulation_properties import SimulationProperties
+from app.services.socket_manager_service import SocketManager
 from app.utils.logger import logger
-from app.utils.utils import normStateDict
+from app.utils.norm import norm_state_dict
 
 from .client_manager_service import ClientManagerService
-from .socket_manager_service import SocketManager
 
 agents_dict = {
     "BangBang": BangBangController,
@@ -42,101 +43,97 @@ agents_dict = {
 
 
 class ControllerManager(Experiment):
+    env: Environment
+    nb_agents: int
+    speed: float
+    obs_dict: List[EnvironmentObsDict]
+    num_state: int
+    actors: Dict[int, Controller]
+    static_props: SimulationProperties
+
+    @property
+    def time_steps_per_episode(self) -> int:
+        return int(self.static_props.nb_time_steps / self.static_props.nb_episodes)
+
+    @property
+    def time_steps_train_log(self) -> int:
+        return int(self.static_props.nb_time_steps / self.static_props.nb_logs)
+
     def __init__(
         self,
-        socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
+        socket_manager_service: SocketManager,
         metrics_service: Metrics,
-        parser_service: ParserService,
     ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
-        self.static_props = parser_service.config.controller_props
-        self.parser_service = parser_service
 
-    def initialize(self) -> None:
-        random.seed(1)
-        self.env = Environment(self.parser_service.config.env_prop)
-        self.nb_agents = self.env.cluster.nb_agents
+    def initialize(self, config: MarlConfig) -> None:
+        random.seed(config.simulation_props.net_seed)
+        self.static_props = config.simulation_props
+        logger.info("Initializing environment...")
+        self.env = Environment(config.env_prop)
+        self.nb_agents = config.env_prop.cluster_prop.nb_agents
         self.speed = 2.0
-        self.obs_dict = self.env._reset()
-        self.num_state = len(
-            normStateDict(self.obs_dict[next(iter(self.obs_dict))], config_dict)
-        )
-
+        self.obs_dict = self.env.reset()
+        self.num_state = len(norm_state_dict(self.obs_dict, self.env.init_props)[0])
         self.metrics_service.initialize(
             self.nb_agents,
-            self.static_props.start_stats_from,
-            self.static_props.nb_time_steps,
+            config.simulation_props.start_stats_from,
+            config.simulation_props.nb_time_steps,
         )
-
-        # TODO: Get agent from config file
         self.actors: Dict[int, Controller] = {}
-
-        for house_id in range(self.nb_agents):
-            agent_prop: Dict[str, Union[str, int]] = {"id": house_id}
-            # TODO: Change how we init agents (not all configdict is necessary, only agent props)
-            if self.static_props.actor_name:
-                agent_prop.update(
-                    {
-                        "actor_name": self.static_props.actor_name,
-                        "net_seed": self.static_props.net_seed,
-                    }
-                )
-
-            self.actors[house_id] = agents_dict[self.static_props.agent](
-                agent_prop, config_dict, num_state=self.num_state
-            )
-
-        self.time_steps_per_episode = int(
-            self.static_props.nb_time_steps / self.static_props.nb_episodes
-        )
-        self.time_steps_train_log = int(
-            self.static_props.nb_time_steps / self.static_props.nb_logs
-        )
-        self.time_steps_test_log = int(
-            self.static_props.nb_time_steps / self.static_props.nb_test_logs
-        )
+        self.initialize_actors(config)
+        self.client_manager_service.initialize_data(config.CLI_config.interface)
         logger.info("Number of states: %d", self.num_state)
 
-    async def start(self) -> None:
-        # Initialize training variables
-        logger.info("Initializing environment...")
-        await self.socket_manager_service.emit(
-            "success", {"message": "Initializing environment..."}
+    async def start(self, config: MarlConfig) -> None:
+        self.initialize(config)
+        await self.client_manager_service.log(
+            emit=True,
+            endpoint="agent",
+            data=self.static_props.agent,
         )
-
-        self.initialize()
-        self.client_manager_service.initialize_data()
-
-        await self.socket_manager_service.emit(
-            "success", {"message": "Starting simulation"}
+        await self.client_manager_service.log(
+            text="Starting simulation...",
+            emit=True,
+            endpoint="success",
+            data={"message": "Starting simulation"},
         )
-        self.obs_dict = self.env._reset()
+        self.obs_dict = self.env.reset()
 
         for step in range(self.static_props.nb_time_steps):
+            # Check if UI stopped or paused simulation
+
+            if self.pause:
+                logger.debug("simulation paused")
+                await self.socket_manager_service.emit("paused", {})
+                await self.socket_manager_service.sleep(0)
+                while True:
+                    if not self.pause or self.stop:
+                        await self.socket_manager_service.sleep(0)
+                        break
+
             if self.stop:
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
                 break
 
-            (
-                data_messages,
-                houses_messages,
-            ) = self.client_manager_service.update_data(
+            if await self.should_stop(step):
+                break
+
+            # Update date that will be sent to UI
+            await self.client_manager_service.update_data(
                 obs_dict=self.obs_dict, time_step=step
             )
-
-            await self.socket_manager_service.emit("houseChange", houses_messages)
-            await self.socket_manager_service.emit("dataChange", data_messages)
-
+            # Wait time of the interface
             sleep(self.speed)
 
             # Take action and get new transition
             actions = self.get_actions(self.obs_dict)
-            next_obs_dict, rewards_dict = self.env._step(actions)
+            next_obs_dict, rewards_dict = self.env.step(actions)
 
             # Update metrics
             self.metrics_service.update(
@@ -147,30 +144,18 @@ class ControllerManager(Experiment):
             self.obs_dict = next_obs_dict
 
             # If new episode, reset environment
-            if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
-                logger.info("New episode at time %d", step)
-                await self.socket_manager_service.emit(
-                    "success", {"message": f"New episode at time {step}"}
-                )
-                self.obs_dict = self.env._reset()
+            await self.reset_environment(step)
 
             # Log train statistics
-            if step % self.time_steps_train_log == self.time_steps_train_log - 1:
-                logger.info("Logging stats at time %d", step)
-                await self.socket_manager_service.emit(
-                    "success", {"message": f"Logging stats at time {step}"}
-                )
+            await self.log_statistics(step)
 
-                self.metrics_service.log(
-                    step, self.time_steps_train_log, self.env.date_time
-                )
-                self.metrics_service.reset()
-
-        logger.info("Simulation ended")
         self.metrics_service.update_final()
-        await self.socket_manager_service.emit("stopped", {})
-        await self.socket_manager_service.emit(
-            "success", {"message": "Simulation ended"}
+        await self.client_manager_service.log(emit=True, endpoint="stopped", data={})
+        await self.client_manager_service.log(
+            emit=True,
+            endpoint="success",
+            text="Simulation ended",
+            data={"message": "Simulation ended"},
         )
 
     def get_actions(self, obs_dict) -> dict:
@@ -178,3 +163,49 @@ class ControllerManager(Experiment):
         for agent_id, actor in self.actors.items():
             actions[agent_id] = actor.act(obs_dict)
         return actions
+
+    async def reset_environment(self, step) -> None:
+        if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
+            await self.client_manager_service.log(
+                text=f"New episode at time {step}",
+                emit=True,
+                endpoint="success",
+                data={"message": f"New episode at time {step}"},
+            )
+            self.obs_dict = self.env.reset()
+
+    async def log_statistics(self, step) -> None:
+        if step % self.time_steps_train_log == self.time_steps_train_log - 1:
+            await self.client_manager_service.log(
+                text=f"Logging stats at time {step}",
+                emit=True,
+                endpoint="success",
+                data={"message": f"Logging stats at time {step}"},
+            )
+            self.metrics_service.log(
+                step, self.time_steps_train_log, self.env.date_time
+            )
+            self.metrics_service.reset()
+
+    async def should_stop(self, step) -> bool:
+        if self.stop:
+            await self.client_manager_service.log(
+                endpoint="stopped", data={}, text=f"Training stopped at time {step}"
+            )
+            return True
+        return False
+
+    def initialize_actors(self, config: MarlConfig) -> None:
+        for house_id in range(self.nb_agents):
+            agent_prop: Dict[str, Union[str, int]] = {"id": house_id}
+            if config.simulation_props.agent:
+                agent_prop.update(
+                    {
+                        "actor_name": config.simulation_props.agent,
+                        "net_seed": config.simulation_props.net_seed,
+                    }
+                )
+
+            self.actors[house_id] = agents_dict[config.simulation_props.agent](
+                agent_prop, config, num_state=self.num_state
+            )
