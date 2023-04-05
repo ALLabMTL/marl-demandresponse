@@ -15,8 +15,10 @@ export class SimulationManagerService {
 
   sidenavData: SidenavData[] = [];
   sidenavObservable: Subject<SidenavData[]> = new Subject<SidenavData[]>();
+  houseDataObservable: Subject<HouseData[][]> = new Subject<HouseData[][]>();
 
   agentName = '';
+  housesBufferData: HouseData[][] = [];
   propertyNames: string[] = [];
   propertyValues: string[] = [];
   housesData: HouseData[] = [];
@@ -62,11 +64,46 @@ export class SimulationManagerService {
   constructor(public sharedService: SharedService) {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+
+
+    this.sidenavData = [];
+    this.propertyNames = [];
+    this.propertyValues = [];
+    this.housesData = [];
+
+    this.started = true;
+    this.stopped = true;
+    this.pages = [];
+    this.houseDataFiltered = [];
+    this.originalHousesData = [];
+    this.maxPage = -1;
+    this.housesPerPage = 100;
+
+    this.isSortingSelected = false;
+    this.isHvacChecked = false;
+    this.isTempChecked = false;
+    this.isFilteredHvac = false;
+    this.isTempFiltered = false;
+    this.hvacStatus = " ";
+    this.minValueSliderInit = -1;
+    this.maxValueSliderInit = 1;
+    this.tempSelectRange = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
+    this.tempSelectRangeInput = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
+
+    this.sortingOptionSelected = " ";
+    this.hvacChosen = [];
+    this.tempDiffHousesData = [];
+    this.isHvacEnabled = false;
+    this.isOnChecked = false;
+    this.isOffChecked = false;
+    this.isLockoutChecked = false;
   }
 
   addTimeStep(data: SidenavData): void {
     this.sidenavData.push(data);
     this.sidenavObservable.next(this.sidenavData);
+    this.housesBufferData.push(this.housesData);
+    this.houseDataObservable.next(this.housesBufferData);
     this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
     this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1]);
 

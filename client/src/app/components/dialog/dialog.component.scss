@@ -21,3 +21,25 @@
     display: flex;
     justify-content: center;
 }
+
+.graphs{
+    display: grid;
+    width: 60%;
+    height: 60%;
+}
+
+#zoom1{
+    background-color: rgb(164, 161, 161);
+    left: 10%;
+    height: 30px;
+    width: 100px;
+    font-size: 10px;
+}
+
+#zoom2{
+    background-color: rgb(164, 161, 161);
+    left: 10%;
+    height: 30px;
+    width: 100px;
+    font-size: 10px;
+}
