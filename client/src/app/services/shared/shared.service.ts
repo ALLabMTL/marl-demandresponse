@@ -6,7 +6,7 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class SharedService {
 
-  private currentPage = new BehaviorSubject(1);
+  public currentPage = new BehaviorSubject(1);
   currentPageCount = this.currentPage.asObservable();
 
   private precisionValueSelected = new BehaviorSubject(0.5);

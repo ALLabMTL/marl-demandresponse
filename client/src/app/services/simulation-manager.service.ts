@@ -1,12 +1,7 @@
 import { Injectable } from '@angular/core';
-import { MatChipSelectionChange } from '@angular/material/chips';
 import { SidenavData, HouseData } from '@app/classes/sidenav-data';
+import { Observable, Subject } from 'rxjs';
 import { SharedService } from './shared/shared.service';
-
-interface PageData {
-  id: number;
-  content: HouseData[];
-}
 
 interface PageData {
   id: number;
@@ -19,6 +14,8 @@ interface PageData {
 export class SimulationManagerService {
   agentName: string;
   sidenavData: SidenavData[];
+  sidenavObservable: Subject<SidenavData[]> = new Subject<SidenavData[]>();
+
   propertyNames: string[];
   propertyValues: string[];
   housesData: HouseData[];
@@ -30,20 +27,28 @@ export class SimulationManagerService {
 
   //sidebar
   isSortingSelected: boolean;
-  isHvacChecked: boolean;
+  isHvacEnabled: boolean;
   isTempChecked: boolean;
   isFilteredHvac: boolean;
   isTempFiltered: boolean;
   hvacStatus: string;
   tempSelectRange: { min: number, max: number };
+  tempSelectRangeInput: { min: number, max: number };
+  minValueSliderInit: number;
+  maxValueSliderInit: number;
+
   sortingOptionSelected: string;
   hvacChosen: HouseData[];
-  chipSelected: any;
   tempDiffHousesData: HouseData[];
-  // isChipSelected: boolean;
+  isHvacChecked: boolean;
+  isOnChecked: boolean;
+  isOffChecked: boolean;
+  isLockoutChecked: boolean;
+
   maxPage: number = 1;
   housesPerPage: number = 100;
   pages: PageData[];
+  currentPage: number = 1;
   nbSquares = 100;
 
   // houseData1: HouseData[];
@@ -51,6 +56,10 @@ export class SimulationManagerService {
 
   constructor(public sharedService: SharedService) {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
+    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+    this.speed = "2"
+    this.agentName = "";
+    // this.isChipSelected = false;
     this.sidenavData = [];
     this.propertyNames = [];
     this.propertyValues = [];
@@ -70,22 +79,25 @@ export class SimulationManagerService {
     this.isFilteredHvac = false;
     this.isTempFiltered = false;
     this.hvacStatus = " ";
-    this.tempSelectRange = { min: -1, max: 1 }
+    this.minValueSliderInit = -1;
+    this.maxValueSliderInit = 1;
+    this.tempSelectRange = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
+    this.tempSelectRangeInput = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
     this.sortingOptionSelected = " ";
     this.hvacChosen = [];
-    this.chipSelected = false;
     this.tempDiffHousesData = [];
-    this.speed = "2"
-    this.agentName = "";
-    // this.isChipSelected = false;
-
+    this.isHvacEnabled = false;
+    this.isOnChecked = false;
+    this.isOffChecked = false;
+    this.isLockoutChecked = false;
   }
 
 
   addTimeStep(data: SidenavData): void {
     this.sidenavData.push(data);
+    this.sidenavObservable.next(this.sidenavData);
     this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
-    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1])
+    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1]);
   }
 
   updateHousesData(data: HouseData[]): void {
@@ -98,12 +110,24 @@ export class SimulationManagerService {
       this.sortByOptionSelected(this.sortingOptionSelected);
     }
     if (this.isFilteredHvac) {
-      this.filteredByHvacStatus();
+      this.filterByHvacStatus(this.isHvacChecked, this.hvacStatus);
     }
 
     if (this.isTempFiltered) {
       this.filterByTempDiff();
     }
+    this.updateFilteredHouses();
+
+    this.tempSelectRange.min = this.originalHousesData.length > 0 ?
+      Math.min(...this.originalHousesData.map((data) => data.tempDifference)) :
+      0;
+
+    this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
+
+    this.tempSelectRange.max = this.originalHousesData.length > 0 ?
+      Math.max(...this.originalHousesData.map((data) => data.tempDifference)) : 0;
+
+    this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));
 
     this.pages = [];
     this.maxPage = Math.ceil(this.housesData.length / this.nbSquares);
@@ -148,12 +172,15 @@ export class SimulationManagerService {
       this.housesData = this.housesData.filter(x => {
         return this.tempDiffHousesData.find(y => y.tempDifference === x.tempDifference) !== undefined;
       });
-
     }
-    if (this.housesData.length === 0) {
-      this.sharedService.changeCount(0);
-    } else {
+
+    // if(this.housesData.length === 0) {
+    //   this.sharedService.changeCount(0);
+    // }
+    if (this.currentPage > this.maxPage) {
       this.sharedService.changeCount(1);
+    } else {
+      this.sharedService.changeCount(this.currentPage);
     }
   }
 
@@ -214,45 +241,37 @@ export class SimulationManagerService {
     this.housesData = this.originalHousesData;
   }
 
-
-  filterByHvacStatus(event: MatChipSelectionChange): void {
-    this.chipSelected = event.source.selected;
+  filterByHvacStatus(checked: boolean, hvac: string): void {
     this.housesData = this.originalHousesData;
-    this.hvacStatus = event.source.value;
 
-    if (this.chipSelected) {
-      this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
+    this.hvacStatus = hvac;
+    this.isHvacChecked = checked;
+
+    if (this.isHvacChecked) {
+      this.hvacChosen = [...this.hvacChosen, ...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)];
     } else { // if un-select manually
-      this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
+      this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus)];
     }
+
     this.isFilteredHvac = true;
 
     this.updateFilteredHouses();
-  }
 
-  filteredByHvacStatus(): void {
-    this.housesData = this.originalHousesData;
-
-    if (this.chipSelected) {
-      this.hvacChosen = this.housesData.filter(status => status.hvacStatus == this.hvacStatus);
-    } else { // if un-select manually
-      this.hvacChosen = this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus);
+    if (this.isOnChecked == false && this.isOffChecked == false && this.isLockoutChecked == false) {
+      this.removeHvacFilter();
     }
-    this.isFilteredHvac = true;
-
-    this.updateFilteredHouses();
   }
 
   removeHvacFilter(): void {
-    this.isFilteredHvac = false;
     this.housesData = this.originalHousesData;
+    this.isFilteredHvac = false;
   }
 
   filterByTempDiff(): void {
     this.isTempFiltered = true;
     this.housesData = this.originalHousesData;
 
-    this.tempDiffHousesData = this.housesData.filter((e) => e.tempDifference >= this.tempSelectRange.min && e.tempDifference <= this.tempSelectRange.max)
+    this.tempDiffHousesData = this.housesData.filter((e) => e.tempDifference >= this.tempSelectRangeInput.min && e.tempDifference <= this.tempSelectRangeInput.max)
 
     this.updateFilteredHouses();
   }
@@ -260,12 +279,6 @@ export class SimulationManagerService {
   removeTempDiffFilter(): void {
     this.isTempFiltered = false;
     this.housesData = this.originalHousesData;
-  }
-
-  resetActivityFilters(): void {
-    this.isSortingSelected = false;
-    this.isHvacChecked = false;
-    this.isTempChecked = false;
   }
 
 }

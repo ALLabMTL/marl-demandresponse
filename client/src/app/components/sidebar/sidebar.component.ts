@@ -1,17 +1,14 @@
-import { Component } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { Component, ViewChild } from '@angular/core';
+import { FormControl, Validators, NgControl } from '@angular/forms';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatSlider } from '@angular/material/slider';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
-interface Filter {
-  id: number;
-  type: string;
-  value?: any;
-}
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss']
+  styleUrls: ['./sidebar.component.scss'],
 })
 export class SidebarComponent {
   precisionValueSelected = 0.5;
@@ -26,6 +23,10 @@ export class SidebarComponent {
   nbSquares = 100;
   nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
 
+  @ViewChild('on_check', { static: false }) onChecked!: MatCheckbox;
+  @ViewChild('lockout_check', { static: false }) lockoutChecked!: MatCheckbox;
+  @ViewChild('off_check', { static: false }) offChecked!: MatCheckbox;
+
   constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
     this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
   }
@@ -37,6 +38,19 @@ export class SidebarComponent {
 
   formatLabel(value: number): string {
     return `${value}`;
+  }
+
+  resetSlider(): void {
+    this.simulationManager.tempSelectRangeInput.min = this.simulationManager.minValueSliderInit;
+    this.simulationManager.tempSelectRangeInput.max = this.simulationManager.maxValueSliderInit;
+    this.simulationManager.removeTempDiffFilter();
+  }
+
+  resetHvacFilter(): void {
+    this.onChecked.checked = false;
+    this.offChecked.checked = false;
+    this.lockoutChecked.checked = false;
+    this.simulationManager.removeHvacFilter();
   }
 
   // tempCheckbox(): void {
@@ -55,6 +69,7 @@ export class SidebarComponent {
       this.negMidMin = this.negMin / 2;
       this.posMax = Math.abs(this.precisionValueSelected);
       this.posMidMax = this.posMax / 2
+      // console.log("precision: %d", this.precisionValueSelected)
     }
   }
 

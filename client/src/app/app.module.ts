@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { NgChartsModule } from 'ng2-charts';
 
 @NgModule({
   declarations: [
@@ -52,9 +53,13 @@ import { MatDialogModule } from '@angular/material/dialog';
     ReactiveFormsModule,
     AppRoutingModule,
     AppMaterialModule,
-    MatDialogModule
+    MatDialogModule,
+    NgChartsModule
   ],
   providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+// providers: [SidebarComponent],
+//   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],
