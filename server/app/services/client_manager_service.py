@@ -19,6 +19,9 @@ DESCRIPTION_KEYS = [
     "Current consumption",
     "Consumption error (%)",
     "RMSE",
+    "Mass temperature",
+    "Target temperature",
+    "Average temperature error",
 ]
 
 
@@ -40,19 +43,23 @@ class ClientManagerService:
     @property
     def description_values(self) -> list:
         values = [
-            str(self.data_frame.shape[0]),
+            str(self.data_frame.shape[0]),  # "Number of HVAC",
             str(
                 np.where(
                     self.data_frame["lockout"],
                     1,
                     0,
                 ).sum()
-            ),
-            str(round(self.data_frame["OD_temp"][0], 2)),
-            str(round(self.data_frame["indoor_temp"].mean(), 2)),
-            str(round(self.data_frame["temperature_difference"].mean(), 2)),
-            str(self.data_frame["reg_signal"][0]),
-            str(self.data_frame["cluster_hvac_power"][0]),
+            ),  #  "Number of locked HVAC",
+            str(round(self.data_frame["OD_temp"][0], 2)),  # "Outdoor temperature",
+            str(
+                round(self.data_frame["indoor_temp"].mean(), 2)
+            ),  # "Average indoor temperature",
+            str(
+                round(self.data_frame["temperature_difference"].mean(), 2)
+            ),  # "Average temperature difference",
+            str(self.data_frame["reg_signal"][0]),  # "Regulation signal",
+            str(self.data_frame["cluster_hvac_power"][0]),  # "Current consumption",
             str(
                 (
                     self.data_frame["reg_signal"][0]
@@ -60,7 +67,7 @@ class ClientManagerService:
                 )
                 / self.data_frame["reg_signal"][0]
                 * 100
-            ),
+            ),  # "Consumption error (%)",
             str(
                 np.sqrt(
                     np.mean(
@@ -71,13 +78,10 @@ class ClientManagerService:
                         ** 2
                     )
                 )
-            ),
-            str(
-                np.mean(
-                    self.signal[-len(self.signal) :]
-                    - self.consumption[-len(self.consumption) :]
-                )
-            ),
+            ),  # "RMSE",
+            str(round(self.data_frame["mass_temp"][0], 2)),
+            str(round(self.data_frame["target_temp"][0], 2)),
+            str(np.mean(self.temp_err)),
         ]
         return values
 

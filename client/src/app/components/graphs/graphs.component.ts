@@ -5,7 +5,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 
-@Component({ 
+@Component({
   selector: 'app-graphs',
   templateUrl: './graphs.component.html',
   styleUrls: ['./graphs.component.scss']
@@ -171,11 +171,11 @@ export class GraphsComponent implements AfterViewInit {
       legend: {
         display: true,
         labels: {
-            color: 'black',
-            boxWidth: 5,
-            boxHeight: 5,
+          color: 'black',
+          boxWidth: 5,
+          boxHeight: 5,
         }
-    }
+      }
     }
   } as ChartOptions<'line'>;
 
