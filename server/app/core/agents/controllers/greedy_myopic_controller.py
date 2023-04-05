@@ -1,4 +1,5 @@
 import pandas as pd
+
 from app.core.agents.controllers.controller import Controller
 
 global_myopic_memory = [None, None]

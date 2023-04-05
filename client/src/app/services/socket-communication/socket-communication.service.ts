@@ -13,7 +13,7 @@ export class SocketCommunicationService {
     public socketService: SocketService,
     private snackBarService: NotificationService,
     private simulationManager: SimulationManagerService
-  ) {}
+  ) { }
 
   connect(): void {
     if (!this.socketService.isSocketAlive()) {
@@ -76,9 +76,6 @@ export class SocketCommunicationService {
 
   startSimulation(): void {
     this.simulationManager.reset();
-    // this.simulationManager.started = true;
-    // this.simulationManager.stopped = false;
-    // this.simulationManager.paused = false;
     this.socketService.send('train');
   }
 
