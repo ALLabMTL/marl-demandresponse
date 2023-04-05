@@ -23,6 +23,12 @@ class ExperimentManager:
             self.experiment = self.controller_manager
 
     def initialize(self) -> None:
+        self.parser = ParserService()
+        self.config = self.parser.config
+        if self.config.simulation_props.mode == "train":
+            self.experiment = self.training_manager
+        elif self.config.simulation_props.mode == "simulation":
+            self.experiment = self.controller_manager
         self.experiment.initialize(self.config)
 
     async def start(self) -> None:

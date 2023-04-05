@@ -1,16 +1,17 @@
-from copy import deepcopy
 import random
+from copy import deepcopy
 from datetime import datetime, timedelta
+
 import numpy as np
 
 from app.core.environment.cluster.hvac import HVAC
-from app.core.environment.simulatable import Simulatable
-from app.utils.utils import compute_solar_gain
 from app.core.environment.environment_properties import (
-    EnvironmentObsDict,
     BuildingMessage,
     BuildingProperties,
+    EnvironmentObsDict,
 )
+from app.core.environment.simulatable import Simulatable
+from app.utils.utils import compute_solar_gain
 
 
 class Building(Simulatable):

@@ -55,7 +55,6 @@ class DQN(Trainable):
     def __init__(
         self, config: DQNProperties, num_state=22, num_action=2, seed=1
     ) -> None:
-        super().__init__()
         self.seed = seed
         self.epsilon = 1.0
         self.last_actions: Dict[int, bool] = {}

@@ -2,15 +2,17 @@ import csv
 import json
 import random
 import sys
-from typing import Dict, List
-from datetime import datetime
 from copy import deepcopy
+from datetime import datetime
+from typing import Dict, List
+
 import numpy as np
 from scipy.interpolate import interpn
+
 from app.core.environment.cluster.building import Building
 from app.core.environment.environment_properties import BuildingProperties
-from app.utils.utils import sort_dict_keys
 from app.core.environment.power_grid.power_grid_properties import BasePowerProperties
+from app.utils.utils import sort_dict_keys
 
 sys.path.insert(1, "../marl-demandresponse")
 

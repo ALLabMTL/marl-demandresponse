@@ -2,10 +2,10 @@ import os
 
 import torch
 from torch.distributions import Categorical
-
-from app.core.agents.controllers.controller import Controller
 from v0.agents.network import Actor, DDPG_Network, DQN_network
 from v0.utils import normStateDict
+
+from app.core.agents.controllers.controller import Controller
 
 
 class PPOController(Controller):

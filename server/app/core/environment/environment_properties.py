@@ -7,9 +7,7 @@ from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
     TemperatureProperties,
 )
-from app.core.environment.power_grid.power_grid_properties import (
-    PowerGridProperties,
-)
+from app.core.environment.power_grid.power_grid_properties import PowerGridProperties
 
 
 class HvacNoiseProperties(BaseModel):

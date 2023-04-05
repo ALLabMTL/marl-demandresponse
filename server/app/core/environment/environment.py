@@ -1,9 +1,10 @@
-from copy import deepcopy
 import random
-from typing import Dict, List
+from copy import deepcopy
 from datetime import timedelta
+from typing import Dict, List
 
 import numpy as np
+
 from app.core.environment.cluster.cluster import Cluster
 from app.core.environment.environment_properties import (
     EnvironmentObsDict,

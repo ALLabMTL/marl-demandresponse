@@ -1,10 +1,12 @@
+from cmath import nan
 from datetime import datetime
 from typing import Dict, List
+
 import numpy as np
-from cmath import nan
-from app.utils.logger import logger
-from app.services.wandb_service import WandbManager
+
 from app.core.environment.environment import EnvironmentObsDict
+from app.services.wandb_service import WandbManager
+from app.utils.logger import logger
 
 
 class Metrics:

@@ -2,18 +2,16 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-
-from app.core.environment.cluster.building import Building
-from app.core.environment.simulatable import Simulatable
 from app.core.environment.cluster.agent_communication_builder import (
     AgentCommunicationBuilder,
 )
-
+from app.core.environment.cluster.building import Building
 from app.core.environment.environment_properties import (
+    BuildingMessage,
     ClusterPropreties,
     EnvironmentObsDict,
-    BuildingMessage,
 )
+from app.core.environment.simulatable import Simulatable
 
 
 class Cluster(Simulatable):

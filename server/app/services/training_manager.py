@@ -6,19 +6,20 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
-from app.core.agents.trainables.ppo import PPO
-from app.core.environment.environment import Environment
-from app.services.experiment import Experiment
-from app.services.metrics_service import Metrics
-from app.services.parser_service import MarlConfig
-from app.utils.logger import logger
+
 from app.core.agents.trainables.ddpg import DDPG
 from app.core.agents.trainables.dqn import DDQN, DQN
 from app.core.agents.trainables.mappo import MAPPO
-from app.utils.norm import norm_state_dict
+from app.core.agents.trainables.ppo import PPO
 from app.core.agents.trainables.trainable import Trainable
-from app.services.simulation_properties import SimulationProperties
+from app.core.environment.environment import Environment
 from app.core.environment.environment_properties import EnvironmentObsDict
+from app.services.experiment import Experiment
+from app.services.metrics_service import Metrics
+from app.services.parser_service import MarlConfig
+from app.services.simulation_properties import SimulationProperties
+from app.utils.logger import logger
+from app.utils.norm import norm_state_dict
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager

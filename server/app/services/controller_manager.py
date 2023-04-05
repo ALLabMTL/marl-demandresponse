@@ -1,6 +1,7 @@
 import random
 from time import sleep
 from typing import Dict, List, Union
+
 from app.core.agents.controllers.bangbang_controllers import (
     AlwaysOnController,
     BangBangController,
@@ -20,9 +21,9 @@ from app.core.environment.environment_properties import EnvironmentObsDict
 from app.services.experiment import Experiment
 from app.services.metrics_service import Metrics
 from app.services.parser_service import MarlConfig
+from app.services.simulation_properties import SimulationProperties
 from app.utils.logger import logger
 from app.utils.norm import norm_state_dict
-from app.services.simulation_properties import SimulationProperties
 
 from .client_manager_service import ClientManagerService
 

@@ -4,10 +4,9 @@ from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
 
+from app.core.environment.environment import EnvironmentObsDict
 from app.services.socket_manager_service import SocketManager
 from app.utils.logger import logger
-from app.core.environment.environment import EnvironmentObsDict
-
 
 DESCRIPTION_KEYS = [
     "Number of HVAC",

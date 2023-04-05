@@ -1,11 +1,12 @@
-from copy import deepcopy
 import random
+from copy import deepcopy
 from datetime import timedelta
-from app.core.environment.simulatable import Simulatable
+
 from app.core.environment.environment_properties import (
     EnvironmentObsDict,
     HvacProperties,
 )
+from app.core.environment.simulatable import Simulatable
 
 
 class HVAC(Simulatable):

@@ -1,10 +1,11 @@
-from datetime import datetime
 import random
 import time
+from datetime import datetime
 
 import numpy as np
-from app.core.environment.power_grid.power_grid_properties import SignalProperties
+
 from app.core.environment.power_grid.perlin import Perlin
+from app.core.environment.power_grid.power_grid_properties import SignalProperties
 
 
 class SignalCalculator:

@@ -1,8 +1,11 @@
 from typing import Dict, List
+
 from app.core.environment.cluster.building import Building
-from app.core.environment.environment_properties import RewardProperties
+from app.core.environment.environment_properties import (
+    BuildingProperties,
+    RewardProperties,
+)
 from app.utils.utils import deadbandL2
-from app.core.environment.environment_properties import BuildingProperties
 
 
 class RewardsCalculator:

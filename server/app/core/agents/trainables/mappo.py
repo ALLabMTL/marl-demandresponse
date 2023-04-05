@@ -1,7 +1,8 @@
+import os
 from collections import namedtuple
 from copy import deepcopy
-import os
 from typing import Dict, List
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,8 +10,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from app.core.agents.trainables.ppo import PPOProperties
+
 from app.core.agents.trainables.network import Actor, Critic
+from app.core.agents.trainables.ppo import PPOProperties
 from app.core.agents.trainables.trainable import Trainable
 
 
@@ -36,7 +38,6 @@ class MAPPO(Trainable):
     def __init__(
         self, config: PPOProperties, num_state=22, num_action=2, seed=1
     ) -> None:
-        super(MAPPO, self).__init__()
         self.seed = seed
         torch.manual_seed(self.seed)
         self.last_actions: Dict[int, bool] = {}
@@ -83,7 +84,7 @@ class MAPPO(Trainable):
         actions: Dict[int, bool] = {}
         probs: Dict[int, float] = {}
         for obs_id, obs in enumerate(observations):
-            tensor = torch.from_numpy(obs).float().unsqueeze(0).to(self.device)
+            tensor = torch.from_numpy(obs).float().unsqueeze(0)
             with torch.no_grad():
                 # pylint: disable=not-callable
                 action_prob = self.actor_net(tensor)
@@ -109,7 +110,7 @@ class MAPPO(Trainable):
         done: bool,
     ) -> None:
         for observation_id, next_observation in enumerate(next_observations):
-            action_k = deepcopy(self.last_actions[observation_id])
+            action_k = deepcopy(self.last_actions)
             action_k.pop(observation_id)
             other_action_list = list(action_k.values())
 
@@ -122,7 +123,6 @@ class MAPPO(Trainable):
                 next_observation,
                 done,
             )
-            self.buffer[observation_id].append(transition)
             self.buffer.append(transition)
             self.counter += 1
 

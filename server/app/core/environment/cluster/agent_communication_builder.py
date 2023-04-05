@@ -1,8 +1,9 @@
-from copy import deepcopy
 import random
+from copy import deepcopy
 from typing import Dict, List
 
 import numpy as np
+
 from app.core.environment.cluster.cluster_properties import (
     AgentsCommunicationProperties,
 )
