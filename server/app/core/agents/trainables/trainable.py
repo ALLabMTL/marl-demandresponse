@@ -1,19 +1,25 @@
 from abc import ABC, abstractmethod
+from typing import Dict, List
+
+import numpy as np
+from pydantic import BaseModel
 
 
 class Trainable(ABC):
     @abstractmethod
-    def select_action(self, obs_dict: dict) -> dict:
+    def __init__(self, config: BaseModel, num_state=22, num_action=2, seed=1) -> None:
+        pass
+
+    @abstractmethod
+    def select_actions(self, observations: List[np.ndarray]) -> Dict[int, bool]:
         pass
 
     @abstractmethod
     def store_transition(
         self,
-        obs_dict: dict,
-        next_obs_dict: dict,
-        action: dict,
-        action_prob: dict,
-        rewards_dict: dict,
+        observations: List[np.ndarray],
+        next_observations: List[np.ndarray],
+        rewards: Dict[int, float],
         done: bool,
     ) -> None:
         pass

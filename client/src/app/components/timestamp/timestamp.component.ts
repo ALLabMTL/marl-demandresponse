@@ -28,7 +28,7 @@ export class TimestampComponent {
   constructor(
     public simulationManager: SimulationManagerService,
     public socketCommunication: SocketCommunicationService
-  ) {}
+  ) { }
 
   setSpeed(speed: string): void {
     this.simulationManager.speed = speed;

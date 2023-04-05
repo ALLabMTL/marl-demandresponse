@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { SimulationManagerService } from '../simulation-manager.service';
 
 @Injectable({
   providedIn: 'root'

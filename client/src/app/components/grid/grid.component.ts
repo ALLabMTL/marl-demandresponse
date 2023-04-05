@@ -28,8 +28,8 @@ export class GridComponent implements OnInit {
   nbSquares = 100;
   nbSquarePerLine = Math.sqrt(this.nbSquares);
 
-  columnWidths = `repeat(10, ${100/10}%)`;
-  rowHeights = `repeat(10, ${100/10}%)`;
+  columnWidths = `repeat(10, ${100 / 10}%)`;
+  rowHeights = `repeat(10, ${100 / 10}%)`;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
     this.pages = [];
@@ -41,8 +41,6 @@ export class GridComponent implements OnInit {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
     this.sharedService.columnWidthsValue.subscribe(columnWidths => this.columnWidths = columnWidths);
     this.sharedService.rowHeightsValue.subscribe(rowHeights => this.rowHeights = rowHeights);
-
-    console.log(this.simulationManager.pages, "page");
   }
 
   cells = new Array(this.nbSquares).fill(null);

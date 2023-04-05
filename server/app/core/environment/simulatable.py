@@ -8,19 +8,18 @@ U = TypeVar("U")
 
 
 class Simulatable(ABC):
-    initial_properties: BaseModel
-    noise_properties: BaseModel
+    init_props: BaseModel
 
     @abstractmethod
-    def _reset(self) -> dict:
+    def reset(self):
         pass
 
     @abstractmethod
-    def _step(self) -> dict:
+    def step(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def _get_obs(self) -> dict:
+    def get_obs(self):
         pass
 
     @abstractmethod

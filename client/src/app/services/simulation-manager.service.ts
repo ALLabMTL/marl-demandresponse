@@ -77,8 +77,6 @@ export class SimulationManagerService {
 
   updateHousesData(data: HouseData[]): void {
     this.housesData = data; // every house
-    console.log('houses data');
-    console.log(this.housesData);
     this.originalHousesData = data;
 
     if (this.isSortingSelected) {
@@ -129,19 +127,8 @@ export class SimulationManagerService {
       this.propertyValues = [];
       this.housesData = [];
     }
-    // this.paused = false;
     this.stopped = false;
   }
-
-  // resetSimulation(): void {
-  //   this.sidenavData = [];
-  //   this.propertyNames = [];
-  //   this.propertyValues = [];
-  //   this.housesData = [];
-  //   this.pages = [];
-  //   this.started = false;
-  //   this.stopped = true;
-  // }
 
   updateSpeed(test: Event): void {
     throw new Error('Method not implemented.');

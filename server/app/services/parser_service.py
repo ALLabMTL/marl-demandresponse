@@ -1,18 +1,12 @@
-from typing import Literal
-
 from pydantic import BaseModel, Field
 
-from app.core.agents.ddpg import DDPGProperties
-from app.core.agents.dqn import DQNProperties
-from app.core.agents.mappo import MAPPOProperties
-from app.core.agents.ppo import PPOProperties
-from app.core.environment.cluster.building_properties import (
-    BuildingNoiseProperties,
-    BuildingProperties,
-)
-from app.core.environment.cluster.hvac import HvacNoiseProperties, HvacProperties
+from app.core.agents.trainables.ddpg import DDPGProperties
+from app.core.agents.trainables.dqn import DQNProperties
+from app.core.agents.trainables.mappo import MAPPOProperties
+from app.core.agents.trainables.ppo import PPOProperties
 from app.core.environment.environment_properties import EnvironmentProperties
-from app.services.controller_propreties import ControllerPropreties
+from app.services.simulation_properties import SimulationProperties
+from app.utils.logger import logger
 
 
 class MPCProperties(BaseModel):
@@ -31,51 +25,33 @@ class CLIConfig(BaseModel):
         default="default",
         description="Name of the experiment.",
     )
+    interface: bool = Field(
+        default=True,
+        description="Whether we want to launch the interface with the simulation",
+    )
     wandb: bool = Field(
         default=False,
         description="Whether to use wandb.",
-    )
-    log_metrics_path: str = Field(
-        default="",
-        description="Path to the metrics file.",
-    )
-    nb_time_steps: int = Field(
-        default=100000,
-        description="Number of time steps for the experiment.",
-    )
-    save_actor_name: str = Field(
-        default="",
-        description="Name of the actor to save.",
-    )
-    nb_inter_saving_actor: int = Field(
-        default=0,
-        description="Number of time steps between saving the actor.",
-    )
-    mode: Literal["train", "simulation"] = Field(
-        default="simulation",
-        description="Mode of the experiment.",
     )
 
 
 class MarlConfig(BaseModel):
     """Configuration for MARL environment."""
 
-    house_prop: BuildingProperties = BuildingProperties()
-    noise_house_prop: BuildingNoiseProperties = BuildingNoiseProperties()
-    hvac_prop: HvacProperties = HvacProperties()
-    noise_hvac_prop: HvacNoiseProperties = HvacNoiseProperties()
+    CLI_config: CLIConfig = CLIConfig()
+    simulation_props: SimulationProperties = SimulationProperties()
     env_prop: EnvironmentProperties = EnvironmentProperties()
     PPO_prop: PPOProperties = PPOProperties()
     MAPPO_prop: MAPPOProperties = MAPPOProperties()
     DDPG_prop: DDPGProperties = DDPGProperties()
     DQN_prop: DQNProperties = DQNProperties()
     MPC_prop: MPCProperties = MPCProperties()
-    CLI_config: CLIConfig = CLIConfig()
-    controller_props: ControllerPropreties = ControllerPropreties()
 
 
 class ParserService:
     def __init__(self) -> None:
-        pass
-
-    config: MarlConfig = MarlConfig()
+        try:
+            self.config = MarlConfig.parse_file("core/config/MARLconfig.json")
+        except FileNotFoundError:
+            logger.warning("MARLconfig.json not found, using default config.")
+            self.config = MarlConfig()

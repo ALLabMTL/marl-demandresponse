@@ -9,8 +9,8 @@ import time
 from datetime import date, timedelta
 
 import pandas as pd
-from config import config_dict
-from utils import get_actions
+from ..config import config_dict
+from ..utils import get_actions
 
 from v0.agents import BangBangController
 from v0.env import MADemandResponseEnv

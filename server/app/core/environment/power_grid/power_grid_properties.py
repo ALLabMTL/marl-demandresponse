@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class SignalProperties(BaseModel):
     # TODO: implement other modes
-    mode: str = "regular_steps"
+    mode: str = "perlin"
     amplitude_ratios: List[float] = [0.1, 0.3]
     amplitude_per_hvac: int = 6000
     nb_octaves: int = 5

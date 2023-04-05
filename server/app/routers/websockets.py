@@ -1,7 +1,8 @@
 from dependency_injector.wiring import Provide, inject
+
+from app.services.client_manager_service import ClientManagerService
 from app.services.experiment_manager import ExperimentManager
 from app.services.socket_manager_service import SocketManager
-from app.services.experiment_manager import ExperimentManager
 from app.utils.logger import logger
 
 
@@ -9,6 +10,7 @@ from app.utils.logger import logger
 def register_endpoints(
     sio: SocketManager = Provide["socket_manager_service"],
     experiment_manager: ExperimentManager = Provide["experiment_manager"],
+    client_manager_service: ClientManagerService = Provide["client_manager_service"],
 ) -> None:
     """
     Define endpoints here for them to be included in the socketManager instance
@@ -44,4 +46,4 @@ def register_endpoints(
 
     @sio.on("getSimAtTimeStep")
     async def send_sim_state_at_timestep(sid, time_step, *args) -> None:
-        await experiment_manager.get_sim_at_timestep(time_step["timestep"])
+        await client_manager_service.get_state_at(time_step["timestep"])
