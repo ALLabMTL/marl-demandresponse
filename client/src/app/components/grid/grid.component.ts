@@ -32,7 +32,7 @@ export class GridComponent implements OnInit {
   rowHeights = `repeat(10, ${100/10}%)`;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
-    this.pages = []
+    this.pages = [];
   }
 
   ngOnInit() {

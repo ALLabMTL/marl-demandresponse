@@ -68,7 +68,7 @@ export class SidebarComponent {
       this.negMin = -(this.precisionValueSelected);
       this.negMidMin = this.negMin / 2;
       this.posMax = Math.abs(this.precisionValueSelected);
-      this.posMidMax = this.posMax / 2
+      this.posMidMax = this.posMax / 2;
     }
   }
 
