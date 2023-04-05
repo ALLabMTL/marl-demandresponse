@@ -6,16 +6,17 @@ from time import sleep
 from typing import Dict, List, Union
 
 import numpy as np
+from app.core.agents.trainables.trainable import Trainable
 import torch
 
 from app.config import config_dict
-from app.core.agents.trainables.trainable import Trainable
 from app.core.agents.ppo import PPO
 from app.core.environment.environment import Environment
-from app.utils.logger import logger
-from app.services.metrics_service import Metrics
-from app.utils.utils import normStateDict
 from app.services.experiment import Experiment
+from app.services.metrics_service import Metrics
+from app.services.parser_service import MarlConfig, ParserService
+from app.utils.logger import logger
+from app.utils.utils import normStateDict
 
 from .client_manager_service import ClientManagerService
 from .socket_manager_service import SocketManager
@@ -49,6 +50,7 @@ class TrainingManager(Experiment):
         socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
+        parser_service: ParserService,
     ) -> None:
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
@@ -56,19 +58,21 @@ class TrainingManager(Experiment):
         self.stop = False
         self.pause = False
 
-    def initialize(self) -> None:
+        self.static_config = parser_service.config
+        self.initialize(parser_service.config)
+
+    def initialize(self, marl_config: MarlConfig) -> None:
         random.seed(1)
-        self.env = Environment()
+        self.env = Environment(marl_config.env_prop)
         self.nb_agents = self.env.cluster.nb_agents
         # TODO: Get these arguments from config file (parser)
         self.nb_time_steps = 1000
         self.nb_time_steps_test = 300
         self.nb_test_logs = 100
         self.save_actor_name: str = "PPO"
-        self.agent_name = "PPO"
         self.nb_tr_logs = 100
         self.nb_tr_epochs = 20
-        self.speed = 0
+        self.speed: int = 2
         self.time_steps_per_saving_actor = 2
 
         self.obs_dict = self.env._reset()

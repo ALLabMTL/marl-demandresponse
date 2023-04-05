@@ -1,18 +1,36 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { SimulationManagerService } from '../simulation-manager.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SharedService {
 
-  private currentPage = new BehaviorSubject(1);
+  public currentPage = new BehaviorSubject(1);
   currentPageCount = this.currentPage.asObservable();
 
   private precisionValueSelected = new BehaviorSubject(0.5);
   currentPrecisionValue = this.precisionValueSelected.asObservable();
 
+  private squareNb = new BehaviorSubject(100);
+  squareNbValue = this.squareNb.asObservable();
+
+  columnWidths = new BehaviorSubject(`repeat(10, ${100/10}%)`);
+  columnWidthsValue = this.columnWidths.asObservable();
+
+  rowHeights = new BehaviorSubject(`repeat(10, ${100/10}%)`);
+  rowHeightsValue = this.rowHeights.asObservable();
+
   constructor() { }
+
+
+  changeSquareNb(squareNb: number) {
+    this.squareNb.next(squareNb);
+    const nbSquarePerLine = Math.sqrt(this.squareNb.getValue());
+    this.columnWidths.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
+    this.rowHeights.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
+  }
 
   changeCount(currentPage: number) {
     this.currentPage.next(currentPage);
@@ -29,7 +47,6 @@ export class SharedService {
     const middleLowerBound = -middleUpperBound;
     const lowerBound = -upperBound;
     const boundRange = upperBound - middleUpperBound;
-
 
     if (data < lowerBound) {
       return "rgba(0, 0, 255, 100)";

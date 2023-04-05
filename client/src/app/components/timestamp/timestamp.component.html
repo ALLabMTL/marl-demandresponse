@@ -30,6 +30,7 @@
   >
     <mat-icon>stop</mat-icon>
   </button>
+
   <mat-slider
     class="example-margin"
     [disabled]="this.simulationManager.started"
@@ -46,6 +47,7 @@
       [(ngModel)]="this.simulationManager.currentTimeStep"
     />
   </mat-slider>
+
   <div class="speed">
     <form>
       <select

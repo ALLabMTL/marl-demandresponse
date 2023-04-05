@@ -232,7 +232,6 @@ class MADemandResponseEnv(MultiAgentEnv):
         temp_penalty_mode = self.default_env_prop["reward_prop"]["temp_penalty_mode"]
 
         if temp_penalty_mode == "individual_L2":
-
             house = self.cluster.houses[one_house_id]
             temperature_penalty = deadbandL2(
                 house.target_temp, house.deadband, house.current_temp
@@ -1262,4 +1261,3 @@ class PowerGrid:
         self.current_signal = np.minimum(self.current_signal, self.max_power)
 
         return self.current_signal
-

@@ -48,7 +48,6 @@ export class SocketCommunicationService {
     this.socketService.on('stopped', () => {
       this.simulationManager.started = false;
       this.simulationManager.stopped = true;
-      console.log('stop');
       this.snackBarService.openSuccessSnackBar('Simulation stopped', '');
     });
 
