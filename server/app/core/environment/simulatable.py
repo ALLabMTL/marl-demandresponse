@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import Type, TypeVar, TypedDict
 
 from pydantic import BaseModel
 
@@ -8,19 +8,18 @@ U = TypeVar("U")
 
 
 class Simulatable(ABC):
-    initial_properties: BaseModel
-    noise_properties: BaseModel
+    init_props: BaseModel
 
     @abstractmethod
-    def reset(self) -> dict:
+    def reset(self):
         pass
 
     @abstractmethod
-    def step(self, *args, **kwargs) -> dict:
+    def step(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def get_obs(self) -> dict:
+    def get_obs(self):
         pass
 
     @abstractmethod

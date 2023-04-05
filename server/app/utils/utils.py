@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 
 
@@ -12,124 +13,86 @@ def deadbandL2(target, deadband, value):
     return deadband_L2
 
 
-# TODO: change this method to something better to nromalize state dict
-# maybe by making normalization in each class of the environment
-# (hvac, building, cluster...)
-def normStateDict(sDict, config_dict, returnDict=False):
-    default_house_prop = config_dict["default_house_prop"]
-    default_hvac_prop = config_dict["default_hvac_prop"]
-
-    default_env_prop = config_dict["default_env_prop"]
-    state_prop = default_env_prop["state_properties"]
-
-    result = {}
-
-    k_temp = ["indoor_temp", "mass_temp", "target_temp"]
-    k_div = ["cooling_capacity"]
-
-    if state_prop["thermal"]:
-        k_temp += ["OD_temp"]
-        k_div += [
-            "Ua",
-            "Cm",
-            "Ca",
-            "Hm",
-        ]
-
-    if state_prop["hvac"]:
-        k_div += [
-            "cop",
-            "latent_cooling_fraction",
-        ]
-
-    # k_lockdown = ['hvac_seconds_since_off', 'hvac_lockout_duration']
-    for k in k_temp:
-        # Assuming the temperatures will be between 15 to 30, centered around 20 -> between -1 and 2, centered around 0.
-        result[k] = (sDict[k] - 20) / 5
-    result["deadband"] = sDict["deadband"]
-
-    if state_prop["day"]:
-        day = sDict["datetime"].timetuple().tm_yday
-        result["sin_day"] = np.sin(day * 2 * np.pi / 365)
-        result["cos_day"] = np.cos(day * 2 * np.pi / 365)
-    if state_prop["hour"]:
-        hour = sDict["datetime"].hour
-        result["sin_hr"] = np.sin(hour * 2 * np.pi / 24)
-        result["cos_hr"] = np.cos(hour * 2 * np.pi / 24)
-
-    if state_prop["solar_gain"]:
-        result["solar_gain"] = sDict["solar_gain"] / 1000
-
-    for k in k_div:
-        if k in list(default_house_prop.keys()):
-            result[k] = sDict[k] / default_house_prop[k]
-        elif k in list(default_hvac_prop.keys()):
-            result[k] = sDict[k] / default_hvac_prop[k]
-        else:
-            raise Exception(f"Error Key Matching. {k}")
-    result["turned_on"] = 1 if sDict["turned_on"] else 0
-    result["lockout"] = 1 if sDict["lockout"] else 0
-
-    result["seconds_since_off"] = sDict["seconds_since_off"] / sDict["lockout_duration"]
-    result["lockout_duration"] = sDict["lockout_duration"] / sDict["lockout_duration"]
-
-    result["reg_signal"] = sDict["reg_signal"] / (
-        default_env_prop["reward_prop"]["norm_reg_sig"]
-        * default_env_prop["cluster_prop"]["nb_agents"]
-    )
-    result["cluster_hvac_power"] = sDict["cluster_hvac_power"] / (
-        default_env_prop["reward_prop"]["norm_reg_sig"]
-        * default_env_prop["cluster_prop"]["nb_agents"]
-    )
-
-    temp_messages = []
-    for message in sDict["message"]:
-        r_message = {}
-        r_message["current_temp_diff_to_target"] = (
-            message["current_temp_diff_to_target"] / 5
-        )  # Already a difference, only need to normalize like k_temps
-        r_message["hvac_seconds_since_off"] = (
-            message["hvac_seconds_since_off"] / sDict["lockout_duration"]
-        )
-        r_message["hvac_curr_consumption"] = (
-            message["hvac_curr_consumption"]
-            / default_env_prop["reward_prop"]["norm_reg_sig"]
-        )
-        r_message["hvac_max_consumption"] = (
-            message["hvac_max_consumption"]
-            / default_env_prop["reward_prop"]["norm_reg_sig"]
-        )
-
-        if config_dict["default_env_prop"]["message_properties"]["thermal"]:
-            r_message["Ua"] = message["house_Ua"] / default_house_prop["Ua"]
-            r_message["Cm"] = message["house_Cm"] / default_house_prop["Cm"]
-            r_message["Ca"] = message["house_Ca"] / default_house_prop["Ca"]
-            r_message["Hm"] = message["house_Hm"] / default_house_prop["Hm"]
-        if config_dict["default_env_prop"]["message_properties"]["hvac"]:
-            r_message["cop"] = message["cop"] / default_hvac_prop["COP"]
-            r_message["latent_cooling_fraction"] = (
-                message["latent_cooling_fraction"]
-                / default_hvac_prop["latent_cooling_fraction"]
-            )
-            r_message["cooling_capacity"] = (
-                message["cooling_capacity"] / default_hvac_prop["cooling_capacity"]
-            )
-        temp_messages.append(r_message)
-    if returnDict:
-        result["message"] = temp_messages
-
-    else:  # Flatten the dictionary in a single np_array
-        flat_messages = []
-        for message in temp_messages:
-            flat_message = list(message.values())
-            flat_messages = flat_messages + flat_message
-        result = np.array(list(result.values()) + flat_messages)
-
-    return result
-
-
 def sort_dict_keys(point, dict_keys):
     sorted_point = {}
     for key in dict_keys:
         sorted_point[key] = point[key]
     return sorted_point
+
+
+def compute_solar_gain(
+    date_time: datetime, window_area: float, shading_coeff: float
+) -> float:
+    """
+    Computes the solar gain, i.e. the heat transfer received from the sun through the windows.
+
+    Return:
+    solar_gain: float, direct solar radiation passing through the windows at a given moment in Watts
+
+    Parameters
+    date_time: datetime, current date and time
+
+    ---
+    Source and assumptions:
+    CIBSE. (2015). Environmental Design - CIBSE Guide A (8th Edition) - 5.9.7 Solar Cooling Load Tables. CIBSE.
+    Retrieved from https://app.knovel.com/hotlink/pdf/id:kt0114THK9/environmental-design/solar-cooling-load-tables
+    Table available: https://www.cibse.org/Knowledge/Guide-A-2015-Supplementary-Files/Chapter-5
+
+    Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
+
+    Based on the following assumptions.
+    - Latitude is 30. (The latitude of Austin in Texas is 30.266666)
+    - The SCL before 7:30 and after 17:30 is negligible for latitude 30.
+    - The windows are distributed perfectly evenly around the building.
+    - There are no horizontal windows, for example on the roof.
+    """
+
+    x = date_time.hour + date_time.minute / 60 - 7.5
+    if x < 0 or x > 10:
+        solar_cooling_load = 0
+    else:
+        y = date_time.month + date_time.day / 30 - 1
+        coeff = [
+            4.36579418e01,
+            1.58055357e02,
+            8.76635241e01,
+            -4.55944821e01,
+            3.24275366e00,
+            -4.56096472e-01,
+            -1.47795612e01,
+            4.68950855e00,
+            -3.73313090e01,
+            5.78827663e00,
+            1.04354810e00,
+            2.12969604e-02,
+            2.58881400e-03,
+            -5.11397219e-04,
+            1.56398008e-02,
+            -1.18302764e-01,
+            -2.71446436e-01,
+            -3.97855577e-02,
+        ]
+
+        solar_cooling_load = (
+            coeff[0]
+            + x * coeff[1]
+            + y * coeff[2]
+            + x**2 * coeff[3]
+            + x**2 * y * coeff[4]
+            + x**2 * y**2 * coeff[5]
+            + y**2 * coeff[6]
+            + x * y**2 * coeff[7]
+            + x * y * coeff[8]
+            + x**3 * coeff[9]
+            + y**3 * coeff[10]
+            + x**3 * y * coeff[11]
+            + x**3 * y**2 * coeff[12]
+            + x**3 * y**3 * coeff[13]
+            + x**2 * y**3 * coeff[14]
+            + x * y**3 * coeff[15]
+            + x**4 * coeff[16]
+            + y**4 * coeff[17]
+        )
+
+    solar_gain = window_area * shading_coeff * solar_cooling_load
+    return solar_gain

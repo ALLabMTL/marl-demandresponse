@@ -8,7 +8,7 @@ from copy import deepcopy
 import numpy as np
 from scipy.interpolate import interpn
 from app.core.environment.cluster.building import Building
-from app.core.environment.cluster.building_properties import BuildingProperties
+from app.core.environment.environment_properties import BuildingProperties
 from app.utils.utils import sort_dict_keys
 from app.core.environment.power_grid.power_grid_properties import BasePowerProperties
 
