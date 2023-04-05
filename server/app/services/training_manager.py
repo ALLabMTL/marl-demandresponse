@@ -64,12 +64,10 @@ class TrainingManager(Experiment):
 
     def __init__(
         self,
-        socket_manager_service: SocketManager,
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
     ) -> None:
         self.client_manager_service = client_manager_service
-        self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
 
