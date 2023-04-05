@@ -21,11 +21,37 @@ SECONDS_IN_DAY = SECONDS_IN_MINUTE * MINUTES_IN_HOUR * HOURS_IN_DAY
 
 
 class Environment:
+    """
+
+    The Environment class implements the environment for a building cluster and its power grid.
+    The environment provides an interface for simulating the operation of a building cluster with a power grid.
+
+    Attributes:
+        init_props (EnvironmentProperties): An object containing the initial properties of the environment.
+        cluster (Cluster): An object representing the cluster of buildings.
+        date_time (datetime): A datetime object representing the current date and time in the environment.
+        current_od_temp (float): A float representing the current outdoor temperature in the environment.
+        power_grid (PowerGrid): An object representing the power grid.
+        rewards_calculator (RewardsCalculator): An object representing the rewards calculator.
+
+    """
     def __init__(self, env_props: EnvironmentProperties) -> None:
+        """
+        Initialize a new instance of the Environment class with the provided environment properties.
+
+        Parameters:
+            env_props: EnvironmentProperties, the environment properties used to initialize the Environment instance.
+        """
         self.init_props = deepcopy(env_props)
         self.reset()
 
     def reset(self) -> Dict[int, EnvironmentObsDict]:
+        """
+        Reset the Environment instance to its initial state.
+
+        Returns:
+            obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
+        """
         self.cluster = Cluster(self.init_props.cluster_prop)
         self.date_time = self.init_props.start_datetime
         self.apply_noise()
@@ -45,6 +71,17 @@ class Environment:
     def step(
         self, action_dict: Dict[int, bool]
     ) -> tuple[Dict[int, EnvironmentObsDict], Dict[int, float]]:
+        """
+        Advance the simulation one time step.
+
+        Parameters:
+            action_dict: Dict[int, bool], a dictionary of binary actions for each building in the cluster.
+
+        Returns:
+            - obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
+            - rewards_dict: Dict[int, float], a dictionary of reward values for each building in the cluster.
+
+        """
         # Step in time
         self.date_time += self.init_props.time_step
         # Cluster step
@@ -70,6 +107,13 @@ class Environment:
         return self.get_obs(), rewards_dict
 
     def get_obs(self) -> Dict[int, EnvironmentObsDict]:
+        """
+        Return the current observations of the Environment instance.
+
+        Returns:
+            obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
+
+        """
         obs_list: List[EnvironmentObsDict] = self.cluster.get_obs()
         obs_dict: Dict[int, EnvironmentObsDict] = {}
         for building_id, building in enumerate(obs_list):
@@ -85,16 +129,16 @@ class Environment:
         return obs_dict
 
     def compute_od_temp(self) -> None:
-        """Compute the outdoors temperature based on the time, according to a sinusoidal model and add a gaussian random factor.
-
-        Returns:
-        temperature: float, outdoors temperature, in Celsius.
+        """
+        Compute the outdoors temperature based on the time, according to a sinusoidal model and add a gaussian random factor.
 
         Parameters:
-        self
-        date_time: datetime, current date and time.
-
+            self
+             
+        Returns:
+            None
         """
+
         # Sinusoidal model
         amplitude = (
             self.init_props.temp_prop.day_temp - self.init_props.temp_prop.night_temp
@@ -114,10 +158,33 @@ class Environment:
         self.current_od_temp = temperature
 
     def apply_noise(self) -> None:
+        """
+        Apply noise to the environment by randomizing the start date and adding noise to the cluster.
+    
+        This method applies noise to the environment by calling the `randomize_date()` method to randomize the start date, and then calling the `apply_noise()` method of the `Cluster` object to add noise to the cluster.
+
+        Parameters:
+            self
+             
+        Returns:
+            None
+        """
         self.randomize_date()
         self.cluster.apply_noise()
 
     def randomize_date(self) -> None:
+        """
+        Randomize the start date of the environment based on the `start_datetime` and `start_datetime_mode` properties of the `EnvironmentProperties` object.
+    
+        If the `start_datetime_mode` property is set to "random", the start date is randomized by selecting a random number of days and seconds within the year and adding them to the `start_datetime` property. If the `start_datetime_mode` property is set to "fixed", the `start_datetime` property is left unchanged.
+
+        Parameters:
+            self
+             
+        Returns:
+            None
+
+        """
         if self.init_props.start_datetime_mode == "random":
             random_days = random.randrange(int(DAYS_IN_YEAR))
             random_seconds = random.randrange(int(SECONDS_IN_DAY))

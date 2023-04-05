@@ -87,8 +87,8 @@ export class SimulationManagerService {
     this.hvacStatus = " ";
     this.minValueSliderInit = -1;
     this.maxValueSliderInit = 1;
-    this.tempSelectRange = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
-    this.tempSelectRangeInput = { min: this.minValueSliderInit, max: this.maxValueSliderInit }
+    this.tempSelectRange = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
+    this.tempSelectRangeInput = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
 
     this.sortingOptionSelected = " ";
     this.hvacChosen = [];
