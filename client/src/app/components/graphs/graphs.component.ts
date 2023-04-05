@@ -34,7 +34,7 @@ export class GraphsComponent implements AfterViewInit {
       {
         //First graph
         const categories = ['Current consumption', 'Regulation signal'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -50,11 +50,11 @@ export class GraphsComponent implements AfterViewInit {
         );
         this.lineChartData.datasets = datasets;
         this.lineChartData.labels = Array.from(Array(data.length).keys());
-      };
+      }
       {
         //Second graph
         const categories = ['Average temperature error', 'Average temperature difference'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -70,11 +70,11 @@ export class GraphsComponent implements AfterViewInit {
         );
         this.lineChartData2.datasets = datasets;
         this.lineChartData2.labels = Array.from(Array(data.length).keys());
-      };
+      }
       {
         //Third graph
         const categories = ['Outdoor temperature', 'Mass temperature', 'Target temperature'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -90,7 +90,7 @@ export class GraphsComponent implements AfterViewInit {
         );
         this.lineChartData3.datasets = datasets;
         this.lineChartData3.labels = Array.from(Array(data.length).keys());
-      };
+      }
       // this.charts.forEach((e) => e.chart!.update("none"));
       this.chartOne.chart!.update('none');
       this.chartTwo.chart!.update('none');

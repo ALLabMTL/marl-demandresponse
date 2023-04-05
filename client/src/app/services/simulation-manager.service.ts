@@ -50,10 +50,10 @@ export class SimulationManagerService {
   isOffChecked: boolean;
   isLockoutChecked: boolean;
 
-  maxPage: number = 1;
-  housesPerPage: number = 100;
+  maxPage = 1;
+  housesPerPage = 100;
   pages: PageData[];
-  currentPage: number = 1;
+  currentPage = 1;
   nbSquares = 100;
 
   // houseData1: HouseData[];
