@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict, List, Tuple, Union
+from .socket_manager_service import SocketManager
 
 import numpy as np
 import pandas as pd
@@ -22,7 +23,8 @@ class ClientManagerService:
     data_frame: pd.DataFrame
     houses_data: Dict[int, List[Dict[str, Union[str, float]]]]
 
-    def __init__(self) -> None:
+    def __init__(self, socket_manager_service: SocketManager) -> None:
+        self.socket_manager_service = socket_manager_service
         self.initialize_data()
 
     def initialize_data(self) -> None:
@@ -166,3 +168,8 @@ class ClientManagerService:
                 obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
             )
         self.houses_data.update({time_step: houses_data})
+
+    async def get_state_at(self, time_step: int) -> None:
+        await self.socket_manager_service.emit("timeStepData", self.description[time_step])
+        await self.socket_manager_service.emit("houseChange", self.houses_data[time_step])
+                                               

@@ -165,7 +165,7 @@ def best_MPC_action(
         constraints,
     )
 
-    problem.solve(solver=cp.GUROBI, NodefileStart=0.5)
+    problem.solve(solver=cp.GUROBI, NodefileStart=0.5, verbose=True)
 
     os.remove(path)
     sys.stdout = sys.__stdout__
