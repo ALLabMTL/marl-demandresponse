@@ -1,6 +1,7 @@
+import datetime
 import random
 from time import sleep
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from app.config import config_dict
 from app.core.agents.controllers.bangbang_controllers import (
@@ -42,6 +43,26 @@ agents_dict = {
 
 
 class ControllerManager(Experiment):
+    env: Environment
+    nb_agents: int
+    obs_dict: Dict[int, List[Union[float, str, bool, datetime.datetime]]]
+    nb_episodes: int
+    nb_time_steps: int
+    nb_test_logs: int
+    nb_logs: int
+    start_stats_from: int
+    num_state: int
+    actor_name: str
+    agent: str
+    net_seed: int
+    time_steps_per_episode: int
+    time_steps_train_log: int
+    time_steps_test_log: int
+    actors: Dict[int, Controller]
+    stop: bool
+    pause: bool
+    speed: float
+
     def __init__(
         self,
         socket_manager_service: SocketManager,
@@ -60,6 +81,9 @@ class ControllerManager(Experiment):
         random.seed(1)
         self.env = Environment(self.parser_service.config.env_prop)
         self.nb_agents = self.env.cluster.nb_agents
+        self.agent_name: str = self.parser_service.config.controller_props.agent
+        self.nb_time_steps = self.parser_service.config.controller_props.nb_time_steps
+        self.pause = False
         self.speed = 2.0
         self.obs_dict = self.env._reset()
         self.num_state = len(
@@ -110,18 +134,26 @@ class ControllerManager(Experiment):
 
         self.initialize()
         self.client_manager_service.initialize_data()
-
+        await self.socket_manager_service.emit("agent", self.agent_name)
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
         )
         self.obs_dict = self.env._reset()
 
-        for step in range(self.static_props.nb_time_steps):
+        for step in range(self.nb_time_steps):
+            if self.pause:
+                logger.debug("simulation paused")
+                await self.socket_manager_service.emit("paused", {})
+                await self.socket_manager_service.sleep(0)
+                while(True):
+                    if(not self.pause or self.stop):
+                        await self.socket_manager_service.sleep(0)
+                        break
+            
             if self.stop:
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
                 break
-
             (
                 data_messages,
                 houses_messages,

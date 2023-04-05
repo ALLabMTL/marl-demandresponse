@@ -10,6 +10,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
+from app.utils.utils import normStateDict
+from app.config import config_dict
 
 from app.config import config_dict
 from app.core.agents.ppo import PPOProperties

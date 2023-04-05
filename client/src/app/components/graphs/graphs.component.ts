@@ -17,16 +17,16 @@ export class GraphsComponent implements AfterViewInit {
   }
 
   @ViewChildren(BaseChartDirective) // Works, gets all charts.
-  charts!: QueryList<BaseChartDirective>
+  charts!: QueryList<BaseChartDirective>;
 
   @ViewChild("aaa", { static: false }) // Works?
-  chartOne!: BaseChartDirective
+  chartOne!: BaseChartDirective;
 
   @ViewChild("bbb", { static: false }) // Doesn't work? Takes in the first lineChart instead?
-  chartTwo!: BaseChartDirective
+  chartTwo!: BaseChartDirective;
 
   @ViewChild("ccc", { static: false }) // Doesn't work? Takes in the first lineChart instead?
-  chartThree!: BaseChartDirective
+  chartThree!: BaseChartDirective;
 
   ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
@@ -34,7 +34,7 @@ export class GraphsComponent implements AfterViewInit {
       {
         //First graph
         const categories = ['Current consumption', 'Regulation signal'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -45,16 +45,16 @@ export class GraphsComponent implements AfterViewInit {
             pointBackgroundColor: 'black',
             pointRadius: 0,
             pointHoverRadius: 15,
-          }
+          };
         }
         );
         this.lineChartData.datasets = datasets;
         this.lineChartData.labels = Array.from(Array(data.length).keys());
-      };
+      }
       {
         //Second graph
         const categories = ['Average temperature error', 'Average temperature difference'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -65,16 +65,16 @@ export class GraphsComponent implements AfterViewInit {
             pointBackgroundColor: 'black',
             pointRadius: 0,
             pointHoverRadius: 15,
-          }
+          };
         }
         );
         this.lineChartData2.datasets = datasets;
         this.lineChartData2.labels = Array.from(Array(data.length).keys());
-      };
+      }
       {
         //Third graph
         const categories = ['Outdoor temperature', 'Mass temperature', 'Target temperature'];
-        let datasets = categories.map((category) => {
+        const datasets = categories.map((category) => {
           return {
             data: data.map((elem) => Number(elem[category])),
             label: category,
@@ -85,18 +85,18 @@ export class GraphsComponent implements AfterViewInit {
             pointBackgroundColor: 'black',
             pointRadius: 0,
             pointHoverRadius: 15,
-          }
+          };
         }
         );
         this.lineChartData3.datasets = datasets;
         this.lineChartData3.labels = Array.from(Array(data.length).keys());
-      };
+      }
       // this.charts.forEach((e) => e.chart!.update("none"));
       this.chartOne.chart!.update('none');
       this.chartTwo.chart!.update('none');
       this.chartThree.chart!.update('none');
       //this.lineChart.chart!.update('none');
-    })
+    });
   }
 
   //First Graph
@@ -186,6 +186,6 @@ export class GraphsComponent implements AfterViewInit {
     // is used to get a reference to the chart object at the specified index. .chart as 
     // any is used to cast the chart object to any type, which allows accessing the resetZoom() method.
     // The resetZoom() method is then called to reset the zoom level of the chart.
-    (this.charts.get(index)!.chart as any).resetZoom()
+    (this.charts.get(index)!.chart as any).resetZoom();
   }
 }
