@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, List
+from typing import List
 
 import numpy as np
 import pydantic

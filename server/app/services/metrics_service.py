@@ -1,6 +1,6 @@
 from cmath import nan
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 import numpy as np
 

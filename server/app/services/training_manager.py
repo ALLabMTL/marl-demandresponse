@@ -5,7 +5,6 @@ from time import sleep
 from typing import Dict, List, Tuple
 
 import numpy as np
-from app.core.agents.trainables.trainable import Trainable
 import torch
 
 from app.core.agents.trainables.ddpg import DDPG
@@ -23,7 +22,6 @@ from app.utils.logger import logger
 from app.utils.norm import norm_state_dict
 
 from .client_manager_service import ClientManagerService
-from .socket_manager_service import SocketManager
 
 agents_dict: Dict[str, Tuple[Trainable, str]] = {
     "PPO": (PPO, "PPO_prop"),

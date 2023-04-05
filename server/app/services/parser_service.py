@@ -1,8 +1,3 @@
-import enum
-import json
-import pathlib
-from typing import List, Literal, Union
-from app.utils.logger import logger
 from pydantic import BaseModel, Field
 
 from app.core.agents.trainables.ddpg import DDPGProperties
@@ -11,6 +6,7 @@ from app.core.agents.trainables.mappo import MAPPOProperties
 from app.core.agents.trainables.ppo import PPOProperties
 from app.core.environment.environment_properties import EnvironmentProperties
 from app.services.simulation_properties import SimulationProperties
+from app.utils.logger import logger
 
 
 class MPCProperties(BaseModel):

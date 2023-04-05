@@ -2,7 +2,6 @@ from app.services.controller_manager import ControllerManager
 from app.services.experiment import Experiment
 from app.services.parser_service import ParserService
 from app.services.training_manager import TrainingManager
-
 from app.utils.logger import logger
 
 

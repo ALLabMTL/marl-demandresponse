@@ -1,9 +1,9 @@
 from dependency_injector.wiring import Provide, inject
+
+from app.services.client_manager_service import ClientManagerService
 from app.services.experiment_manager import ExperimentManager
 from app.services.socket_manager_service import SocketManager
-from app.services.experiment_manager import ExperimentManager
 from app.utils.logger import logger
-from app.services.client_manager_service import ClientManagerService
 
 
 @inject

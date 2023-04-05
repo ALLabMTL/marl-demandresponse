@@ -4,8 +4,6 @@ from typing import Dict, List
 import numpy as np
 from pydantic import BaseModel
 
-from app.core.environment.environment_properties import EnvironmentObsDict
-
 
 class Trainable(ABC):
     @abstractmethod

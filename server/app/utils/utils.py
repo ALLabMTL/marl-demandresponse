@@ -1,7 +1,5 @@
 from datetime import datetime
 
-import numpy as np
-
 
 def deadbandL2(target, deadband, value):
     if target + deadband / 2 < value:
