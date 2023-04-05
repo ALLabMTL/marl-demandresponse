@@ -6,4 +6,8 @@ from app.core.agents.controllers.bangbang_controllers import (
 )
 from app.core.agents.controllers.greedy_myopic_controller import GreedyMyopic
 from app.core.agents.controllers.mpc_controller import MPCController
-from app.core.agents.controllers.rl_controllers import DDPGAgent, DQNAgent, PPOAgent
+from app.core.agents.controllers.rl_controllers import (
+    DDPGController,
+    DQNController,
+    PPOController,
+)

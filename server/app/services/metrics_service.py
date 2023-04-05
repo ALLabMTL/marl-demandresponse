@@ -1,8 +1,10 @@
 from datetime import datetime
+from typing import Dict, List
 import numpy as np
 from cmath import nan
 from app.utils.logger import logger
 from app.services.wandb_service import WandbManager
+from app.core.environment.environment import EnvironmentObsDict
 
 
 class Metrics:
@@ -18,23 +20,27 @@ class Metrics:
         self.nb_time_steps = nb_time_steps
         self.start_stats_from = start_stats_from
         self.nb_agents = nb_agents
-        self.cumul_avg_reward = 0
-        self.cumul_temp_offset = 0
-        self.cumul_temp_error = 0
-        self.cumul_signal_offset = 0
-        self.cumul_signal_error = 0
-        self.cumul_squared_error_temp = 0
-        self.max_temp_error = 0
-        self.cumul_OD_temp = 0
-        self.cumul_signal = 0
-        self.cumul_cons = 0
-        self.cumul_squared_error_sig = 0
+        self.cumul_avg_reward = 0.0
+        self.cumul_temp_offset = 0.0
+        self.cumul_temp_error = 0.0
+        self.cumul_signal_offset = 0.0
+        self.cumul_signal_error = 0.0
+        self.cumul_squared_error_temp = 0.0
+        self.max_temp_error = 0.0
+        self.cumul_OD_temp = 0.0
+        self.cumul_signal = 0.0
+        self.cumul_cons = 0.0
+        self.cumul_squared_error_sig = 0.0
         self.rmse_sig_per_ag = nan
         self.rmse_temp = nan
         self.rms_max_error_temp = nan
 
     def update(
-        self, obs_dict: dict, next_obs_dict: dict, rewards_dict: dict, time_step: int
+        self,
+        obs_dict: Dict[int, EnvironmentObsDict],
+        next_obs_dict: Dict[int, EnvironmentObsDict],
+        rewards_dict: dict,
+        time_step: int,
     ) -> None:
         for k in range(self.nb_agents):
             temp_error = (
@@ -65,17 +71,6 @@ class Metrics:
             self.cumul_squared_max_error_temp = self.max_temp_error**2
 
     def log(self, time_step: int, time_steps_log: int, time: datetime):
-        mean_avg_return = self.cumul_avg_reward / time_steps_log
-        mean_temp_offset = self.cumul_temp_offset / time_steps_log
-        mean_temp_error = self.cumul_temp_error / time_steps_log
-        mean_signal_offset = self.cumul_signal_offset / time_steps_log
-        mean_signal_error = self.cumul_signal_error / time_steps_log
-        mean_OD_temp = self.cumul_OD_temp / time_steps_log
-        mean_signal = self.cumul_signal / time_steps_log
-        mean_consumption = self.cumul_cons / time_steps_log
-
-        self.update_rms(time_step)
-
         if time_step >= self.start_stats_from:
             self.update_rms(time_step)
         else:
@@ -84,14 +79,14 @@ class Metrics:
             self.rms_max_error_temp = nan
 
         metrics = {
-            "Mean train return": mean_avg_return,
-            "Mean temperature offset": mean_temp_offset,
-            "Mean temperature error": mean_temp_error,
-            "Mean signal error": mean_signal_error,
-            "Mean signal offset": mean_signal_offset,
-            "Mean outside temperature": mean_OD_temp,
-            "Mean signal": mean_signal,
-            "Mean consumption": mean_consumption,
+            "Mean train return": self.cumul_avg_reward / time_steps_log,
+            "Mean temperature offset": self.cumul_temp_offset / time_steps_log,
+            "Mean temperature error": self.cumul_temp_error / time_steps_log,
+            "Mean signal error": self.cumul_signal_offset / time_steps_log,
+            "Mean signal offset": self.cumul_signal_offset / time_steps_log,
+            "Mean outside temperature": self.cumul_OD_temp / time_steps_log,
+            "Mean signal": self.cumul_signal / time_steps_log,
+            "Mean consumption": self.cumul_cons / time_steps_log,
             "Time (hour)": time.hour,
             "Time step": time_step,
         }

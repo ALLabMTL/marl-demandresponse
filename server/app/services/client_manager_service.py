@@ -1,10 +1,25 @@
-from datetime import datetime
-from typing import Dict, List, Tuple, Union
+import json
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 
-GRAPH_MEMORY = 5000
+from app.services.socket_manager_service import SocketManager
+from app.utils.logger import logger
+from app.core.environment.environment import EnvironmentObsDict
+
+
+DESCRIPTION_KEYS = [
+    "Number of HVAC",
+    "Number of locked HVAC",
+    "Outdoor temperature",
+    "Average indoor temperature",
+    "Average temperature difference",
+    "Regulation signal",
+    "Current consumption",
+    "Consumption error (%)",
+    "RMSE",
+]
 
 
 class ClientManagerService:
@@ -20,12 +35,60 @@ class ClientManagerService:
     recent_signal: np.ndarray
     recent_consumption: np.ndarray
     data_frame: pd.DataFrame
-    houses_data: Dict[int, List[Dict[str, Union[str, float]]]]
+    houses_data: Dict[int, EnvironmentObsDict]
 
-    def __init__(self) -> None:
-        self.initialize_data()
+    @property
+    def description_values(self) -> list:
+        values = [
+            str(self.data_frame.shape[0]),
+            str(
+                np.where(
+                    self.data_frame["lockout"],
+                    1,
+                    0,
+                ).sum()
+            ),
+            str(round(self.data_frame["OD_temp"][0], 2)),
+            str(round(self.data_frame["indoor_temp"].mean(), 2)),
+            str(round(self.data_frame["temperature_difference"].mean(), 2)),
+            str(self.data_frame["reg_signal"][0]),
+            str(self.data_frame["cluster_hvac_power"][0]),
+            str(
+                (
+                    self.data_frame["reg_signal"][0]
+                    - self.data_frame["cluster_hvac_power"][0]
+                )
+                / self.data_frame["reg_signal"][0]
+                * 100
+            ),
+            str(
+                np.sqrt(
+                    np.mean(
+                        (
+                            self.signal[-len(self.signal) :]
+                            - self.consumption[-len(self.consumption) :]
+                        )
+                        ** 2
+                    )
+                )
+            ),
+            str(
+                np.mean(
+                    self.signal[-len(self.signal) :]
+                    - self.consumption[-len(self.consumption) :]
+                )
+            ),
+        ]
+        return values
 
-    def initialize_data(self) -> None:
+    def __init__(
+        self,
+        socket_manager_service: SocketManager,
+    ) -> None:
+        self.socket_manager = socket_manager_service
+
+    def initialize_data(self, interface: bool) -> None:
+        self.interface = interface
         self.description = {}
         self.temp_diff = np.array([])
         self.temp_err = np.array([])
@@ -40,11 +103,11 @@ class ClientManagerService:
         self.data_frame = pd.DataFrame()
         self.houses_data = {}
 
-    def update_data(
+    async def update_data(
         self,
-        obs_dict: Dict[int, List[Union[float, str, bool, datetime]]],
+        obs_dict: Dict[int, EnvironmentObsDict],
         time_step: int,
-    ) -> Tuple[Dict[str, str], List[Dict[str, Union[str, float]]]]:
+    ) -> None:
         self.data_frame = pd.DataFrame(obs_dict).transpose()
         self.data_frame["temperature_difference"] = (
             self.data_frame["indoor_temp"] - self.data_frame["target_temp"]
@@ -55,7 +118,14 @@ class ClientManagerService:
         self.update_graph_data()
         self.update_desc_data(time_step)
         self.update_houses_data(obs_dict, time_step)
-        return self.description[time_step], self.houses_data[time_step]
+        await self.log(
+            emit=True, endpoint="houseChange", data=self.houses_data[time_step]
+        )
+        await self.log(
+            emit=True,
+            endpoint="dataChange",
+            data=self.description[time_step],
+        )
 
     def update_graph_data(self) -> None:
         self.temp_diff = np.append(
@@ -76,64 +146,17 @@ class ClientManagerService:
         self.consumption = np.append(
             self.consumption, self.data_frame["cluster_hvac_power"][0]
         )
-        # We probably wont need this since graphs are made in client side
-        self.recent_signal = self.signal[max(-50, -len(self.signal)) :]
-        self.recent_consumption = self.consumption[max(-50, -len(self.consumption)) :]
 
     def update_desc_data(self, time_step: int) -> None:
-        # TODO: refactor this
-        description = {}
-        description["Number of HVAC"] = str(self.data_frame.shape[0])
-        description["Number of locked HVAC"] = str(
-            np.where(
-                self.data_frame["lockout"] & (self.data_frame["turned_on"] == False),
-                1,
-                0,
-            ).sum()
-        )
-        description["Outdoor temperature"] = (
-            str(round(self.data_frame["OD_temp"][0], 2)) + " °C"
-        )
-        description["Average indoor temperature"] = (
-            str(round(self.data_frame["indoor_temp"].mean(), 2)) + " °C"
-        )
-        description["Average temperature difference"] = (
-            str(round(self.data_frame["temperature_difference"].mean(), 2)) + " °C"
-        )
-        description["Regulation signal"] = str(self.data_frame["reg_signal"][0])
-        description["Current consumption"] = str(
-            self.data_frame["cluster_hvac_power"][0]
-        )
-        description["Consumption error (%)"] = "{:.3f}%".format(
-            (
-                self.data_frame["reg_signal"][0]
-                - self.data_frame["cluster_hvac_power"][0]
-            )
-            / self.data_frame["reg_signal"][0]
-            * 100
-        )
-        description["RMSE"] = "{:.0f}".format(
-            np.sqrt(
-                np.mean(
-                    (
-                        self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                        - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
-                    )
-                    ** 2
-                )
-            )
-        )
-        description["Cumulative average offset"] = "{:.0f}".format(
-            np.mean(
-                self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
-            )
-        )
+        description = dict(zip(DESCRIPTION_KEYS, self.description_values))
         self.description.update({time_step: description})
 
-    def update_houses_data(self, obs_dict: dict, time_step: int) -> None:
+    def update_houses_data(
+        self, obs_dict: Dict[int, EnvironmentObsDict], time_step: int
+    ) -> None:
         houses_data = []
-        for house_id in obs_dict.keys():
+
+        for house_id, _ in enumerate(obs_dict):
             houses_data.append({"id": house_id})
             if obs_dict[house_id]["turned_on"]:
                 houses_data[house_id].update({"hvacStatus": "ON"})
@@ -158,3 +181,15 @@ class ClientManagerService:
                 obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
             )
         self.houses_data.update({time_step: houses_data})
+
+    async def log(
+        self,
+        text: str = "",
+        emit: bool = False,
+        endpoint: str = "",
+        data: Any = {},
+    ) -> None:
+        if self.interface and emit and endpoint != "":
+            await self.socket_manager.emit(endpoint, data)
+        if text != "":
+            logger.info(text)
