@@ -1,6 +1,6 @@
 import os
 from collections import namedtuple
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import numpy as np
 import pydantic
@@ -10,12 +10,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-
-from app.config import config_dict
 from app.core.agents.trainables.network import Actor, Critic
 from app.core.agents.trainables.trainable import Trainable
 from app.utils.logger import logger
-from app.utils.utils import normStateDict
 
 
 class PPOProperties(pydantic.BaseModel):
@@ -68,9 +65,12 @@ Transition = namedtuple(
 
 
 class PPO(Trainable):
-    def __init__(self, config_dict: dict, num_state=22, num_action=2, seed=1) -> None:
-        super(PPO, self).__init__()
+    def __init__(
+        self, config: PPOProperties, num_state=22, num_action=2, seed=1
+    ) -> None:
         self.seed = seed
+        self.last_actions: Dict[int, bool] = {}
+        self.last_probs: Dict[int, float] = {}
         torch.manual_seed(self.seed)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -80,21 +80,21 @@ class PPO(Trainable):
         self.actor_net = Actor(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["PPO_prop"]["actor_layers"],
+            layers=config.actor_layers,
         ).to(self.device)
-        self.critic_net = Critic(
-            num_state=num_state, layers=config_dict["PPO_prop"]["critic_layers"]
-        ).to(self.device)
+        self.critic_net = Critic(num_state=num_state, layers=config.critic_layers).to(
+            self.device
+        )
         # TODO: change this static value (only for tests)
-        self.nb_agents = 256
-        self.batch_size = config_dict["PPO_prop"]["batch_size"]
-        self.ppo_update_time = config_dict["PPO_prop"]["ppo_update_time"]
-        self.max_grad_norm = config_dict["PPO_prop"]["max_grad_norm"]
-        self.clip_param = config_dict["PPO_prop"]["clip_param"]
-        self.gamma = config_dict["PPO_prop"]["gamma"]
-        self.lr_actor = config_dict["PPO_prop"]["lr_actor"]
-        self.lr_critic = config_dict["PPO_prop"]["lr_critic"]
-        self.zero_eoepisode_return = config_dict["PPO_prop"]["zero_eoepisode_return"]
+        self.nb_agents = num_action
+        self.batch_size = config.batch_size
+        self.ppo_update_time = config.ppo_update_time
+        self.max_grad_norm = config.max_grad_norm
+        self.clip_param = config.clip_param
+        self.gamma = config.gamma
+        self.lr_actor = config.lr_actor
+        self.lr_critic = config.lr_critic
+        self.zero_eoepisode_return = config.zero_eoepisode_return
 
         # Initialize buffer
         self.buffer: Dict[int, List[Transition]] = {}
@@ -119,14 +119,21 @@ class PPO(Trainable):
             self.critic_net.parameters(), self.lr_critic
         )
 
-    def select_action(self, obs_dict) -> Tuple[int, int]:
-        obs_dict = torch.from_numpy(obs_dict).float().unsqueeze(0).to(self.device)
-        with torch.no_grad():
-            # pylint: disable=not-callable
-            action_prob = self.actor_net(obs_dict)
-        c = Categorical(action_prob.cpu())
-        action = c.sample()
-        return action.item(), action_prob[:, action.item()].item()
+    def select_actions(self, observations: List[np.ndarray]) -> Dict[int, bool]:
+        actions: Dict[int, bool] = {}
+        probs: Dict[int, float] = {}
+        for obs_id, obs in enumerate(observations):
+            state = torch.from_numpy(obs).float().unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                # pylint: disable=not-callable
+                action_prob = self.actor_net(state)
+            c = Categorical(action_prob.cpu())
+            action = c.sample()
+            actions[obs_id] = action.item()
+            probs[obs_id] = action_prob[:, action.item()].item()
+        self.last_probs = probs
+        self.last_actions = actions
+        return actions
 
     def get_value(self, state):
         # state = torch.from_numpy(state)
@@ -143,26 +150,23 @@ class PPO(Trainable):
 
     def store_transition(
         self,
-        obs_dict: dict,
-        next_obs_dict: dict,
-        action: dict,
-        action_prob: dict,
-        rewards_dict: dict,
+        observations: List[np.ndarray],
+        next_observations: List[np.ndarray],
+        rewards: Dict[int, float],
         done: bool,
     ) -> None:
-        for agent_id in obs_dict.keys():
+        for agent in range(self.nb_agents):
             transition = Transition(
-                normStateDict(obs_dict[agent_id], config_dict),
-                action[agent_id],
-                action_prob[agent_id],
-                rewards_dict[agent_id],
-                normStateDict(next_obs_dict[agent_id], config_dict),
+                observations[agent],
+                self.last_actions[agent],
+                self.last_probs[agent],
+                rewards[agent],
+                next_observations[agent],
                 done,
             )
+            self.buffer[agent].append(transition)
 
-            self.buffer[agent_id].append(transition)
-
-    def update(self, t):
+    def update(self, t) -> None:
         if len(self.buffer[0]) < self.batch_size:
             return
         else:
@@ -187,22 +191,6 @@ class PPO(Trainable):
                 .to(self.device)
             )
             done = [t.done for t in sequential_buffer]
-
-        """
-        # Changed to accelerate process. UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray $
-
-        state = torch.tensor([t.state for t in sequential_buffer], dtype=torch.float) 
-        next_state = torch.tensor([t.next_state for t in sequential_buffer], dtype=torch.float)
-        action = torch.tensor([t.action for t in sequential_buffer], dtype=torch.long).view(-1, 1) 
-        reward = [t.reward for t in sequential_buffer] 
-
-        old_action_log_prob = torch.tensor( 
-            [t.a_log_prob for t in sequential_buffer], dtype=torch.float 
-        ).view(-1, 1) 
-        done = [t.done for t in sequential_buffer] 
-        
-        """
-
         Gt = []
         for i in reversed(range(len(reward))):
             if done[i]:

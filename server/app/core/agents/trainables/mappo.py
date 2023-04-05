@@ -1,7 +1,7 @@
 from collections import namedtuple
 from copy import deepcopy
 import os
-from typing import List
+from typing import Dict, List
 import numpy as np
 import torch
 import torch.nn as nn
@@ -9,9 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
-from app.utils.utils import normStateDict
-from app.config import config_dict
-from app.core.agents.ppo import PPOProperties
+from app.core.agents.trainables.ppo import PPOProperties
 from app.core.agents.trainables.network import Actor, Critic
 from app.core.agents.trainables.trainable import Trainable
 
@@ -36,32 +34,31 @@ Transition = namedtuple(
 
 class MAPPO(Trainable):
     def __init__(
-        self, config_dict, opt, num_state=22, num_action=2, seed=1, wandb_run=None
+        self, config: PPOProperties, num_state=22, num_action=2, seed=1
     ) -> None:
         super(MAPPO, self).__init__()
         self.seed = seed
         torch.manual_seed(self.seed)
-
+        self.last_actions: Dict[int, bool] = {}
+        self.last_probs: Dict[int, float] = {}
         self.actor_net = Actor(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["MAPPO_prop"]["actor_layers"],
+            layers=config.actor_layers,
         )
         self.critic_net = Critic(
-            num_state=num_state + opt.nb_agents - 1,
-            layers=config_dict["MAPPO_prop"]["critic_layers"],
+            num_state=num_state + num_action - 1,
+            layers=config.critic_layers,
         )
 
         self.buffer: List[Transition] = []
-        self.batch_size = config_dict["MAPPO_prop"]["batch_size"]
-        self.ppo_update_time = config_dict["MAPPO_prop"]["ppo_update_time"]
-        self.max_grad_norm = config_dict["MAPPO_prop"]["max_grad_norm"]
-        self.clip_param = config_dict["MAPPO_prop"]["clip_param"]
-        self.gamma = config_dict["MAPPO_prop"]["gamma"]
-        self.lr_actor = config_dict["MAPPO_prop"]["lr_actor"]
-        self.lr_critic = config_dict["MAPPO_prop"]["lr_critic"]
-        self.wandb_run = wandb_run
-        self.log_wandb = not opt.no_wandb
+        self.batch_size = config.batch_size
+        self.ppo_update_time = config.ppo_update_time
+        self.max_grad_norm = config.max_grad_norm
+        self.clip_param = config.clip_param
+        self.gamma = config.gamma
+        self.lr_actor = config.lr_actor
+        self.lr_critic = config.lr_critic
 
         print(
             "mappo_update_time: {}, max_grad_norm: {}, clip_param: {}, gamma: {}, batch_size: {}, lr_actor: {}, lr_critic: {}".format(
@@ -82,14 +79,21 @@ class MAPPO(Trainable):
             self.critic_net.parameters(), self.lr_critic
         )
 
-    def select_action(self, state):
-        state = torch.from_numpy(state).float().unsqueeze(0)
-        with torch.no_grad():
-            action_prob = self.actor_net(state)
-        # print(action_prob)
-        c = Categorical(action_prob)
-        action = c.sample()
-        return action.item(), action_prob[:, action.item()].item()
+    def select_actions(self, observations: List[np.ndarray]) -> Dict[int, bool]:
+        actions: Dict[int, bool] = {}
+        probs: Dict[int, float] = {}
+        for obs_id, obs in enumerate(observations):
+            tensor = torch.from_numpy(obs).float().unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                # pylint: disable=not-callable
+                action_prob = self.actor_net(tensor)
+            c = Categorical(action_prob.cpu())
+            action = c.sample()
+            actions[obs_id] = action.item()
+            probs[obs_id] = action_prob[:, action.item()].item()
+        self.last_probs = probs
+        self.last_actions = actions
+        return actions
 
     # def get_value(self, state):
     #    state = torch.from_numpy(state)
@@ -99,28 +103,26 @@ class MAPPO(Trainable):
 
     def store_transition(
         self,
-        obs_dict: dict,
-        next_obs_dict: dict,
-        action: dict,
-        action_prob: dict,
-        rewards_dict: dict,
+        observations: List[np.ndarray],
+        next_observations: List[np.ndarray],
+        rewards: Dict[int, float],
         done: bool,
     ) -> None:
-        for k in obs_dict.keys():
-            # Make list of actions other than for agent k
-            action_k = deepcopy(action)
-            action_k.pop(k)
+        for observation_id, next_observation in enumerate(next_observations):
+            action_k = deepcopy(self.last_actions[observation_id])
+            action_k.pop(observation_id)
             other_action_list = list(action_k.values())
-            # TODO: remove normStateDict and config_dict
+
             transition = Transition(
-                normStateDict(obs_dict[k], config_dict),
-                action[k],
+                observations[observation_id],
+                self.last_actions[observation_id],
                 other_action_list,
-                action_prob[k],
-                rewards_dict[k],
-                normStateDict(next_obs_dict[k], config_dict),
+                self.last_probs[observation_id],
+                rewards[observation_id],
+                next_observation,
                 done,
             )
+            self.buffer[observation_id].append(transition)
             self.buffer.append(transition)
             self.counter += 1
 
@@ -143,13 +145,13 @@ class MAPPO(Trainable):
             ).view(-1, 1)
             done = [t.done for t in self.buffer]
             R = 0
-            Gt = []
+            Gt: list = []
             for i in reversed(range(len(reward))):
                 if done[i]:
                     R = 0
                 R = reward[i] + self.gamma * R
                 Gt.insert(0, R)
-            Gt = torch.tensor(Gt, dtype=torch.float)
+            Gt_tensor = torch.tensor(Gt, dtype=torch.float)
             ratios = np.array([])
             clipped_ratios = np.array([])
             gradient_norms = np.array([])
@@ -165,7 +167,7 @@ class MAPPO(Trainable):
                             )
                         )
                     # with torch.no_grad():
-                    Gt_index = Gt[index].view(-1, 1)
+                    Gt_index = Gt_tensor[index].view(-1, 1)
 
                     V = self.critic_net(
                         torch.cat((state[index], others_actions[index]), dim=1)
@@ -211,62 +213,6 @@ class MAPPO(Trainable):
                     )
                     self.critic_net_optimizer.step()
                     self.training_step += 1
-
-            if self.log_wandb:
-                max_ratio = np.max(ratios)
-                mean_ratio = np.mean(ratios)
-                median_ratio = np.median(ratios)
-                min_ratio = np.min(ratios)
-                per95_ratio = np.percentile(ratios, 95)
-                per75_ratio = np.percentile(ratios, 75)
-                per25_ratio = np.percentile(ratios, 25)
-                per5_ratio = np.percentile(ratios, 5)
-                max_cl_ratio = np.max(clipped_ratios)
-                mean_cl_ratio = np.mean(clipped_ratios)
-                median_cl_ratio = np.median(clipped_ratios)
-                min_cl_ratio = np.min(clipped_ratios)
-                per95_cl_ratio = np.percentile(clipped_ratios, 95)
-                per75_cl_ratio = np.percentile(clipped_ratios, 75)
-                per25_cl_ratio = np.percentile(clipped_ratios, 25)
-                per5_cl_ratio = np.percentile(clipped_ratios, 5)
-                max_gradient_norm = np.max(gradient_norms)
-                mean_gradient_norm = np.mean(gradient_norms)
-                median_gradient_norm = np.median(gradient_norms)
-                min_gradient_norm = np.min(gradient_norms)
-                per95_gradient_norm = np.percentile(gradient_norms, 95)
-                per75_gradient_norm = np.percentile(gradient_norms, 75)
-                per25_gradient_norm = np.percentile(gradient_norms, 25)
-                per5_gradient_norm = np.percentile(gradient_norms, 5)
-
-                self.wandb_run.log(
-                    {
-                        "MAPPO max ratio": max_ratio,
-                        "MAPPO mean ratio": mean_ratio,
-                        "MAPPO median ratio": median_ratio,
-                        "MAPPO min ratio": min_ratio,
-                        "MAPPO ratio 95 percentile": per95_ratio,
-                        "MAPPO ratio 5 percentile": per5_ratio,
-                        "MAPPO ratio 75 percentile": per75_ratio,
-                        "MAPPO ratio 25 percentile": per25_ratio,
-                        "MAPPO max clipped ratio": max_cl_ratio,
-                        "MAPPO mean clipped ratio": mean_cl_ratio,
-                        "MAPPO median clipped ratio": median_cl_ratio,
-                        "MAPPO min clipped ratio": min_cl_ratio,
-                        "MAPPO clipped ratio 95 percentile": per95_cl_ratio,
-                        "MAPPO clipped ratio 5 percentile": per5_cl_ratio,
-                        "MAPPO clipped ratio 75 percentile": per75_cl_ratio,
-                        "MAPPO clipped ratio 25 percentile": per25_cl_ratio,
-                        "MAPPO max gradient norm": max_gradient_norm,
-                        "MAPPO mean gradient norm": mean_gradient_norm,
-                        "MAPPO median gradient norm": median_gradient_norm,
-                        "MAPPO min gradient norm": min_gradient_norm,
-                        "MAPPO gradient norm 95 percentile": per95_gradient_norm,
-                        "MAPPO gradient norm 5 percentile": per5_gradient_norm,
-                        "MAPPO gradient norm 75 percentile": per75_gradient_norm,
-                        "MAPPO gradient norm 25 percentile": per25_gradient_norm,
-                        "Training steps": t,
-                    }
-                )
 
             del self.buffer[:]  # clear experience
 
