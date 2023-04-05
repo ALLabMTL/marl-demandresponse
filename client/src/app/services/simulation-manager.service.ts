@@ -12,9 +12,13 @@ interface PageData {
   providedIn: 'root',
 })
 export class SimulationManagerService {
+
+  sidenavData: SidenavData[];
+  sidenavObservable: Subject<SidenavData[]> = new Subject<SidenavData[]>();
+
   agentName: string;
-  // propertyNames: string[];
-  // propertyValues: string[];
+  propertyNames: string[];
+  propertyValues: string[];
   housesData: HouseData[];
   houseDataFiltered: HouseData[];
   originalHousesData: HouseData[];
@@ -59,9 +63,9 @@ export class SimulationManagerService {
     this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
 
-      // this.sidenavData = [];
-      // this.propertyNames = [];
-      // this.propertyValues = [];
+      this.sidenavData = [];
+      this.propertyNames = [];
+      this.propertyValues = [];
       this.housesData = [];
 
       this.started = true;
@@ -101,9 +105,14 @@ export class SimulationManagerService {
   }
 
   addTimeStep(data: SidenavData): void {
+    this.sidenavData.push(data);
+    this.sidenavObservable.next(this.sidenavData);
+    this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
+    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1]);
+
     this.nbTimeSteps++;
     this.currentTimeStep = this.nbTimeSteps;
-    // this.setTimeStep(data);
+    this.setTimeStep(data);
   }
 
   updateHousesData(data: HouseData[]): void {
@@ -146,10 +155,10 @@ export class SimulationManagerService {
 
   }
 
-  // setTimeStep(data: SidenavData): void {
-  //   this.propertyNames = Object.getOwnPropertyNames(data);
-  //   this.propertyValues = Object.values(data);
-  // }
+  setTimeStep(data: SidenavData): void {
+    this.propertyNames = Object.getOwnPropertyNames(data);
+    this.propertyValues = Object.values(data);
+  }
 
   reset(): void {
     this.started = true;
