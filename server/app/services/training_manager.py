@@ -6,6 +6,7 @@ from time import sleep
 from typing import Dict, List, Union
 
 import numpy as np
+from app.core.agents.trainables.trainable import Trainable
 import torch
 
 from app.config import config_dict
@@ -24,7 +25,25 @@ from .socket_manager_service import SocketManager
 class TrainingManager(Experiment):
     env: Environment
     obs_dict: Dict[int, List[Union[float, str, bool, datetime]]]
+    nb_time_steps: int
+    nb_agents: int
+    nb_test_logs: int
+    nb_tr_logs: int
+    nb_tr_epochs: int
+    nb_time_steps_test: int
+    agent: Trainable
+    num_state: int
+    metrics: Metrics
+    time_steps_per_episode: int
+    time_steps_per_epoch: int
+    time_steps_train_log: int
+    time_steps_test_log: int
+    save_actor_name: str
+    speed: float
+    time_steps_per_saving_actor: int
+    agent_name: str
     stop: bool
+    pause: bool
 
     def __init__(
         self,
@@ -37,6 +56,8 @@ class TrainingManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
+
         self.static_config = parser_service.config
         self.initialize(parser_service.config)
 
@@ -73,9 +94,9 @@ class TrainingManager(Experiment):
             "success", {"message": "Initializing environment..."}
         )
 
-        self.initialize(self.static_config)
+        self.initialize()
         self.client_manager_service.initialize_data()
-
+        await self.socket_manager_service.emit("agent", self.agent_name)
         await self.socket_manager_service.emit(
             "success", {"message": "Starting simulation"}
         )
@@ -86,7 +107,15 @@ class TrainingManager(Experiment):
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
                 break
+            
+            if(self.pause):
+                await self.socket_manager_service.emit("paused", {})
 
+            while(True):
+                if(not self.pause):
+                    break
+
+            
             (
                 data_messages,
                 houses_messages,

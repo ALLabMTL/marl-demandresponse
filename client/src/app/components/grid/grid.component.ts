@@ -21,10 +21,10 @@ interface PageData {
 export class GridComponent implements OnInit {
 
   @Input() pages: PageData[];
-  currentPage: number = 1;
+  currentPage = 1;
   // maxPage: number = 1;
   // housesPerPage: number = 100;
-  precisionValueSelected: number = 0;
+  precisionValueSelected = 0;
   nbSquares = 100;
   nbSquarePerLine = Math.sqrt(this.nbSquares);
 
@@ -32,7 +32,7 @@ export class GridComponent implements OnInit {
   rowHeights = `repeat(10, ${100/10}%)`;
 
   constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
-    this.pages = []
+    this.pages = [];
   }
 
   ngOnInit() {

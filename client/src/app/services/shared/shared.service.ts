@@ -16,20 +16,18 @@ export class SharedService {
   private squareNb = new BehaviorSubject(100);
   squareNbValue = this.squareNb.asObservable();
 
-  columnWidths = new BehaviorSubject(`repeat(10, ${100/10}%)`);
+  columnWidths = new BehaviorSubject(`repeat(10, ${100 / 10}%)`);
   columnWidthsValue = this.columnWidths.asObservable();
 
-  rowHeights = new BehaviorSubject(`repeat(10, ${100/10}%)`);
+  rowHeights = new BehaviorSubject(`repeat(10, ${100 / 10}%)`);
   rowHeightsValue = this.rowHeights.asObservable();
-
-  constructor() { }
 
 
   changeSquareNb(squareNb: number) {
     this.squareNb.next(squareNb);
     const nbSquarePerLine = Math.sqrt(this.squareNb.getValue());
-    this.columnWidths.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
-    this.rowHeights.next(`repeat(${nbSquarePerLine}, ${100/nbSquarePerLine}%)`);
+    this.columnWidths.next(`repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`);
+    this.rowHeights.next(`repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`);
   }
 
   changeCount(currentPage: number) {
@@ -43,7 +41,7 @@ export class SharedService {
   houseColor(data: number) {
     const upperBound = this.precisionValueSelected.value;
     const middleUpperBound = upperBound / 2;
-    const center = 0
+    const center = 0;
     const middleLowerBound = -middleUpperBound;
     const lowerBound = -upperBound;
     const boundRange = upperBound - middleUpperBound;
