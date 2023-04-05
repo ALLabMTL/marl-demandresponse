@@ -8,9 +8,9 @@ from app.core.environment.power_grid.perlin import Perlin
 
 
 class SignalCalculator:
-    def __init__(self, signal_props: SignalProperties, nb_hvacs: int) -> None:
+    def __init__(self, signal_props: SignalProperties, nb_agents: int) -> None:
         self.signal_props = signal_props
-        self.nb_hvacs = nb_hvacs
+        self.nb_agents = nb_agents
         if signal_props.mode == "perlin":
             self.perlin = Perlin(
                 1,
@@ -20,16 +20,7 @@ class SignalCalculator:
                 random.random(),
             )
 
-    def compute_signal(self, base_power: float, date_time: datetime) -> float:
-        modes = {
-            "flat": self.flat_signal(base_power),
-            "sinusoidals": self.sinusoidals_signal(date_time, base_power),
-            "regular_steps": self.regular_steps_signal(date_time, base_power),
-            "perlin": self.perlin_signal(date_time, base_power),
-        }
-        return modes[self.signal_props.mode]
-
-    def flat_signal(self, base_power: float) -> float:
+    def flat_signal(self, date_time: datetime, base_power: float) -> float:
         return base_power
 
     def sinusoidals_signal(self, date_time: datetime, base_power: float) -> float:
@@ -57,7 +48,7 @@ class SignalCalculator:
 
     def regular_steps_signal(self, date_time: datetime, base_power: float) -> float:
         """Compute the outdoors temperature based on the time using pulse width modulation"""
-        amplitude = self.signal_props.amplitude_per_hvac * self.nb_hvacs
+        amplitude = self.signal_props.amplitude_per_hvac * self.nb_agents
         ratio = base_power / amplitude
 
         period = self.signal_props.period
@@ -69,7 +60,11 @@ class SignalCalculator:
         return signal
 
     def perlin_signal(self, date_time: datetime, base_power: float) -> float:
-        amplitude = self.signal_props.amplitude_ratios
+        amplitude = self.signal_props.amplitude_ratios[0]
         unix_time_stamp = time.mktime(date_time.timetuple()) % 86400
         perlin = self.perlin.calculate_noise(unix_time_stamp)
         return np.maximum(0, base_power + (base_power * amplitude * perlin))
+
+    def compute_signal(self, base_power: float, date_time: datetime) -> float:
+        mode = getattr(self, (self.signal_props.mode + "_signal"))
+        return mode(date_time, base_power)

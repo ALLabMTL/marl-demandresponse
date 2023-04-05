@@ -3,11 +3,20 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.core.environment.cluster.cluster_properties import TemperatureProperties
+from app.core.environment.cluster.cluster_properties import (
+    AgentsCommunicationProperties,
+    TemperatureProperties,
+)
+from app.core.environment.cluster.building_properties import BuildingProperties
+from app.core.environment.power_grid.power_grid_properties import (
+    PowerGridProperties,
+)
 
 
 class PenaltyProperties(BaseModel):
-    mode: str = "common_L2"
+    mode: Literal["common_L2", "individual_L2", "common_max_error", "mixture"] = Field(
+        default="individual_L2", description="Mode of temperature penalty"
+    )
     alpha_ind_l2: float = 1.0
     alpha_common_l2: float = 1.0
     alpha_common_max: float = 0.0
@@ -30,6 +39,10 @@ class RewardProperties(BaseModel):
         alias="norm_reg_sig",
     )
     penalty_props: PenaltyProperties = PenaltyProperties()
+    sig_penalty_mode: Literal["common_L2"] = Field(
+        default="common_L2",
+        description="Mode of signal penalty (only common_L2 available)",
+    )
 
 
 class StateProperties(BaseModel):
@@ -68,19 +81,6 @@ class Neighbours2D(BaseModel):
     )
 
 
-class ClusterPropreties(BaseModel):
-    temp_parameters: TemperatureProperties = TemperatureProperties()
-    nb_agents: int = Field(
-        default=10,
-        description="Number of agents in the cluster.",
-    )
-    nb_agents_comm: int = Field(
-        default=10,
-        description="Maximal number of houses a single house communicates with.",
-    )
-    agents_comm_parameters: Neighbours2D = Neighbours2D()
-
-
 class MessageProperties(BaseModel):
     """Properties of the message space."""
 
@@ -94,6 +94,21 @@ class MessageProperties(BaseModel):
     )
 
 
+class ClusterPropreties(BaseModel):
+    nb_agents: int = Field(
+        default=10,
+        description="Number of agents in the cluster.",
+    )
+    nb_agents_comm: int = Field(
+        default=10,
+        description="Maximal number of houses a single house communicates with.",
+    )
+    # TODO: make field
+    agents_comm_prop: AgentsCommunicationProperties = AgentsCommunicationProperties()
+    house_prop: BuildingProperties = BuildingProperties()
+    message_prop: MessageProperties = MessageProperties()
+
+
 class EnvironmentProperties(BaseModel):
     """Properties of the environment."""
 
@@ -101,9 +116,7 @@ class EnvironmentProperties(BaseModel):
         default=datetime.datetime(2021, 1, 1, 0, 0, 0),
         description="Start date and time (Y-m-d H:M:S).",
     )
-    start_datetime_mode: Literal[
-        "individual_L2", "common_L2", "common_max", "mixture"
-    ] = Field(
+    start_datetime_mode: Literal["fixed", "random"] = Field(
         default="fixed",
         description="Can be random (randomly chosen in the year after original start_datetime) or fixed (stays as the original start_datetime)",
     )
@@ -111,7 +124,9 @@ class EnvironmentProperties(BaseModel):
         default=datetime.timedelta(0, 4),
         description="How long a timestep should take (in seconds).",
     )
+
+    temp_prop: TemperatureProperties = TemperatureProperties()
     state_prop: StateProperties = StateProperties()
-    message_properties: MessageProperties = MessageProperties()
-    reward_properties: RewardProperties = RewardProperties()
+    reward_prop: RewardProperties = RewardProperties()
     cluster_prop: ClusterPropreties = ClusterPropreties()
+    power_grid_prop: PowerGridProperties = PowerGridProperties()

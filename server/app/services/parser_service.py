@@ -6,11 +6,6 @@ from app.core.agents.ddpg import DDPGProperties
 from app.core.agents.dqn import DQNProperties
 from app.core.agents.mappo import MAPPOProperties
 from app.core.agents.ppo import PPOProperties
-from app.core.environment.cluster.building_properties import (
-    BuildingNoiseProperties,
-    BuildingProperties,
-)
-from app.core.environment.cluster.hvac import HvacNoiseProperties, HvacProperties
 from app.core.environment.environment_properties import EnvironmentProperties
 from app.services.controller_propreties import ControllerPropreties
 
@@ -60,18 +55,14 @@ class CLIConfig(BaseModel):
 class MarlConfig(BaseModel):
     """Configuration for MARL environment."""
 
-    house_prop: BuildingProperties = BuildingProperties()
-    noise_house_prop: BuildingNoiseProperties = BuildingNoiseProperties()
-    hvac_prop: HvacProperties = HvacProperties()
-    noise_hvac_prop: HvacNoiseProperties = HvacNoiseProperties()
+    CLI_config: CLIConfig = CLIConfig()
+    controller_props: ControllerPropreties = ControllerPropreties()
     env_prop: EnvironmentProperties = EnvironmentProperties()
     PPO_prop: PPOProperties = PPOProperties()
     MAPPO_prop: MAPPOProperties = MAPPOProperties()
     DDPG_prop: DDPGProperties = DDPGProperties()
     DQN_prop: DQNProperties = DQNProperties()
     MPC_prop: MPCProperties = MPCProperties()
-    CLI_config: CLIConfig = CLIConfig()
-    controller_props: ControllerPropreties = ControllerPropreties()
 
 
 class ParserService:

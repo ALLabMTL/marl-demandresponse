@@ -12,15 +12,15 @@ class Simulatable(ABC):
     noise_properties: BaseModel
 
     @abstractmethod
-    def _reset(self) -> dict:
+    def reset(self) -> dict:
         pass
 
     @abstractmethod
-    def _step(self) -> dict:
+    def step(self, *args, **kwargs) -> dict:
         pass
 
     @abstractmethod
-    def _get_obs(self) -> dict:
+    def get_obs(self) -> dict:
         pass
 
     @abstractmethod

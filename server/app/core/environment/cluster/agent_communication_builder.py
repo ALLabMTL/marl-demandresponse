@@ -23,14 +23,8 @@ class AgentCommunicationBuilder:
         self.agent_ids = list(range(nb_agents))
 
     def get_comm_link_list(self) -> Dict[int, List[int]]:
-        mode = {
-            "neighbours": self.neighbours(),
-            "closed_groups": self.closed_groups(),
-            "random_sample": self.random_sample(),
-            "random_fixed": self.random_fixed(),
-            "neighbours_2D": self.neighbours_2D(),
-        }
-        return mode[self.agents_comm_props.mode]
+        mode = getattr(self, self.agents_comm_props.mode)
+        return mode()
 
     def neighbours(self) -> Dict[int, List[int]]:
         """

@@ -1,48 +1,42 @@
+from copy import deepcopy
 import random
 from datetime import datetime, timedelta
-from typing import Dict, List, Union
 import numpy as np
 
-from app.core.environment.cluster.building_properties import (
-    BuildingNoiseProperties,
-    BuildingProperties,
-)
 from app.core.environment.cluster.hvac import HVAC
 from app.core.environment.simulatable import Simulatable
+from app.utils.utils import compute_solar_gain
+from app.core.environment.environment_properties import (
+    EnvironmentObsDict,
+    BuildingMessage,
+    BuildingProperties,
+)
 
 
 class Building(Simulatable):
-    initial_properties: BuildingProperties
-    noise_properties: BuildingNoiseProperties
-    indoor_temp: float
+    init_props: BuildingProperties
     current_mass_temp: float
+    indoor_temp: float
+    hvac: HVAC
+    max_consumption: float
     current_solar_gain: float
-    hvacs: List[HVAC]
-    max_consumption: int
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._reset()
+    def __init__(self, building_props: BuildingProperties) -> None:
+        self.init_props = deepcopy(building_props)
+        self.reset()
 
-    def _reset(self) -> dict:
-        super()._reset()
-        # TODO: Initialize values with parser service
-        self.initial_properties = BuildingProperties()
-        self.noise_properties = BuildingNoiseProperties()
-        self.hvacs = list([HVAC()] * self.initial_properties.nb_hvacs)
-        self.max_consumption = 0
-        for hvac in self.hvacs:
-            self.max_consumption += hvac.max_consumption
-        self.current_solar_gain = 0
-        self.indoor_temp = self.initial_properties.init_air_temp
-        self.current_mass_temp = self.initial_properties.init_mass_temp
-        return self._get_obs()
+    def reset(self) -> EnvironmentObsDict:
+        self.hvac = HVAC(self.init_props.hvac_prop)
+        self.max_consumption = self.hvac.init_props.max_consumption
+        self.current_solar_gain = 0.0
+        self.current_mass_temp = self.init_props.init_mass_temp
+        self.indoor_temp = self.init_props.init_air_temp
+        return self.get_obs()
 
-    def _step(
+    def step(
         self, od_temp: float, time_step: timedelta, date_time: datetime, action: bool
     ) -> None:
-        """
-        Take a time step for the house
+        """Take a time step for the building.
 
         Return: -
 
@@ -52,50 +46,63 @@ class Building(Simulatable):
         time_step: timedelta, time step duration
         date_time: datetime, current date and time
         """
-        for hvac in self.hvacs:
-            hvac._step(action, time_step)
+        self.hvac.step(action, time_step)
         self.update_temperature(od_temp, time_step, date_time)
 
-    def _get_obs(self) -> dict:
-        # TODO: this doesnt work with multiple hvacs
-        state_dict = {}
-        for hvac in self.hvacs:
-            state_dict.update(hvac._get_obs())
-            state_dict.update(
-                self.initial_properties.dict(
-                    include={"target_temp", "deadband", "Ua", "Cm", "Ca", "Hm"}
-                )
-            )
-            state_dict.update(
-                {
-                    "indoor_temp": self.indoor_temp,
-                    "mass_temp": self.current_mass_temp,
-                    "solar_gain": self.current_solar_gain,
-                }
-            )
+    def get_obs(self) -> EnvironmentObsDict:
+        """Generate building observation dictionnary."""
+        state_dict: EnvironmentObsDict = self.hvac.get_obs()
+        state_dict.update(
+            {
+                "target_temp": self.init_props.target_temp,
+                "deadband": self.init_props.deadband,
+                "Ua": self.init_props.Ua,
+                "Ca": self.init_props.Ca,
+                "Cm": self.init_props.Cm,
+                "Hm": self.init_props.Hm,
+                "indoor_temp": self.indoor_temp,
+                "mass_temp": self.current_mass_temp,
+                "solar_gain": self.current_solar_gain,
+            }
+        )
         return state_dict
 
-    def message(self, thermal: bool, hvac: bool) -> Dict[str, Union[int, float]]:
-        """
-        Message sent by the house to other agents
-        """
-        # TODO: make this apply to all hvacs
-        message = self.hvacs[0].message(hvac)
+    def message(self, thermal_message: bool, hvac_message: bool) -> BuildingMessage:
+        """Message sent by the building to other agents."""
+        message: BuildingMessage = {
+            "seconds_since_off": self.hvac.seconds_since_off,
+            "curr_consumption": self.hvac.get_power_consumption(),
+            "max_consumption": self.hvac.init_props.max_consumption,
+            "lockout_duration": self.hvac.init_props.lockout_duration,
+            "current_temp_diff_to_target": self.indoor_temp
+            - self.init_props.target_temp,
+        }
 
-        if thermal:
+        if hvac_message:
             message.update(
-                self.initial_properties.dict(include={"Ua", "Ca", "Hm", "Cm"})
+                {
+                    "cop": self.hvac.init_props.cop,
+                    "latent_cooling_fraction": self.hvac.init_props.latent_cooling_fraction,
+                    "cooling_capacity": self.hvac.init_props.cooling_capacity,
+                }
+            )
+        if thermal_message:
+            message.update(
+                {
+                    "Ca": self.init_props.Ca,
+                    "Ua": self.init_props.Ua,
+                    "Cm": self.init_props.Cm,
+                    "Hm": self.init_props.Hm,
+                }
             )
         return message
 
     def update_temperature(
         self, od_temp: float, time_step: timedelta, date_time: datetime
     ) -> None:
-        """
-        Update the temperature of the house
+        """Update the temperature of the house.
 
         Return: -
-
         Parameters:
         self
         od_temp: float, current outdoors temperature in Celsius
@@ -109,10 +116,10 @@ class Building(Simulatable):
         # TODO: Make it prettier
         time_step_sec = time_step.seconds
         Hm, Ca, Ua, Cm = (
-            self.initial_properties.Hm,
-            self.initial_properties.Ca,
-            self.initial_properties.Ua,
-            self.initial_properties.Cm,
+            self.init_props.Hm,
+            self.init_props.Ca,
+            self.init_props.Ua,
+            self.init_props.Cm,
         )
 
         # Convert Celsius temperatures in Kelvin
@@ -121,13 +128,15 @@ class Building(Simulatable):
         current_mass_temp_K = self.current_mass_temp + 273
 
         # Heat from hvacs (negative if it is AC)
-        total_Qhvac = self.hvacs[0].get_Q()
+        total_Qhvac = self.hvac.get_heat_transfer()
 
         # Total heat addition to air
-        if self.initial_properties.solar_gain:
-            self.current_solar_gain = self.compute_solar_gain(date_time)
+        if self.init_props.solar_gain:
+            self.current_solar_gain = compute_solar_gain(
+                date_time, self.init_props.window_area, self.init_props.shading_coeff
+            )
         else:
-            self.current_solar_gain = 0
+            self.current_solar_gain = 0.0
 
         other_Qa = self.current_solar_gain  # windows, ...
         Qa = total_Qhvac + other_Qa
@@ -157,146 +166,64 @@ class Building(Simulatable):
         A4 = r2 * Ca / Hm + (Ua + Hm) / Hm
 
         # Updating the temperature
-        new_current_temp_K = (
+        new_current_temp_k = (
             A1 * np.exp(r1 * time_step_sec) + A2 * np.exp(r2 * time_step_sec) + d / c
         )
-        new_current_mass_temp_K = (
+        new_current_mass_temp_k = (
             A1 * A3 * np.exp(r1 * time_step_sec)
             + A2 * A4 * np.exp(r2 * time_step_sec)
             + g
             + d / c
         )
 
-        self.indoor_temp = new_current_temp_K - 273
-        self.current_mass_temp = new_current_mass_temp_K - 273
+        self.indoor_temp = new_current_temp_k - 273
+        self.current_mass_temp = new_current_mass_temp_k - 273
 
     def apply_noise(self) -> None:
+        """Applies noise to the initial building properties gave in config."""
         # TODO: make this prettier
         # Gaussian noise: target temp
-        self.initial_properties.init_air_temp += abs(
-            random.gauss(0, self.noise_properties.std_start_temp)
+        self.init_props.init_air_temp += abs(
+            random.gauss(0, self.init_props.noise_prop.std_start_temp)
         )
 
-        self.initial_properties.init_mass_temp += abs(
-            random.gauss(0, self.noise_properties.std_start_temp)
+        self.init_props.init_mass_temp += abs(
+            random.gauss(0, self.init_props.noise_prop.std_start_temp)
         )
-        self.initial_properties.target_temp += abs(
-            random.gauss(0, self.noise_properties.std_target_temp)
+        self.init_props.target_temp += abs(
+            random.gauss(0, self.init_props.noise_prop.std_target_temp)
         )
 
         # Factor noise: house wall conductance, house thermal mass, air thermal mass, house mass surface conductance
-        factor_Ua = random.triangular(
-            self.noise_properties.factor_thermo_low,
-            self.noise_properties.factor_thermo_high,
+        factor_ua = random.triangular(
+            self.init_props.noise_prop.factor_thermo_low,
+            self.init_props.noise_prop.factor_thermo_high,
             1,
         )  # low, high, mode ->  low <= N <= high, with max prob at mode.
-        self.initial_properties.Ua = factor_Ua
+        self.init_props.Ua = factor_ua
 
-        factor_Cm = random.triangular(
-            self.noise_properties.factor_thermo_low,
-            self.noise_properties.factor_thermo_high,
+        factor_cm = random.triangular(
+            self.init_props.noise_prop.factor_thermo_low,
+            self.init_props.noise_prop.factor_thermo_high,
             1,
         )  # low, high, mode ->  low <= N <= high, with max prob at mode.
-        self.initial_properties.Cm *= factor_Cm
+        self.init_props.Cm *= factor_cm
 
-        factor_Ca = random.triangular(
-            self.noise_properties.factor_thermo_low,
-            self.noise_properties.factor_thermo_high,
+        factor_ha = random.triangular(
+            self.init_props.noise_prop.factor_thermo_low,
+            self.init_props.noise_prop.factor_thermo_high,
             1,
         )  # low, high, mode ->  low <= N <= high, with max prob at mode.
-        self.initial_properties.Ca *= factor_Ca
+        self.init_props.Ca *= factor_ha
 
-        factor_Hm = random.triangular(
-            self.noise_properties.factor_thermo_low,
-            self.noise_properties.factor_thermo_high,
+        factor_hm = random.triangular(
+            self.init_props.noise_prop.factor_thermo_low,
+            self.init_props.noise_prop.factor_thermo_high,
             1,
         )  # low, high, mode ->  low <= N <= high, with max prob at mode.
-        self.initial_properties.Hm *= factor_Hm
+        self.init_props.Hm *= factor_hm
+        self.hvac.apply_noise()
 
-        for hvac in self.hvacs:
-            hvac.apply_noise()
-
-    def compute_solar_gain(self, date_time: datetime) -> float:
-        """
-        Computes the solar gain, i.e. the heat transfer received from the sun through the windows.
-
-        Return:
-        solar_gain: float, direct solar radiation passing through the windows at a given moment in Watts
-
-        Parameters
-        date_time: datetime, current date and time
-
-        ---
-        Source and assumptions:
-        CIBSE. (2015). Environmental Design - CIBSE Guide A (8th Edition) - 5.9.7 Solar Cooling Load Tables. CIBSE.
-        Retrieved from https://app.knovel.com/hotlink/pdf/id:kt0114THK9/environmental-design/solar-cooling-load-tables
-        Table available: https://www.cibse.org/Knowledge/Guide-A-2015-Supplementary-Files/Chapter-5
-
-        Coefficient obtained by performing a polynomial regression on the table "solar cooling load at stated sun time at latitude 30".
-
-        Based on the following assumptions.
-        - Latitude is 30. (The latitude of Austin in Texas is 30.266666)
-        - The SCL before 7:30 and after 17:30 is negligible for latitude 30.
-        - The windows are distributed perfectly evenly around the building.
-        - There are no horizontal windows, for example on the roof.
-        """
-
-        x = date_time.hour + date_time.minute / 60 - 7.5
-        if x < 0 or x > 10:
-            solar_cooling_load = 0
-        else:
-            y = date_time.month + date_time.day / 30 - 1
-            coeff = [
-                4.36579418e01,
-                1.58055357e02,
-                8.76635241e01,
-                -4.55944821e01,
-                3.24275366e00,
-                -4.56096472e-01,
-                -1.47795612e01,
-                4.68950855e00,
-                -3.73313090e01,
-                5.78827663e00,
-                1.04354810e00,
-                2.12969604e-02,
-                2.58881400e-03,
-                -5.11397219e-04,
-                1.56398008e-02,
-                -1.18302764e-01,
-                -2.71446436e-01,
-                -3.97855577e-02,
-            ]
-
-            solar_cooling_load = (
-                coeff[0]
-                + x * coeff[1]
-                + y * coeff[2]
-                + x**2 * coeff[3]
-                + x**2 * y * coeff[4]
-                + x**2 * y**2 * coeff[5]
-                + y**2 * coeff[6]
-                + x * y**2 * coeff[7]
-                + x * y * coeff[8]
-                + x**3 * coeff[9]
-                + y**3 * coeff[10]
-                + x**3 * y * coeff[11]
-                + x**3 * y**2 * coeff[12]
-                + x**3 * y**3 * coeff[13]
-                + x**2 * y**3 * coeff[14]
-                + x * y**3 * coeff[15]
-                + x**4 * coeff[16]
-                + y**4 * coeff[17]
-            )
-
-        solar_gain = (
-            self.initial_properties.window_area
-            * self.initial_properties.shading_coeff
-            * solar_cooling_load
-        )
-        return solar_gain
-
-    def get_power_consumption(self) -> int:
-        power_consumption = 0
-        for hvac in self.hvacs:
-            power_consumption += hvac.get_power_consumption()
-        return power_consumption
+    def get_power_consumption(self) -> float:
+        """Return current power consumption of Building."""
+        return self.hvac.get_power_consumption()

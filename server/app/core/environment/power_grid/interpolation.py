@@ -10,6 +10,7 @@ from scipy.interpolate import interpn
 from app.core.environment.cluster.building import Building
 from app.core.environment.cluster.building_properties import BuildingProperties
 from app.utils.utils import sort_dict_keys
+from app.core.environment.power_grid.power_grid_properties import BasePowerProperties
 
 sys.path.insert(1, "../marl-demandresponse")
 
@@ -21,14 +22,13 @@ NB_TIME_STEPS_BY_SIM = 450
 class PowerInterpolator(object):
     def __init__(
         self,
-        path_datafile: str,
-        path_parameter_dict: str,
-        path_dict_keys: str,
+        base_power_props: BasePowerProperties,
         default_building_props: BuildingProperties,
     ) -> None:
-        with open(path_parameter_dict) as json_file:
+        self.base_power_props = base_power_props
+        with open(base_power_props.path_parameter_dict) as json_file:
             self.parameters_dict = json.load(json_file)
-        with open(path_dict_keys) as f:
+        with open(base_power_props.path_dict_keys) as f:
             reader = csv.reader(f)
             self.dict_keys = list(reader)[0]
 
@@ -48,7 +48,9 @@ class PowerInterpolator(object):
             len(self.parameters_dict[key]) for key in self.dict_keys
         ]
 
-        self.values = np.load(path_datafile).reshape(*self.dimensions_array, 1)
+        self.values = np.load(base_power_props.path_datafile).reshape(
+            *self.dimensions_array, 1
+        )
         self.default_building_props = default_building_props
 
     def param2index(self, point_dict):
@@ -124,13 +126,12 @@ class PowerInterpolator(object):
         self,
         date_time: datetime,
         current_od_temp: float,
-        solar_gain: bool,
         interp_nb_agents,
         buildings: List[Building],
     ) -> float:
         base_power = 0.0
 
-        if solar_gain:
+        if self.default_building_props.solar_gain:
             point = {
                 "date": date_time.timetuple().tm_yday,
                 "hour": (
@@ -155,23 +156,15 @@ class PowerInterpolator(object):
         for house_id in interp_house_ids:
             house = buildings[house_id]
             point["Ua_ratio"] = (
-                house.initial_properties.Ua / self.default_building_props.Ua
+                house.init_props.Ua / self.default_building_props.Ua
             )  # TODO: This is ugly as in the Monte Carlo, we compute the ratio based on the Ua in config. We should change the dict for absolute numbers.
-            point["Cm_ratio"] = (
-                house.initial_properties.Cm / self.default_building_props.Cm
-            )
-            point["Ca_ratio"] = (
-                house.initial_properties.Ca / self.default_building_props.Ca
-            )
-            point["Hm_ratio"] = (
-                house.initial_properties.Hm / self.default_building_props.Hm
-            )
-            point["air_temp"] = house.indoor_temp - house.initial_properties.target_temp
-            point["mass_temp"] = (
-                house.current_mass_temp - house.initial_properties.target_temp
-            )
-            point["OD_temp"] = current_od_temp - house.initial_properties.target_temp
-            point["HVAC_power"] = house.hvacs[0].init_props.cooling_capacity
+            point["Cm_ratio"] = house.init_props.Cm / self.default_building_props.Cm
+            point["Ca_ratio"] = house.init_props.Ca / self.default_building_props.Ca
+            point["Hm_ratio"] = house.init_props.Hm / self.default_building_props.Hm
+            point["air_temp"] = house.indoor_temp - house.init_props.target_temp
+            point["mass_temp"] = house.current_mass_temp - house.init_props.target_temp
+            point["OD_temp"] = current_od_temp - house.init_props.target_temp
+            point["HVAC_power"] = house.hvac.init_props.cooling_capacity
             point = self.clip_interpolation_point(point)
             point = sort_dict_keys(point, self.dict_keys)
             base_power += self.interpolate_grid_fast(point)

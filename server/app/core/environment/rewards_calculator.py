@@ -2,7 +2,7 @@ from typing import Dict, List
 from app.core.environment.cluster.building import Building
 from app.core.environment.environment_properties import RewardProperties
 from app.utils.utils import deadbandL2
-from app.core.environment.cluster.building_properties import BuildingProperties
+from app.core.environment.environment_properties import BuildingProperties
 
 
 class RewardsCalculator:
@@ -22,39 +22,35 @@ class RewardsCalculator:
         building_id: an int, representing the index of the building we want to compute the penalty.
         buildings: the list of Buildings in the environment, useful to compute using common l2, common max and mixture methods.
         """
-        modes = {
-            "individual_L2": self.individual_l2(buildings[building_id]),
-            "common_L2": self.common_l2(buildings),
-            "common_max": self.common_max(buildings),
-            "mixture": self.mixture(building_id, buildings),
-        }
-        return modes[self.reward_props.penalty_props.mode]
+        mode = getattr(self, self.reward_props.penalty_props.mode)
+        return mode(building_id, buildings)
 
-    def common_l2(self, buildings: List[Building]) -> float:
+    def common_L2(self, building_id: int, buildings: List[Building]) -> float:
         temperature_penalty = 0.0
         for building in buildings:
             building_temperature_penalty = deadbandL2(
-                building.initial_properties.target_temp,
-                building.initial_properties.deadband,
+                building.init_props.target_temp,
+                building.init_props.deadband,
                 building.indoor_temp,
             )
             temperature_penalty += building_temperature_penalty / len(buildings)
         return temperature_penalty
 
-    def individual_l2(self, building: Building) -> float:
+    def individual_L2(self, building_id: int, buildings: List[Building]) -> float:
+        building = buildings[building_id]
         temperature_penalty = deadbandL2(
-            building.initial_properties.target_temp,
-            building.initial_properties.deadband,
+            building.init_props.target_temp,
+            building.init_props.deadband,
             building.indoor_temp,
         )
         return temperature_penalty
 
-    def common_max(self, buildings: List[Building]) -> float:
+    def common_max_error(self, building_id: int, buildings: List[Building]) -> float:
         temperature_penalty = 0.0
         for building in buildings:
             house_temperature_penalty = deadbandL2(
-                building.initial_properties.target_temp,
-                building.initial_properties.deadband,
+                building.init_props.target_temp,
+                building.init_props.deadband,
                 building.indoor_temp,
             )
             if house_temperature_penalty > temperature_penalty:
@@ -62,9 +58,9 @@ class RewardsCalculator:
         return temperature_penalty
 
     def mixture(self, building_id: int, buildings: List[Building]) -> float:
-        common_l2 = self.common_l2(buildings)
-        common_max = self.common_max(buildings)
-        ind_l2 = self.individual_l2(buildings[building_id])
+        common_l2 = self.common_L2(building_id, buildings)
+        common_max = self.common_max_error(building_id, buildings)
+        ind_l2 = self.individual_L2(building_id, buildings)
 
         ## Putting together
         alpha_ind_l2 = self.reward_props.penalty_props.alpha_ind_l2
@@ -106,9 +102,9 @@ class RewardsCalculator:
         )
 
         norm_sig_penalty = deadbandL2(
-            self.reward_props.norm_reg_signal,
+            self.reward_props.norm_reg_sig,
             0,
-            0.75 * self.reward_props.norm_reg_signal,
+            0.75 * self.reward_props.norm_reg_sig,
         )
 
         # Temperature penalties
@@ -138,7 +134,7 @@ class RewardsCalculator:
         """
         # TODO: change config to have a signal penalty mode too
         # add validators in config parser
-        if self.reward_props.penalty_props.mode == "common_L2":
+        if self.reward_props.sig_penalty_mode == "common_L2":
             penalty = ((cluster_hvac_power - power_grid_reg_signal) / nb_agents) ** 2
         else:
             raise ValueError(
