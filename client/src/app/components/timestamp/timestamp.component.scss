@@ -1,21 +1,26 @@
-// mat-slider {
-//     margin-left: 1rem;
-//     width: 20rem;
-// }
+mat-slider {
+    margin: 0;
+    width: 18rem;
+}
 
-.button {
+.container{
+    margin: auto;
+    display: flex;
+    align-items: center;
+}
+
+.stop{
     margin-left: 1rem;
+    margin-right: 1.5rem;
 }
 
 .speed {
-    display: inline-block;
-    margin-left: 1rem;
-    transform: translateY(-0.1rem);
+    margin-left: 1.5rem;
 }
 
 .speed-value {
-    width: 3.3rem;
-    height: 2.8rem;
+    width: 3rem;
+    height: 2rem;
     border-radius: 0.3rem;
     text-align: center;
 }

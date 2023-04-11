@@ -1,22 +1,26 @@
 mat-slider {
   margin-left: 1rem;
   margin-top: 0.5rem;
-  margin-bottom: 1rem;
   width: 200px;
 }
 
 mat-chip-listbox {
   margin-top: 1rem;
 }
+
+.temp_checkbox{
+  margin-bottom: 0.5rem;
+}
+
 .hvac_filter {
   margin-left: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 2rem;
-
+  margin-top: 1rem;
+  // margin-bottom: 2rem;
 }
+
 .temp_filter {
   margin-left: 1rem;
-  margin-top: 1.5rem; 
+  // margin-top: 1.5rem; 
 }
 
 .values_temp p{
@@ -96,7 +100,7 @@ mat-chip-listbox {
 .circle_lockout {
   width: 30px;
   height: 30px;
-  background-color: grey;
+  background-color: rgb(255, 255, 255);
   border-radius: 50%;
   border: 1px solid black;
 }

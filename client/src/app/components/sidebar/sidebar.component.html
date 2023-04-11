@@ -44,11 +44,11 @@
       <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
         ON
       </mat-checkbox>
-      <mat-checkbox class="lockout_chip" #lockout_check color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
-        Lockout
-      </mat-checkbox>
       <mat-checkbox class="off_chip" #off_check color = "warn" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
         OFF
+      </mat-checkbox>
+      <mat-checkbox class="lockout_chip" #lockout_check color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
+        Lockout
       </mat-checkbox>
     </div>
   </div>

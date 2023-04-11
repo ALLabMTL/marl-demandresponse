@@ -2,7 +2,7 @@
   <button
     mat-mini-fab
     color="primary"
-    class="button"
+    class="play"
     (click)="this.socketCommunication.startSimulation()"
     [disabled]="this.simulationManager.started"
   >
@@ -12,7 +12,7 @@
   <button
     mat-mini-fab
     color="warn"
-    class="button"
+    class="stop"
     (click)="this.socketCommunication.stopSimulation()"
     [disabled]="this.simulationManager.stopped"
   >
