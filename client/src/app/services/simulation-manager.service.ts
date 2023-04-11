@@ -76,7 +76,7 @@ export class SimulationManagerService {
     this.pages = [];
     this.houseDataFiltered = [];
     this.originalHousesData = [];
-    this.maxPage = -1;
+    this.maxPage = 1;
     this.housesPerPage = 100;
 
     this.isSortingSelected = false;
