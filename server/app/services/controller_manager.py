@@ -107,15 +107,6 @@ class ControllerManager(Experiment):
         for step in range(self.static_props.nb_time_steps):
             # Check if UI stopped or paused simulation
 
-            if self.pause:
-                logger.debug("simulation paused")
-                await self.socket_manager_service.emit("paused", {})
-                await self.socket_manager_service.sleep(0)
-                while True:
-                    if not self.pause or self.stop:
-                        await self.socket_manager_service.sleep(0)
-                        break
-
             if self.stop:
                 logger.info("Training stopped at time %d", step)
                 await self.socket_manager_service.emit("stopped", {})
