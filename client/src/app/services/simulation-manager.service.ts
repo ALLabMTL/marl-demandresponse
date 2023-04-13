@@ -12,7 +12,6 @@ interface PageData {
   providedIn: 'root',
 })
 export class SimulationManagerService {
-
   sidenavData: SidenavData[] = [];
   sidenavObservable: Subject<SidenavData[]> = new Subject<SidenavData[]>();
   houseDataObservable: Subject<HouseData[][]> = new Subject<HouseData[][]>();
@@ -38,13 +37,19 @@ export class SimulationManagerService {
   isTempChecked = false;
   isFilteredHvac = false;
   isTempFiltered = false;
-  hvacStatus = " ";
+  hvacStatus = ' ';
   minValueSliderInit = -1;
   maxValueSliderInit = 1;
-  tempSelectRange: { min: number, max: number } = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
-  tempSelectRangeInput: { min: number, max: number } = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
+  tempSelectRange: { min: number; max: number } = {
+    min: this.minValueSliderInit,
+    max: this.maxValueSliderInit,
+  };
+  tempSelectRangeInput: { min: number; max: number } = {
+    min: this.minValueSliderInit,
+    max: this.maxValueSliderInit,
+  };
 
-  sortingOptionSelected = " ";
+  sortingOptionSelected = ' ';
   hvacChosen: HouseData[] = [];
   tempDiffHousesData: HouseData[] = [];
   isHvacChecked = false;
@@ -62,9 +67,12 @@ export class SimulationManagerService {
   // houseData2: HouseData[];
 
   constructor(public sharedService: SharedService) {
-    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
-    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
-
+    this.sharedService.squareNbValue.subscribe(
+      (nbSquares) => (this.nbSquares = nbSquares)
+    );
+    this.sharedService.currentPageCount.subscribe(
+      (currentPage) => (this.currentPage = currentPage)
+    );
 
     this.sidenavData = [];
     this.propertyNames = [];
@@ -84,13 +92,19 @@ export class SimulationManagerService {
     this.isTempChecked = false;
     this.isFilteredHvac = false;
     this.isTempFiltered = false;
-    this.hvacStatus = " ";
+    this.hvacStatus = ' ';
     this.minValueSliderInit = -1;
     this.maxValueSliderInit = 1;
-    this.tempSelectRange = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
-    this.tempSelectRangeInput = { min: this.minValueSliderInit, max: this.maxValueSliderInit };
+    this.tempSelectRange = {
+      min: this.minValueSliderInit,
+      max: this.maxValueSliderInit,
+    };
+    this.tempSelectRangeInput = {
+      min: this.minValueSliderInit,
+      max: this.maxValueSliderInit,
+    };
 
-    this.sortingOptionSelected = " ";
+    this.sortingOptionSelected = ' ';
     this.hvacChosen = [];
     this.tempDiffHousesData = [];
     this.isHvacEnabled = false;
@@ -104,8 +118,12 @@ export class SimulationManagerService {
     this.sidenavObservable.next(this.sidenavData);
     this.housesBufferData.push(this.housesData);
     this.houseDataObservable.next(this.housesBufferData);
-    this.propertyNames = Object.getOwnPropertyNames(this.sidenavData[this.sidenavData.length - 1]);
-    this.propertyValues = Object.values(this.sidenavData[this.sidenavData.length - 1]);
+    this.propertyNames = Object.getOwnPropertyNames(
+      this.sidenavData[this.sidenavData.length - 1]
+    );
+    this.propertyValues = Object.values(
+      this.sidenavData[this.sidenavData.length - 1]
+    );
 
     this.nbTimeSteps++;
     this.currentTimeStep = this.nbTimeSteps;
@@ -128,14 +146,21 @@ export class SimulationManagerService {
     }
     this.updateFilteredHouses();
 
-    this.tempSelectRange.min = this.originalHousesData.length > 0 ?
-      Math.min(...this.originalHousesData.map((data) => data.tempDifference)) :
-      0;
+    this.tempSelectRange.min =
+      this.originalHousesData.length > 0
+        ? Math.min(
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
+        : 0;
 
     this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
 
-    this.tempSelectRange.max = this.originalHousesData.length > 0 ?
-      Math.max(...this.originalHousesData.map((data) => data.tempDifference)) : 0;
+    this.tempSelectRange.max =
+      this.originalHousesData.length > 0
+        ? Math.max(
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
+        : 0;
 
     this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));
 
@@ -143,11 +168,16 @@ export class SimulationManagerService {
     this.maxPage = Math.ceil(this.housesData.length / this.nbSquares);
     for (let i = 0; i < this.maxPage; i++) {
       const startIndex = i * this.nbSquares;
-      const endIndex = Math.min(startIndex + this.nbSquares, this.housesData.length);
-      const pageContent: HouseData[] = this.housesData.slice(startIndex, endIndex);
+      const endIndex = Math.min(
+        startIndex + this.nbSquares,
+        this.housesData.length
+      );
+      const pageContent: HouseData[] = this.housesData.slice(
+        startIndex,
+        endIndex
+      );
       this.pages.push({ id: i + 1, content: pageContent });
     }
-
   }
 
   setTimeStep(data: SidenavData): void {
@@ -165,6 +195,7 @@ export class SimulationManagerService {
       this.housesData = [];
     }
     this.stopped = false;
+    this.paused = false;
   }
 
   updateSpeed(test: Event): void {
@@ -175,20 +206,27 @@ export class SimulationManagerService {
     this.housesData = this.originalHousesData;
 
     if (this.isSortingSelected) {
-      this.housesData = this.housesData.filter(x => {
-        return this.houseDataFiltered.find(y => y.id === x.id) !== undefined;
+      this.housesData = this.housesData.filter((x) => {
+        return this.houseDataFiltered.find((y) => y.id === x.id) !== undefined;
       });
     }
 
     if (this.isFilteredHvac) {
-      this.housesData = this.housesData.filter(x => {
-        return this.hvacChosen.find(y => y.hvacStatus === x.hvacStatus) !== undefined;
+      this.housesData = this.housesData.filter((x) => {
+        return (
+          this.hvacChosen.find((y) => y.hvacStatus === x.hvacStatus) !==
+          undefined
+        );
       });
     }
 
     if (this.isTempFiltered) {
-      this.housesData = this.housesData.filter(x => {
-        return this.tempDiffHousesData.find(y => y.tempDifference === x.tempDifference) !== undefined;
+      this.housesData = this.housesData.filter((x) => {
+        return (
+          this.tempDiffHousesData.find(
+            (y) => y.tempDifference === x.tempDifference
+          ) !== undefined
+        );
       });
     }
 
@@ -205,54 +243,58 @@ export class SimulationManagerService {
   sortByTempDiffIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference < b.tempDifference) ? -1 : 1); // a negative, then a comes before b
+    this.houseDataFiltered = this.housesData.sort((a, b) =>
+      a.tempDifference < b.tempDifference ? -1 : 1
+    ); // a negative, then a comes before b
   }
 
   sortByTempDiffDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.tempDifference > b.tempDifference) ? -1 : 1); // a negative, then a comes before b
-
+    this.houseDataFiltered = this.housesData.sort((a, b) =>
+      a.tempDifference > b.tempDifference ? -1 : 1
+    ); // a negative, then a comes before b
   }
 
   sortByIndoorTempIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp < b.indoorTemp) ? -1 : 1); // a negative, then a comes before b
+    this.houseDataFiltered = this.housesData.sort((a, b) =>
+      a.indoorTemp < b.indoorTemp ? -1 : 1
+    ); // a negative, then a comes before b
   }
 
   sortByIndoorTempDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) => (a.indoorTemp > b.indoorTemp) ? -1 : 1); // a negative, then a comes before b
-
+    this.houseDataFiltered = this.housesData.sort((a, b) =>
+      a.indoorTemp > b.indoorTemp ? -1 : 1
+    ); // a negative, then a comes before b
   }
 
   sortByOptionSelected(option: string): void {
     this.sortingOptionSelected = option;
 
     switch (option) {
-      case "indoorTempInc":
+      case 'indoorTempInc':
         this.sortByIndoorTempIncreasing();
         break;
-      case "indoorTempDec":
+      case 'indoorTempDec':
         this.sortByIndoorTempDecreasing();
         break;
-      case "tempDiffInc":
+      case 'tempDiffInc':
         this.sortByTempDiffIncreasing();
         break;
-      case "tempDiffDec":
+      case 'tempDiffDec':
         this.sortByTempDiffDecreasing();
         break;
-      case "noSorting":
+      case 'noSorting':
         this.removeSorting();
         break;
     }
 
     this.updateFilteredHouses();
   }
-
-
 
   removeSorting(): void {
     this.isSortingSelected = false;
@@ -266,16 +308,28 @@ export class SimulationManagerService {
     this.isHvacChecked = checked;
 
     if (this.isHvacChecked) {
-      this.hvacChosen = [...this.hvacChosen, ...this.housesData.filter(status => status.hvacStatus == this.hvacStatus)];
-    } else { // if un-select manually
-      this.hvacChosen = [...this.hvacChosen.filter(x => x.hvacStatus !== this.hvacStatus)];
+      this.hvacChosen = [
+        ...this.hvacChosen,
+        ...this.housesData.filter(
+          (status) => status.hvacStatus == this.hvacStatus
+        ),
+      ];
+    } else {
+      // if un-select manually
+      this.hvacChosen = [
+        ...this.hvacChosen.filter((x) => x.hvacStatus !== this.hvacStatus),
+      ];
     }
 
     this.isFilteredHvac = true;
 
     this.updateFilteredHouses();
 
-    if (this.isOnChecked == false && this.isOffChecked == false && this.isLockoutChecked == false) {
+    if (
+      this.isOnChecked == false &&
+      this.isOffChecked == false &&
+      this.isLockoutChecked == false
+    ) {
       this.removeHvacFilter();
     }
   }
@@ -289,7 +343,11 @@ export class SimulationManagerService {
     this.isTempFiltered = true;
     this.housesData = this.originalHousesData;
 
-    this.tempDiffHousesData = this.housesData.filter((e) => e.tempDifference >= this.tempSelectRangeInput.min && e.tempDifference <= this.tempSelectRangeInput.max);
+    this.tempDiffHousesData = this.housesData.filter(
+      (e) =>
+        e.tempDifference >= this.tempSelectRangeInput.min &&
+        e.tempDifference <= this.tempSelectRangeInput.max
+    );
 
     this.updateFilteredHouses();
   }
@@ -298,5 +356,4 @@ export class SimulationManagerService {
     this.isTempFiltered = false;
     this.housesData = this.originalHousesData;
   }
-
 }

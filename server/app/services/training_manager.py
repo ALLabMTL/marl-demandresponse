@@ -70,10 +70,13 @@ class TrainingManager(Experiment):
         self.client_manager_service = client_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
 
-    def initialize(self, config: MarlConfig) -> None:
+    async def initialize(self, config: MarlConfig) -> None:
         random.seed(config.simulation_props.net_seed)
         self.static_props = config.simulation_props
+        self.current_time_step = 0
+        self.stop = False
         logger.info("Initializing environment...")
         self.env = Environment(config.env_prop)
         self.nb_agents = config.env_prop.cluster_prop.nb_agents
@@ -91,9 +94,6 @@ class TrainingManager(Experiment):
         )
         self.client_manager_service.initialize_data(config.CLI_config.interface)
         logger.info("Number of states: %d", self.num_state)
-
-    async def start(self, config: MarlConfig) -> None:
-        self.initialize(config)
         await self.client_manager_service.log(
             emit=True,
             endpoint="agent",
@@ -105,10 +105,23 @@ class TrainingManager(Experiment):
             endpoint="success",
             data={"message": "Starting simulation"},
         )
-
         self.obs_dict = self.env.reset()
 
-        for step in range(self.static_props.nb_time_steps):
+
+    async def start(self, config: MarlConfig) -> None:
+        if not self.pause or self.stop:
+            await self.initialize(config)
+        else: 
+            await self.client_manager_service.log(
+                text=f"Continuing simulation",
+                emit=True,
+                endpoint="success",
+                data={"message": f"Continuing simulation"},
+            )
+            
+        self.pause = False
+
+        for step in range(self.current_time_step, self.static_props.nb_time_steps):
             # Check if UI stopped or paused simulation
             if await self.should_stop(step):
                 break
@@ -158,6 +171,7 @@ class TrainingManager(Experiment):
 
             # Test policy
             self.test_policy(step)
+            self.current_time_step +=1
 
         await self.end_simulation()
 
@@ -238,20 +252,28 @@ class TrainingManager(Experiment):
             self.agent.save(path)
             self.metrics_service.save_actor(os.path.join(path, "actor.pth"))
 
-        await self.client_manager_service.log(emit=True, endpoint="stopped", data={})
-        await self.client_manager_service.log(
-            emit=True,
-            endpoint="success",
-            text="Simulation ended",
-            data={"message": "Simulation ended"},
-        )
+        if self.stop or (self.current_time_step == self.static_props.nb_time_steps):
+            self.metrics_service.update_final()
+            await self.client_manager_service.log(emit=True, endpoint="stopped", data={})
+            await self.client_manager_service.log(
+                emit=True,
+                endpoint="success",
+                text="Training ended",
+                data={"message": "Training ended"},
+            )
 
     async def should_stop(self, step) -> bool:
         if self.stop:
             await self.client_manager_service.log(
-                endpoint="stopped", data={}, text=f"Training stopped at time {step}"
+                emit = True, endpoint="stopped", data={}, text=f"Training stopped at time {step}"
             )
             return True
+        elif self.pause:
+            await self.client_manager_service.log(
+                emit= True, endpoint="paused", data={}, text=f"Training paused at time {step}"
+            )
+            return True
+        
         return False
 
     async def reset_environment(self, step) -> None:
@@ -263,3 +285,10 @@ class TrainingManager(Experiment):
                 data={"message": f"New episode at time {step}"},
             )
             self.obs_dict = self.env.reset()
+
+
+    async def stop_sim(self, stop_state: bool) -> None:
+        if stop_state:
+            await self.end_simulation()
+
+        self.stop = stop_state

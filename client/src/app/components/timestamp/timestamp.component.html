@@ -13,6 +13,16 @@
     mat-mini-fab
     color="warn"
     class="button"
+    (click)="this.socketCommunication.pauseSimulation()"
+    [disabled]="this.simulationManager.stopped || this.simulationManager.paused"
+  >
+    <mat-icon>pause</mat-icon>
+  </button>
+
+  <button
+    mat-mini-fab
+    color="warn"
+    class="button"
     (click)="this.socketCommunication.stopSimulation()"
     [disabled]="this.simulationManager.stopped"
   >
