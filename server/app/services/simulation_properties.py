@@ -5,10 +5,10 @@ import pydantic
 
 class SimulationProperties(pydantic.BaseModel):
     mode: Literal["train", "simulation"] = pydantic.Field(
-        default="train",
+        default="simulation",
         description="Mode of the simulation.",
     )
-    agent: str = pydantic.Field(default="PPO")
+    agent: str = pydantic.Field(default="BangBang")
     nb_episodes: int = pydantic.Field(default=3, ge=1)
     nb_time_steps_test: int = pydantic.Field(default=1000, ge=1)
     nb_test_logs: int = pydantic.Field(default=100, ge=1)

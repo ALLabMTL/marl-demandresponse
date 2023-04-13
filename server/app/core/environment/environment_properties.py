@@ -12,7 +12,7 @@ from app.core.environment.power_grid.power_grid_properties import PowerGridPrope
 
 class HvacNoiseProperties(BaseModel):
     """Noise applied to the HVAC properties.
-    
+
     Attributes:
         - std_latent_cooling_fraction: Standard deviation of the latent cooling fraction of the HVAC.
         - factor_COP_low: Lowest random factor for COP to multiply the coefficient of performance of the HVAC.
@@ -64,7 +64,7 @@ class HvacProperties(BaseModel):
         - latent_cooling_fraction: Float between 0 and 1, fraction of sensible cooling (temperature) which is latent cooling (humidity).
         - lockout_duration: Duration of lockout (hardware constraint preventing to turn on the HVAC for some time after turning off), in seconds.
         - noise_prop: Instance of the HvacNoiseProperties class, describing the noise properties of the HVAC.
-    
+
     """
 
     cop: float = Field(
@@ -111,6 +111,7 @@ class BuildingNoiseProperties(BaseModel):
         - factor_thermo_low: Factor to multiply the standard deviation of the target temperature of the house (Celsius) to generate a lower limit for the noise.
         - factor_thermo_high: Factor to multiply the standard deviation of the target temperature of the house (Celsius) to generate an upper limit for the noise.
     """
+
     std_start_temp: float = Field(
         default=3.0,
         description="Standard deviation of the initial temperature of the house (Celsius).",
@@ -161,7 +162,7 @@ class ThermalProperties(BaseModel):
 class BuildingProperties(ThermalProperties):
     """
     Represents the thermal and structural properties of a building
-    
+
     Attrubutes:
         - target_temp: A float representing the desired temperature in the house (Celsius).
         - deadband: A float representing the deadband around the target temperature (Celsius).
@@ -228,7 +229,7 @@ class PenaltyProperties(BaseModel):
 class RewardProperties(BaseModel):
     """
     Properties of the reward function.
-    
+
     Attributes:
         - alpha_temp: Tradeoff parameter for temperature in the loss function.
         - alpha_sig: Tradeoff parameter for signal in the loss function.
@@ -259,7 +260,7 @@ class RewardProperties(BaseModel):
 
 class StateProperties(BaseModel):
     """Properties of the state space.
-    
+
     Attributes:
         - hour indicates whether to include the hour of the day in the state space.
         - day indicates whether to include the day of the week in the state space.
@@ -320,8 +321,9 @@ class ClusterPropreties(BaseModel):
         - message_prop: an instance of MessageProperties class that specifies properties related to the message space.
         - house_prop: an instance of BuildingProperties class that specifies properties related to the buildings in the cluster.
     """
+
     nb_agents: int = Field(
-        default=10,
+        default=1000,
         description="Number of agents in the cluster.",
     )
     nb_agents_comm: int = Field(
@@ -337,7 +339,7 @@ class ClusterPropreties(BaseModel):
 class EnvironmentProperties(BaseModel):
     """
     Properties of the environment.
-    
+
     Attributes:
     - start_datetime: the start date and time of the simulation, as a datetime.datetime object.
     - start_datetime_mode: a string that specifies whether the start date and time should be randomly chosen within the year after the original start date and time, or whether it should stay fixed.
@@ -347,7 +349,7 @@ class EnvironmentProperties(BaseModel):
     - reward_prop: an instance of the RewardProperties class that defines the properties of the reward function used in the simulation.
     - cluster_prop: an instance of the ClusterPropreties class that defines the properties of the cluster of houses in the simulation.
     - power_grid_prop: an instance of the PowerGridProperties class that defines the properties of the power grid in the simulation.
-    
+
     """
 
     start_datetime: datetime.datetime = Field(
@@ -373,7 +375,7 @@ class EnvironmentProperties(BaseModel):
 class HvacMessage(TypedDict, total=False):
     """
     Structure of the hvac message dictionnary.
-    
+
     Attributes:
         - cop: A float representing the coefficient of performance of the HVAC system.
         - cooling_capacity: A float representing the cooling capacity of the HVAC system.
@@ -405,6 +407,7 @@ class BuildingMessage(HvacMessage, total=False):
     Hm: a float representing the convective heat transfer coefficient between the indoor air and the building envelope.
     Cm: a float representing the thermal capacitance of the indoor air.
     """
+
     current_temp_diff_to_target: float
     Ua: float
     Ca: float
