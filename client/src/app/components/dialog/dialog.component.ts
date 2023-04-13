@@ -17,11 +17,13 @@ Chart.register(zoomPlugin);
 })
 export class DialogComponent {
   @ViewChild("a", { static: false })
-  chartOne!: BaseChartDirective
+  chartOne!: BaseChartDirective;
   @ViewChild("b", { static: false })
-  chartTwo!: BaseChartDirective
+  chartTwo!: BaseChartDirective;
+  @ViewChild("c", { static: false })
+  chartThree!: BaseChartDirective;
   @ViewChildren(BaseChartDirective)
-  charts!: QueryList<BaseChartDirective>
+  charts!: QueryList<BaseChartDirective>;
 
   id: number;
   currentPage = 1;
@@ -36,7 +38,7 @@ export class DialogComponent {
     {
       //First graph
       const categories = ['Actual temperature'];
-      let datasets = categories.map((category) => {
+      const datasets = categories.map((category) => {
         return {
           data: data.map((e) => e.find((f) => f.id === this.id)?.indoorTemp).filter((val) => val !== undefined) as number[],
           label: category,
@@ -47,16 +49,16 @@ export class DialogComponent {
           pointBackgroundColor: 'black',
           pointRadius: 0,
           pointHoverRadius: 15,
-        }
+        };
       }
       );
       this.lineChartData.datasets = datasets;
       this.lineChartData.labels = Array.from(Array(data.length).keys());
-    };
+    }
     {
       //Second graph
       const categories = ['Temperature difference'];
-      let datasets = categories.map((category) => {
+      const datasets = categories.map((category) => {
         return {
           data: data.map((e) => e.find((f) => f.id === this.id)?.tempDifference).filter((val) => val !== undefined) as number[],
           label: category,
@@ -67,20 +69,54 @@ export class DialogComponent {
           pointBackgroundColor: 'black',
           pointRadius: 0,
           pointHoverRadius: 15,
-        }
+        };
       }
       );
       this.lineChartData2.datasets = datasets;
       this.lineChartData2.labels = Array.from(Array(data.length).keys());
     }
+    {
+      //Third graph
+      const categories = ['HVAC status'];
+      const hvacStatusToInteger = (hvacStatus: string | undefined) => {
+        switch (hvacStatus) {
+          case 'OFF':
+            return 0;
+          case 'ON':
+            return 1;
+          case 'Lockout':
+            return 0.5;
+          default:
+            return undefined;
+        }
+      };
+
+      const datasets = categories.map((category) => {
+        return {
+          data: data.map((e) => e.find((f) => f.id === this.id)?.hvacStatus).filter((val) => val !== undefined),
+          label: category,
+          fill: false,
+          tension: 0,
+          borderColor: ['red'],
+          backgroundColor: ['red'],
+          pointBackgroundColor: 'black',
+          pointRadius: 0,
+          pointHoverRadius: 15,
+        };
+      }
+      );
+      this.lineChartData3.datasets = datasets as unknown as ChartConfiguration<'line'>['data']['datasets'];
+      this.lineChartData3.labels = Array.from(Array(data.length).keys());
+    }
     this.chartOne.chart?.update('none');
     this.chartTwo.chart?.update('none');
-  }
+    this.chartThree.chart?.update('none');
+  };
 
 
   ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
-    this.simulationManager.houseDataObservable.subscribe(this.updateGraphsFromHousesData)
+    this.simulationManager.houseDataObservable.subscribe(this.updateGraphsFromHousesData);
     this.updateGraphsFromHousesData(this.simulationManager.housesBufferData);
 
   }
@@ -113,6 +149,21 @@ export class DialogComponent {
         backgroundColor: 'rgba(255,0,0,0.3)'
       }
     ]
+  };
+
+  //Third Graph
+  public lineChartData3: ChartConfiguration<'line'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        label: 'HVAC status',
+        fill: false,
+        tension: 0,
+        borderColor: 'black',
+        backgroundColor: 'rgba(255,0,0,0.3)'
+      }
+    ],
   };
 
 
@@ -149,6 +200,47 @@ export class DialogComponent {
     }
   } as ChartOptions<'line'>;
 
+
+  //Graphs options
+  public lineChartOptions3: ChartOptions<'line'> = {
+    responsive: true,
+    display: true,
+    align: 'center',
+
+    scales: {
+      y: {
+        type: 'category',
+        labels: ["ON", "Lockout", "OFF"]
+      },
+    },
+
+    plugins: {
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          mode: 'x',
+        },
+        pan: {
+          enabled: true,
+          mode: 'xy',
+        }
+      },
+      legend: {
+        display: true,
+        labels: {
+          color: 'black',
+          boxWidth: 5,
+          boxHeight: 5,
+        }
+      }
+    }
+  } as ChartOptions<'line'>;
+
   public lineChartLegend = true;
 
   public resetZoomGraph(index: number): void {
@@ -156,7 +248,7 @@ export class DialogComponent {
     // is used to get a reference to the chart object at the specified index. .chart as 
     // any is used to cast the chart object to any type, which allows accessing the resetZoom() method.
     // The resetZoom() method is then called to reset the zoom level of the chart.
-    (this.charts.get(index)!.chart as any).resetZoom()
+    (this.charts.get(index)!.chart as any).resetZoom();
   }
 
 }
