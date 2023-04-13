@@ -193,6 +193,7 @@ export class SimulationManagerService {
       this.propertyNames = [];
       this.propertyValues = [];
       this.housesData = [];
+      this.sidenavData = [];
     }
     this.stopped = false;
     this.paused = false;
