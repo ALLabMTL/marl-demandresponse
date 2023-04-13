@@ -32,53 +32,56 @@ export class DialogComponent {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
   }
 
+  private updateGraphsFromHousesData = (data: HouseData[][]) => {
+    {
+      //First graph
+      const categories = ['Actual temperature'];
+      let datasets = categories.map((category) => {
+        return {
+          data: data.map((e) => e.find((f) => f.id === this.id)?.indoorTemp).filter((val) => val !== undefined) as number[],
+          label: category,
+          fill: false,
+          tension: 0,
+          borderColor: ['blue'],
+          backgroundColor: ['blue'],
+          pointBackgroundColor: 'black',
+          pointRadius: 0,
+          pointHoverRadius: 15,
+        }
+      }
+      );
+      this.lineChartData.datasets = datasets;
+      this.lineChartData.labels = Array.from(Array(data.length).keys());
+    };
+    {
+      //Second graph
+      const categories = ['Temperature difference'];
+      let datasets = categories.map((category) => {
+        return {
+          data: data.map((e) => e.find((f) => f.id === this.id)?.tempDifference).filter((val) => val !== undefined) as number[],
+          label: category,
+          fill: false,
+          tension: 0,
+          borderColor: ['red'],
+          backgroundColor: ['red'],
+          pointBackgroundColor: 'black',
+          pointRadius: 0,
+          pointHoverRadius: 15,
+        }
+      }
+      );
+      this.lineChartData2.datasets = datasets;
+      this.lineChartData2.labels = Array.from(Array(data.length).keys());
+    }
+    this.chartOne.chart?.update('none');
+    this.chartTwo.chart?.update('none');
+  }
+
 
   ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
-    this.simulationManager.houseDataObservable.subscribe((data) => {
-      {
-        //First graph
-        const categories = ['Actual temperature'];
-        let datasets = categories.map((category) => {
-          return {
-            data: data.map((e) => e.find((f) => f.id === this.id)?.indoorTemp).filter((val) => val !== undefined) as number[],
-            label: category,
-            fill: false,
-            tension: 0,
-            borderColor: ['blue'],
-            backgroundColor: ['blue'],
-            pointBackgroundColor: 'black',
-            pointRadius: 0,
-            pointHoverRadius: 15,
-          }
-        }
-        );
-        this.lineChartData.datasets = datasets;
-        this.lineChartData.labels = Array.from(Array(data.length).keys());
-      };
-      {
-        //Second graph
-        const categories = ['Temperature difference'];
-        let datasets = categories.map((category) => {
-          return {
-            data: data.map((e) => e.find((f) => f.id === this.id)?.tempDifference).filter((val) => val !== undefined) as number[],
-            label: category,
-            fill: false,
-            tension: 0,
-            borderColor: ['red'],
-            backgroundColor: ['red'],
-            pointBackgroundColor: 'black',
-            pointRadius: 0,
-            pointHoverRadius: 15,
-          }
-        }
-        );
-        this.lineChartData2.datasets = datasets;
-        this.lineChartData2.labels = Array.from(Array(data.length).keys());
-      }
-      this.chartOne.chart?.update('none');
-      this.chartTwo.chart?.update('none');
-    })
+    this.simulationManager.houseDataObservable.subscribe(this.updateGraphsFromHousesData)
+    this.updateGraphsFromHousesData(this.simulationManager.housesBufferData);
 
   }
 

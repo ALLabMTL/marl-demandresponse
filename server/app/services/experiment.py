@@ -18,5 +18,5 @@ class Experiment(ABC):
         pass
 
     @abstractmethod
-    async def stop_sim(self, stop_state: bool)-> None:
+    async def stop_sim(self, stop_state: bool) -> None:
         pass
