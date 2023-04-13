@@ -50,6 +50,7 @@ class ControllerManager(Experiment):
     num_state: int
     actors: Dict[int, Controller]
     static_props: SimulationProperties
+    current_time_step: int
 
     @property
     def time_steps_per_episode(self) -> int:
@@ -69,9 +70,11 @@ class ControllerManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
 
-    def initialize(self, config: MarlConfig) -> None:
+    async def initialize(self, config: MarlConfig) -> None:
         random.seed(config.simulation_props.net_seed)
+        self.current_time_step = 0
         self.static_props = config.simulation_props
         logger.info("Initializing environment...")
         self.env = Environment(config.env_prop)
@@ -88,9 +91,6 @@ class ControllerManager(Experiment):
         self.initialize_actors(config)
         self.client_manager_service.initialize_data(config.CLI_config.interface)
         logger.info("Number of states: %d", self.num_state)
-
-    async def start(self, config: MarlConfig) -> None:
-        self.initialize(config)
         await self.client_manager_service.log(
             emit=True,
             endpoint="agent",
@@ -104,14 +104,12 @@ class ControllerManager(Experiment):
         )
         self.obs_dict = self.env.reset()
 
-        for step in range(self.static_props.nb_time_steps):
+    async def start(self, config: MarlConfig) -> None:
+        if not self.pause:
+            await self.initialize(config)
+
+        for step in range(self.current_time_step, self.static_props.nb_time_steps):
             # Check if UI stopped or paused simulation
-
-            if self.stop:
-                logger.info("Training stopped at time %d", step)
-                await self.socket_manager_service.emit("stopped", {})
-                break
-
             if await self.should_stop(step):
                 break
 
@@ -139,6 +137,7 @@ class ControllerManager(Experiment):
 
             # Log train statistics
             await self.log_statistics(step)
+            self.current_time_step +=1
 
         self.metrics_service.update_final()
         await self.client_manager_service.log(emit=True, endpoint="stopped", data={})
@@ -179,7 +178,7 @@ class ControllerManager(Experiment):
             self.metrics_service.reset()
 
     async def should_stop(self, step) -> bool:
-        if self.stop:
+        if self.stop or self.pause:
             await self.client_manager_service.log(
                 endpoint="stopped", data={}, text=f"Training stopped at time {step}"
             )
