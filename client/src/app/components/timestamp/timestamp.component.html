@@ -23,7 +23,7 @@
     mat-mini-fab
     color="warn"
     class="button"
-    (click)="this.socketCommunication.stopSimulation()"
+    (click)="openDialog()"
     [disabled]="this.simulationManager.stopped"
   >
     <mat-icon>stop</mat-icon>
