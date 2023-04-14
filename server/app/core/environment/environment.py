@@ -35,6 +35,7 @@ class Environment:
         rewards_calculator (RewardsCalculator): An object representing the rewards calculator.
 
     """
+
     def __init__(self, env_props: EnvironmentProperties) -> None:
         """
         Initialize a new instance of the Environment class with the provided environment properties.
@@ -134,7 +135,7 @@ class Environment:
 
         Parameters:
             self
-             
+
         Returns:
             None
         """
@@ -160,12 +161,12 @@ class Environment:
     def apply_noise(self) -> None:
         """
         Apply noise to the environment by randomizing the start date and adding noise to the cluster.
-    
+
         This method applies noise to the environment by calling the `randomize_date()` method to randomize the start date, and then calling the `apply_noise()` method of the `Cluster` object to add noise to the cluster.
 
         Parameters:
             self
-             
+
         Returns:
             None
         """
@@ -175,12 +176,12 @@ class Environment:
     def randomize_date(self) -> None:
         """
         Randomize the start date of the environment based on the `start_datetime` and `start_datetime_mode` properties of the `EnvironmentProperties` object.
-    
+
         If the `start_datetime_mode` property is set to "random", the start date is randomized by selecting a random number of days and seconds within the year and adding them to the `start_datetime` property. If the `start_datetime_mode` property is set to "fixed", the `start_datetime` property is left unchanged.
 
         Parameters:
             self
-             
+
         Returns:
             None
 

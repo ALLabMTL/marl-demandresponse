@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { SocketCommunicationService } from '@app/services/socket-communication/socket-communication.service';
+import { DialogComponent } from '../dialog/dialog.component';
+import { StopSimulationDialogComponent } from '../stop-simulation-dialog/stop-simulation-dialog.component';
 
 interface SpeedOption {
   value: number;
@@ -27,7 +30,8 @@ export class TimestampComponent {
 
   constructor(
     public simulationManager: SimulationManagerService,
-    public socketCommunication: SocketCommunicationService
+    public socketCommunication: SocketCommunicationService, 
+    public dialog: MatDialog,
   ) { }
 
   setSpeed(speed: string): void {
@@ -37,5 +41,9 @@ export class TimestampComponent {
 
   changeTimeStep(): void {
     this.socketCommunication.setTimeStep();
+  }
+
+  openDialog(): void {
+    this.dialog.open(StopSimulationDialogComponent);
   }
 }
