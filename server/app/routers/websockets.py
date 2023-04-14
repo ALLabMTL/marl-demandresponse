@@ -24,17 +24,17 @@ def register_endpoints(
     @sio.on("disconnect")
     async def disconnect(sid, *args) -> None:
         logger.debug(f"Client disconnected with sid {sid}")
-        experiment_manager.update_experiment_state(True)
+        await experiment_manager.update_experiment_state(True)
 
     @sio.on("train")
     async def train(sid, *args) -> None:
         logger.debug("Starting experiment")
-        experiment_manager.update_experiment_state(False)
+        # await experiment_manager.update_experiment_state(False)
         await experiment_manager.start()
 
     @sio.on("stop")
     async def stop_training(sid, *args) -> None:
-        experiment_manager.update_experiment_state(True)
+        await experiment_manager.update_experiment_state(True)
 
     @sio.on("changeSpeed")
     async def change_speed(sid, speed: str, *args) -> None:

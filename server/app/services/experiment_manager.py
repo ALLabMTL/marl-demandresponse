@@ -38,8 +38,9 @@ class ExperimentManager:
     def change_speed(self, speed: float) -> None:
         self.experiment.speed = speed
 
-    def update_experiment_state(self, stop: bool) -> None:
+    async def update_experiment_state(self, stop: bool) -> None:
         self.experiment.stop = stop
+        await self.experiment.stop_sim(stop)
         logger.debug(f"Experiment stop state: {self.experiment.stop}")
 
     def pause_simulation(self) -> None:

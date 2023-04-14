@@ -23,6 +23,7 @@ Methods:
 
 """
 
+
 class PPOController(Controller):
     """
     Implements a Proximal Policy Optimization (PPO) controller for an agent in a multi-agent system.
@@ -34,10 +35,11 @@ class PPOController(Controller):
         config_dict (dict): A dictionary of configuration parameters for the controller.
         seed (int): The seed used for random number generation.
         actor_net (Actor): The actor network used for the PPO controller.
-        
+
     Methods:
         act(obs_dict): Takes in a dictionary of observations from the environment and returns an action to take.
     """
+
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         """
         Initializes a PPOController object.
@@ -95,7 +97,7 @@ class PPOController(Controller):
 class DQNController(Controller):
     """
     Implements a Deep Q-Network (DQN) controller for an agent in a multi-agent system.
-    
+
     Attributes:
         id (str): The id of the agent.
         agent_name (str): The name of the agent used for the DQN controller.
@@ -103,10 +105,11 @@ class DQNController(Controller):
         config_dict (dict): A dictionary of configuration parameters for the controller.
         seed (int): The seed used for random number generation.
         DQN_net (DQN_network): The DQN network used for the DQN controller.
-        
+
     Methods:
         act(obs_dict): Takes in a dictionary of observations from the environment and returns an action to take.
     """
+
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         """
         Initializes a DQNController instance.
@@ -159,7 +162,7 @@ class DQNController(Controller):
 class DDPGController(Controller):
     """
     Implements a Deep Deterministic Policy Gradient (DDPG) controller for an agent in a multi-agent system.
-    
+
     Attributes:
         id (str): The id of the agent.
         agent_name (str): The name of the agent used for the DDPG controller.
@@ -167,8 +170,9 @@ class DDPGController(Controller):
         config_dict (dict): A dictionary of configuration parameters for the controller.
         seed (int): The seed used for random number generation.
         DDPG_net (DDPG_Network): The DDPG network used for the DDPG controller.
-        
+
     """
+
     def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
         self.id = agent_properties["id"]
         self.agent_name = agent_properties["actor_name"]

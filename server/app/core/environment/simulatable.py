@@ -14,11 +14,12 @@ class Simulatable(ABC):
     Attributes:
         init_props: A Pydantic BaseModel representing the initial properties of the simulation.
     """
+
     init_props: BaseModel
 
     @abstractmethod
     def reset(self):
-        """ Reset the simulation to its initial state."""
+        """Reset the simulation to its initial state."""
         pass
 
     @abstractmethod
@@ -28,7 +29,7 @@ class Simulatable(ABC):
 
     @abstractmethod
     def get_obs(self):
-        """ Get the current observation of the simulation."""
+        """Get the current observation of the simulation."""
         pass
 
     @abstractmethod

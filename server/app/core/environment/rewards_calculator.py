@@ -35,8 +35,8 @@ class RewardsCalculator:
         Parameters:
             - building_id: an int, representing the index of the building we want to compute the penalty.
             - buildings: the list of Buildings in the environment, useful to compute using common l2, common max and mixture methods.
-        
-        Returns: 
+
+        Returns:
             float: representing the positive penalty due to distance between the target (indoors) temperature and the indoors temperature in a house.
 
         """
