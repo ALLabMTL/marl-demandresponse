@@ -1,4 +1,4 @@
-.dialog{
+.dialog {
     width: 70rem;
     height: 50rem;
     display: grid;
@@ -6,29 +6,30 @@
     background-color: #DDDDDD;
 }
 
-.info, .graphs{
+.info,
+.graphs {
     margin-left: 4rem;
     margin-top: 5rem;
 }
 
-.dialog p{
+.dialog p {
     font-weight: bold;
     font-size: large;
 }
 
-.house{
+.house {
     margin-bottom: 3rem;
     display: flex;
     justify-content: center;
 }
 
-.graphs{
+.graphs {
     display: grid;
     width: 80%;
-    height: 60%;
+    height: 20%;
 }
 
-#zoom1{
+#zoom1 {
     background-color: rgb(109, 158, 109);
     left: 10%;
     height: 1.3rem;
@@ -38,7 +39,7 @@
     margin-bottom: 0.5rem;
 }
 
-#zoom2{
+#zoom2 {
     background-color: rgb(109, 158, 109);
     left: 10%;
     height: 1.3rem;

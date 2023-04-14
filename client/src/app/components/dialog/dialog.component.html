@@ -66,20 +66,20 @@
   </div>
   <div class="graphs">
     <p>Graphs :</p>
-    <div style="display: block; margin-bottom: 2rem;">
-      <canvas baseChart #a=base-chart width="400" height="150" [type]="'line'" [data]="lineChartData"
+    <div style="display: block; margin-bottom: 1rem;">
+      <canvas baseChart #a=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData"
         [options]="lineChartOptions" *ngIf="lineChartData">
       </canvas>
       <button id="zoom1" mat-raised-button (click)="resetZoomGraph(0)">Reset Zoom</button>
     </div>
-    <div style="display: block;">
-      <canvas baseChart #b=base-chart width="400" height="150" [type]="'line'" [data]="lineChartData2"
+    <div style="display: block; margin-bottom: 1rem;">
+      <canvas baseChart #b=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData2"
         [options]="lineChartOptions" *ngIf="lineChartData2">
       </canvas>
       <button id="zoom2" mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
     </div>
     <div style="display: block;">
-      <canvas baseChart #c=base-chart width="400" height="150" [type]="'line'" [data]="lineChartData3"
+      <canvas baseChart #c=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData3"
         [options]="lineChartOptions3" *ngIf="lineChartData3">
       </canvas>
       <button id="zoom2" mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>

@@ -1,15 +1,19 @@
 mat-slider {
     margin: 0;
-    width: 18rem;
+    width: 14rem;
 }
 
-.container{
+.container {
     margin: auto;
     display: flex;
     align-items: center;
 }
 
-.stop{
+.button {
+    margin-right: 1rem;
+}
+
+.stop {
     margin-left: 1rem;
     margin-right: 1.5rem;
 }
