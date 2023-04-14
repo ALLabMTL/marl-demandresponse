@@ -16,3 +16,7 @@ class Experiment(ABC):
     @abstractmethod
     async def start(self, config: MarlConfig) -> None:
         pass
+
+    @abstractmethod
+    async def stop_sim(self, stop_state: bool) -> None:
+        pass
