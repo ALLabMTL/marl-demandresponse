@@ -50,6 +50,7 @@ class ControllerManager(Experiment):
     num_state: int
     actors: Dict[int, Controller]
     static_props: SimulationProperties
+    current_time_step: int
 
     @property
     def time_steps_per_episode(self) -> int:
@@ -69,9 +70,12 @@ class ControllerManager(Experiment):
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
         self.stop = False
+        self.pause = False
 
-    def initialize(self, config: MarlConfig) -> None:
+    async def initialize(self, config: MarlConfig) -> None:
         random.seed(config.simulation_props.net_seed)
+        self.current_time_step = 0
+        self.stop = False
         self.static_props = config.simulation_props
         logger.info("Initializing environment...")
         self.env = Environment(config.env_prop)
@@ -88,9 +92,6 @@ class ControllerManager(Experiment):
         self.initialize_actors(config)
         self.client_manager_service.initialize_data(config.CLI_config.interface)
         logger.info("Number of states: %d", self.num_state)
-
-    async def start(self, config: MarlConfig) -> None:
-        self.initialize(config)
         await self.client_manager_service.log(
             emit=True,
             endpoint="agent",
@@ -104,18 +105,24 @@ class ControllerManager(Experiment):
         )
         self.obs_dict = self.env.reset()
 
-        for step in range(self.static_props.nb_time_steps):
+    async def start(self, config: MarlConfig) -> None:
+        if not self.pause or self.stop:
+            await self.initialize(config)
+        else:
+            await self.client_manager_service.log(
+                text=f"Continuing simulation",
+                emit=True,
+                endpoint="success",
+                data={"message": f"Continuing simulation"},
+            )
+
+        self.pause = False
+
+        for step in range(self.current_time_step, self.static_props.nb_time_steps):
             # Check if UI stopped or paused simulation
-
-            if self.stop:
-                logger.info("Training stopped at time %d", step)
-                await self.socket_manager_service.emit("stopped", {})
-                break
-
             if await self.should_stop(step):
                 break
-
-            # Update date that will be sent to UI
+            # Update data that will be sent to UI
             await self.client_manager_service.update_data(
                 obs_dict=self.obs_dict, time_step=step
             )
@@ -139,15 +146,22 @@ class ControllerManager(Experiment):
 
             # Log train statistics
             await self.log_statistics(step)
+            self.current_time_step += 1
 
-        self.metrics_service.update_final()
-        await self.client_manager_service.log(emit=True, endpoint="stopped", data={})
-        await self.client_manager_service.log(
-            emit=True,
-            endpoint="success",
-            text="Simulation ended",
-            data={"message": "Simulation ended"},
-        )
+        await self.emit_stop()
+
+    async def emit_stop(self):
+        if self.stop or (self.current_time_step == self.static_props.nb_time_steps):
+            self.metrics_service.update_final()
+            await self.client_manager_service.log(
+                emit=True, endpoint="stopped", data={}
+            )
+            await self.client_manager_service.log(
+                emit=True,
+                endpoint="success",
+                text="Simulation ended",
+                data={"message": "Simulation ended"},
+            )
 
     def get_actions(self, obs_dict) -> dict:
         actions = {}
@@ -181,9 +195,21 @@ class ControllerManager(Experiment):
     async def should_stop(self, step) -> bool:
         if self.stop:
             await self.client_manager_service.log(
-                endpoint="stopped", data={}, text=f"Training stopped at time {step}"
+                emit=True,
+                endpoint="stopped",
+                data={},
+                text=f"Simulation stopped at time {step}",
             )
             return True
+        elif self.pause:
+            await self.client_manager_service.log(
+                emit=True,
+                endpoint="paused",
+                data={},
+                text=f"Simulation paused at time {step}",
+            )
+            return True
+
         return False
 
     def initialize_actors(self, config: MarlConfig) -> None:
@@ -200,3 +226,22 @@ class ControllerManager(Experiment):
             self.actors[house_id] = agents_dict[config.simulation_props.agent](
                 agent_prop, config, num_state=self.num_state
             )
+
+    async def end_simulation(self) -> None:
+        if self.stop or (self.current_time_step == self.static_props.nb_time_steps):
+            self.metrics_service.update_final()
+            await self.client_manager_service.log(
+                emit=True, endpoint="stopped", data={}
+            )
+            await self.client_manager_service.log(
+                emit=True,
+                endpoint="success",
+                text="Simulation ended",
+                data={"message": "Simulation ended"},
+            )
+
+    async def stop_sim(self, stop_state: bool) -> None:
+        if stop_state:
+            await self.end_simulation()
+
+        self.stop = stop_state

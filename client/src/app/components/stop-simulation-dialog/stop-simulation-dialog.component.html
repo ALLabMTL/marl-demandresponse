@@ -1,0 +1,6 @@
+<h2 mat-dialog-title>Stop simulation</h2>
+<mat-dialog-content>Would you like to stop the simulation?</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button mat-dialog-close (click)="this.socketCommunication.stopSimulation()">Yes</button>
+    <button mat-button mat-dialog-close>No</button>
+</mat-dialog-actions>

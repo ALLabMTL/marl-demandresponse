@@ -199,5 +199,9 @@ class ClientManagerService:
             logger.info(text)
 
     async def get_state_at(self, time_step: int) -> None:
-        await self.log(endpoint="timeStepData", data=self.description[time_step])
-        await self.log(endpoint="houseChange", data=self.houses_data[time_step])
+        await self.log(
+            emit=True, endpoint="timeStepData", data=self.description[time_step]
+        )
+        await self.log(
+            emit=True, endpoint="houseChange", data=self.houses_data[time_step]
+        )

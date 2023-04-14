@@ -23,6 +23,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { NgChartsModule } from 'ng2-charts';
+import { StopSimulationDialogComponent } from './components/stop-simulation-dialog/stop-simulation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { NgChartsModule } from 'ng2-charts';
     GraphsComponent,
     TimestampComponent,
     DialogComponent,
+    StopSimulationDialogComponent,
   ],
   imports: [
     BrowserModule,
