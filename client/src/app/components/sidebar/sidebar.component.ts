@@ -74,6 +74,7 @@ export class SidebarComponent {
 
   setSquareNb(event: Event): void {
     this.sharedService.changeSquareNb(Number(event));
+    this.simulationManager.maxPage = Math.ceil(this.simulationManager.housesData.length / this.nbSquares);
     this.sharedService.changeCount(1);
   }
 

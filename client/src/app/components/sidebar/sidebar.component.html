@@ -44,10 +44,10 @@
       <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
         ON
       </mat-checkbox>
-      <mat-checkbox class="off_chip" #off_check color = "warn" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
+      <mat-checkbox class="off_chip" #off_check color = "primary" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
         OFF
       </mat-checkbox>
-      <mat-checkbox class="lockout_chip" #lockout_check color = "grey" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
+      <mat-checkbox class="lockout_chip" #lockout_check color = "primary" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
         Lockout
       </mat-checkbox>
     </div>
@@ -81,28 +81,28 @@
       <mat-label>Sort by</mat-label>
       <mat-select>
         <mat-option 
-          style="font-size: 14px" 
+          style="font-size: 12px" 
           value="indoorTempInc"
           (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')"
           >Indoor temp. : increasing</mat-option
         >
         <mat-option
-          style="font-size: 14px"
+          style="font-size: 12px"
           value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : decreasing</mat-option
         >
         <mat-option
-          style="font-size: 14px"
+          style="font-size: 12px"
           value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
           >Temp. diff. : increasing</mat-option
         >
         <mat-option
-          style="font-size: 14px"
+          style="font-size: 12px"
           value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
           >Temp. diff. : decreasing</mat-option
         >
         <mat-option
-          style="font-size: 14px"
+          style="font-size: 12px"
           value="noSorting"
           (click)="this.simulationManager.removeSorting()"
           >No sorting</mat-option
@@ -113,7 +113,7 @@
   <mat-divider></mat-divider>
   <div class="filter">
     <mat-form-field appearance="fill">
-      <mat-label>Agents per Page</mat-label>
+      <mat-label>Agents per page</mat-label>
       <mat-select
         placeholder="{{ this.nbSquares }}"
         (selectionChange)="setSquareNb($event.value)"
@@ -133,7 +133,7 @@
   <div class="scale">
     <p class="scale_text"><b>Color Temperature Scale</b></p>
     <mat-form-field class="precision">
-      <mat-label>Precision</mat-label>
+      <mat-label>Scale precision</mat-label>
       <input
         id="precisionValue"
         type="number"

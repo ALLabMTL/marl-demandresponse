@@ -9,13 +9,16 @@
 
 .box {
   padding-left: 1.5rem;
-  padding-top: 0.5rem;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  // padding-top: 0.5rem;
 }
 
 .title {
   font-weight: bold;
-  font-size:small;
-  margin-bottom: 0;
+  font-size: 14px;
+  margin-bottom: 0.3rem;
 }
 
 .text {
