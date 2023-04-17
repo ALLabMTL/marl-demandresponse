@@ -1,179 +1,464 @@
 {
-  "CLI_config": {
-    "experiment_name": "default",
-    "interface": true,
-    "wandb": false
-  },
-  "simulation_props": {
-    "mode": "train",
-    "agent": "PPO",
-    "nb_episodes": 3,
-    "nb_time_steps_test": 1000,
-    "nb_test_logs": 100,
-    "nb_logs": 100,
-    "nb_epochs": 20,
-    "net_seed": 4,
-    "start_stats_from": 0,
-    "log_metrics_path": "",
-    "nb_time_steps": 100000,
-    "save_actor_name": "",
-    "nb_inter_saving_actor": 1
-  },
-  "env_prop": {
-    "start_datetime": "2021-01-01T00:00:00",
-    "start_datetime_mode": "random",
-    "time_step": 4.0,
-    "temp_prop": {
-      "day_temp": 26.0,
-      "night_temp": 20.0,
-      "temp_std": 1.0,
-      "random_phase_offset": false,
-      "phase": 0.0
-    },
-    "state_prop": {
-      "hour": false,
-      "day": false,
-      "solar_gain": false,
-      "thermal": false,
-      "hvac": false
-    },
-    "reward_prop": {
-      "alpha_temp": 1.0,
-      "alpha_sig": 1.0,
-      "norm_reg_sig": 7500,
-      "penalty_props": {
-        "mode": "individual_L2",
-        "alpha_ind_l2": 1.0,
-        "alpha_common_l2": 1.0,
-        "alpha_common_max": 0.0
-      },
-      "sig_penalty_mode": "common_L2"
-    },
-    "cluster_prop": {
-      "nb_agents": 100,
-      "nb_agents_comm": 10,
-      "agents_comm_prop": {
-        "mode": "neighbours",
-        "row_size": 5,
-        "max_communication_distance": 2,
-        "max_nb_agents_communication": 10
-      },
-      "message_prop": {
-        "thermal": false,
-        "hvac": false
-      },
-      "house_prop": {
+    "default_house_prop": {
+        "id": 1,
+        "init_air_temp": 20,
+        "init_mass_temp": 20,
+        "target_temp": 20,
+        "deadband": 0,
         "Ua": 218.0,
+        "Cm": 3450000.0,
         "Ca": 908000.0,
         "Hm": 2840.0,
-        "Cm": 3450000.0,
-        "target_temp": 20.0,
-        "deadband": 0.0,
-        "init_air_temp": 20.0,
-        "init_mass_temp": 20.0,
-        "solar_gain": true,
         "window_area": 7.175,
         "shading_coeff": 0.67,
-        "noise_prop": {
-          "std_start_temp": 3.0,
-          "std_target_temp": 1.0,
-          "factor_thermo_low": 0.9,
-          "factor_thermo_high": 1.1
-        },
-        "hvac_prop": {
-          "cop": 2.5,
-          "cooling_capacity": 15000.0,
-          "latent_cooling_fraction": 0.35,
-          "lockout_duration": 40,
-          "noise_prop": {
-            "std_latent_cooling_fraction": 0.05,
-            "factor_COP_low": 0.95,
-            "factor_COP_high": 1.05,
-            "factor_cooling_capacity_low": 0.9,
-            "factor_cooling_capacity_high": 1.1,
-            "lockout_noise": 0,
-            "cooling_capacity_list": [12500, 15000, 17500]
-          }
-        }
-      }
+        "solar_gain_bool": true
     },
-    "power_grid_prop": {
-      "artificial_signal_ratio_range": 1,
-      "base_power_props": {
-        "mode": "constant",
-        "avg_power_per_hvac": 4200,
-        "init_signal_per_hvac": 910,
-        "path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
-        "path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
-        "path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
-        "interp_update_period": 300,
-        "interp_nb_agents": 100
-      },
-      "signal_properties": {
-        "mode": "perlin",
-        "amplitude_ratios": [0.1, 0.3],
-        "amplitude_per_hvac": 6000,
-        "nb_octaves": 5,
-        "octaves_step": 5,
-        "period": 300,
-        "periods": [400, 1200]
-      },
-      "artificial_ratio": 1.0
+    "noise_house_prop": {
+        "noise_mode": "small_noise",
+        "noise_parameters": {
+            "no_noise": {
+                "std_start_temp": 0,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "dwarf_noise": {
+                "std_start_temp": 0.05,
+                "std_target_temp": 0.05,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "house_small_noise": {
+                "std_start_temp": 0,
+                "std_target_temp": 0,
+                "factor_thermo_low": 0.9,
+                "factor_thermo_high": 1.1
+            },
+            "house_medium_noise": {
+                "std_start_temp": 0,
+                "std_target_temp": 0,
+                "factor_thermo_low": 0.8,
+                "factor_thermo_high": 1.2
+            },
+            "house_big_noise": {
+                "std_start_temp": 0,
+                "std_target_temp": 0,
+                "factor_thermo_low": 0.5,
+                "factor_thermo_high": 1.5
+            },
+            "small_noise": {
+                "std_start_temp": 3,
+                "std_target_temp": 1,
+                "factor_thermo_low": 0.9,
+                "factor_thermo_high": 1.1
+            },
+            "big_noise": {
+                "std_start_temp": 5,
+                "std_target_temp": 2,
+                "factor_thermo_low": 0.8,
+                "factor_thermo_high": 1.2
+            },
+            "small_start_temp": {
+                "std_start_temp": 3,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "big_start_temp": {
+                "std_start_temp": 5,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            }
+        }
+    },
+    "noise_house_prop_test": {
+        "noise_mode": "small_noise",
+        "noise_parameters": {
+            "no_noise": {
+                "std_start_temp": 0,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "dwarf_noise": {
+                "std_start_temp": 0.05,
+                "std_target_temp": 0.05,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "small_noise": {
+                "std_start_temp": 3,
+                "std_target_temp": 1,
+                "factor_thermo_low": 0.9,
+                "factor_thermo_high": 1.1
+            },
+            "big_noise": {
+                "std_start_temp": 5,
+                "std_target_temp": 2,
+                "factor_thermo_low": 0.8,
+                "factor_thermo_high": 1.2
+            },
+            "small_start_temp": {
+                "std_start_temp": 3,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            },
+            "big_start_temp": {
+                "std_start_temp": 5,
+                "std_target_temp": 0,
+                "factor_thermo_low": 1,
+                "factor_thermo_high": 1
+            }
+        }
+    },
+    "default_hvac_prop": {
+        "id": 1,
+        "COP": 2.5,
+        "cooling_capacity": 15000,
+        "latent_cooling_fraction": 0.35,
+        "lockout_duration": 40,
+        "lockout_noise": 0
+    },
+    "noise_hvac_prop": {
+        "noise_mode": "small_noise",
+        "noise_parameters": {
+            "no_noise": {
+                "cooling_capacity_list": {
+                    "10000": [
+                        10000
+                    ],
+                    "15000": [
+                        15000
+                    ]
+                }
+            },
+            "small_noise": {
+                "cooling_capacity_list": {
+                    "10000": [
+                        9000,
+                        10000,
+                        11000
+                    ],
+                    "15000": [
+                        12500,
+                        15000,
+                        17500
+                    ]
+                }
+            },
+            "big_noise": {
+                "cooling_capacity_list": {
+                    "10000": [
+                        7500,
+                        9000,
+                        10000,
+                        11000,
+                        12500
+                    ],
+                    "15000": [
+                        10000,
+                        12500,
+                        15000,
+                        17500,
+                        20000
+                    ]
+                }
+            }
+        }
+    },
+    "noise_hvac_prop_test": {
+        "noise_mode": "small_noise",
+        "noise_parameters": {
+            "no_noise": {
+                "std_latent_cooling_fraction": 0,
+                "factor_COP_low": 1,
+                "factor_COP_high": 1,
+                "factor_cooling_capacity_low": 1,
+                "factor_cooling_capacity_high": 1
+            },
+            "small_noise": {
+                "std_latent_cooling_fraction": 0.05,
+                "factor_COP_low": 0.95,
+                "factor_COP_high": 1.05,
+                "factor_cooling_capacity_low": 0.9,
+                "factor_cooling_capacity_high": 1.1
+            },
+            "big_noise": {
+                "std_latent_cooling_fraction": 0.1,
+                "factor_COP_low": 0.85,
+                "factor_COP_high": 1.15,
+                "factor_cooling_capacity_low": 0.6666667,
+                "factor_cooling_capacity_high": 1.3333333333
+            }
+        }
+    },
+    "default_env_prop": {
+        "start_datetime": "2021-01-01 00:00:00",
+        "start_datetime_mode": "random",
+        "time_step": 4,
+        "cluster_prop": {
+            "temp_mode": "noisy_sinusoidal",
+            "temp_parameters": {
+                "constant": {
+                    "day_temp": 26.5,
+                    "night_temp": 26.5,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal": {
+                    "day_temp": 30,
+                    "night_temp": 23,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal_hot": {
+                    "day_temp": 30,
+                    "night_temp": 28,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal_hot_heatwave": {
+                    "day_temp": 38,
+                    "night_temp": 32,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal_cold_heatwave": {
+                    "day_temp": 30,
+                    "night_temp": 24,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "sinusoidal_cold": {
+                    "day_temp": 24,
+                    "night_temp": 22,
+                    "temp_std": 0,
+                    "random_phase_offset": false
+                },
+                "noisy_sinusoidal": {
+                    "day_temp": 30,
+                    "night_temp": 23,
+                    "temp_std": 0.5,
+                    "random_phase_offset": false
+                },
+                "noisy_sinusoidal_hot": {
+                    "day_temp": 30,
+                    "night_temp": 28,
+                    "temp_std": 0.5,
+                    "random_phase_offset": false
+                },
+                "noisy_sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
+                    "temp_std": 0.5,
+                    "random_phase_offset": false
+                },
+                "noisier_sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
+                    "temp_std": 2,
+                    "random_phase_offset": false
+                },
+                "noisy_sinusoidal_cold": {
+                    "day_temp": 24,
+                    "night_temp": 22,
+                    "temp_std": 0.5,
+                    "random_phase_offset": false
+                },
+                "shifting_sinusoidal": {
+                    "day_temp": 30,
+                    "night_temp": 23,
+                    "temp_std": 0,
+                    "random_phase_offset": true
+                },
+                "shifting_sinusoidal_heatwave": {
+                    "day_temp": 34,
+                    "night_temp": 28,
+                    "temp_std": 0,
+                    "random_phase_offset": true
+                }
+            },
+            "nb_agents": 1,
+            "nb_agents_comm": 10,
+            "agents_comm_mode": "neighbours",
+            "agents_comm_parameters": {
+                "neighbours_2D": {
+                    "row_size": 5,
+                    "distance_comm": 2
+                }
+            }
+        },
+        "state_properties": {
+            "hour": false,
+            "day": false,
+            "solar_gain": false,
+            "thermal": false,
+            "hvac": false
+        },
+        "message_properties": {
+            "thermal": false,
+            "hvac": false
+        },
+        "power_grid_prop": {
+            "base_power_mode": "constant",
+            "base_power_parameters": {
+                "constant": {
+                    "avg_power_per_hvac": 4200,
+                    "init_signal_per_hvac": 910
+                },
+                "interpolation": {
+                    "path_datafile": "./monteCarlo/mergedGridSearchResultFinal.npy",
+                    "path_parameter_dict": "./monteCarlo/interp_parameters_dict.json",
+                    "path_dict_keys": "./monteCarlo/interp_dict_keys.csv",
+                    "interp_update_period": 300,
+                    "interp_nb_agents": 100
+                }
+            },
+            "artificial_signal_ratio_range": 1,
+            "artificial_ratio": 1.0,
+            "signal_mode": "regular_steps",
+            "signal_parameters": {
+                "flat": {},
+                "sinusoidals": {
+                    "periods": [
+                        400,
+                        1200
+                    ],
+                    "amplitude_ratios": [
+                        0.1,
+                        0.3
+                    ]
+                },
+                "regular_steps": {
+                    "amplitude_per_hvac": 6000,
+                    "period": 300
+                },
+                "perlin": {
+                    "amplitude_ratios": 0.9,
+                    "nb_octaves": 5,
+                    "octaves_step": 5,
+                    "period": 400
+                },
+                "amplitude+_perlin": {
+                    "amplitude_ratios": 0.9900000000000001,
+                    "nb_octaves": 5,
+                    "octaves_step": 5,
+                    "period": 400
+                },
+                "amplitude++_perlin": {
+                    "amplitude_ratios": 1.1700000000000002,
+                    "nb_octaves": 5,
+                    "octaves_step": 5,
+                    "period": 400
+                },
+                "fast+_perlin": {
+                    "amplitude_ratios": 0.9,
+                    "nb_octaves": 5,
+                    "octaves_step": 5,
+                    "period": 300
+                },
+                "fast++_perlin": {
+                    "amplitude_ratios": 0.9,
+                    "nb_octaves": 5,
+                    "octaves_step": 5,
+                    "period": 200
+                }
+            }
+        },
+        "reward_prop": {
+            "alpha_temp": 1,
+            "alpha_sig": 1,
+            "norm_reg_sig": 7500,
+            "temp_penalty_mode": "individual_L2",
+            "temp_penalty_parameters": {
+                "individual_L2": {},
+                "common_L2": {},
+                "common_max_error": {},
+                "mixture": {
+                    "alpha_ind_L2": 1,
+                    "alpha_common_L2": 1,
+                    "alpha_common_max": 0
+                }
+            },
+            "sig_penalty_mode": "common_L2"
+        }
+    },
+    "PPO_prop": {
+        "actor_layers": [
+            100,
+            100
+        ],
+        "critic_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "lr_critic": 0.003,
+        "lr_actor": 0.001,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ppo_update_time": 10,
+        "batch_size": 256,
+        "zero_eoepisode_return": false
+    },
+    "MAPPO_prop": {
+        "actor_layers": [
+            100,
+            100
+        ],
+        "critic_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "lr_critic": 0.003,
+        "lr_actor": 0.001,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ppo_update_time": 10,
+        "batch_size": 256,
+        "zero_eoepisode_return": false
+    },
+    "DDPG_prop": {
+        "actor_hidden_dim": 256,
+        "critic_hidden_dim": 256,
+        "gamma": 0.99,
+        "lr_critic": 0.003,
+        "lr_actor": 0.001,
+        "soft_tau": 0.01,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ddpg_update_time": 10,
+        "batch_size": 64,
+        "buffer_capacity": 524288,
+        "episode_num": 10000,
+        "learn_interval": 100,
+        "random_steps": 100,
+        "gumbel_softmax_tau": 1,
+        "DDPG_shared": true
+    },
+    "DQN_prop": {
+        "network_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "tau": 0.01,
+        "buffer_capacity": 524288,
+        "lr": 0.001,
+        "batch_size": 256,
+        "epsilon_decay": 0.99998,
+        "min_epsilon": 0.01
+    },
+    "MPC_prop": {
+        "rolling_horizon": 15
     }
-  },
-  "PPO_prop": {
-    "actor_layers": [100, 100],
-    "critic_layers": [100, 100],
-    "gamma": 0.99,
-    "lr_critic": 0.003,
-    "lr_actor": 0.003,
-    "clip_param": 0.2,
-    "max_grad_norm": 0.5,
-    "ppo_update_time": 10,
-    "batch_size": 256,
-    "zero_eoepisode_return": false
-  },
-  "MAPPO_prop": {
-    "actor_layers": [100, 100],
-    "critic_layers": [100, 100],
-    "gamma": 0.99,
-    "lr_critic": 0.003,
-    "lr_actor": 0.003,
-    "clip_param": 0.2,
-    "max_grad_norm": 0.5,
-    "ppo_update_time": 10,
-    "batch_size": 256,
-    "zero_eoepisode_return": false
-  },
-  "DDPG_prop": {
-    "actor_hidden_dim": 256,
-    "critic_hidden_dim": 256,
-    "lr_critic": 0.003,
-    "lr_actor": 0.003,
-    "soft_tau": 0.01,
-    "clip_param": 0.2,
-    "max_grad_norm": 0.5,
-    "ddpg_update_time": 10,
-    "batch_size": 64,
-    "buffer_capacity": 524288,
-    "episode_num": 10000,
-    "learn_interval": 100,
-    "random_steps": 100,
-    "gumbel_softmax_tau": 1.0,
-    "DDPG_shared": true,
-    "gamma": 0.99
-  },
-  "DQN_prop": {
-    "network_layers": [100, 100],
-    "gamma": 0.99,
-    "tau": 0.001,
-    "lr": 0.003,
-    "buffer_capacity": 524288,
-    "batch_size": 256,
-    "epsilon_decay": 0.99998,
-    "min_epsilon": 0.01
-  },
-  "MPC_prop": {
-    "rolling_horizon": 15
-  }
 }

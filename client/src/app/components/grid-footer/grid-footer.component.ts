@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon';
 import { SharedService } from '@app/services/shared/shared.service';
-import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
 
 @Component({
@@ -14,11 +13,10 @@ export class GridFooterComponent {
   
   @Output() pageChangeFromFooter:EventEmitter<any> = new EventEmitter;
   
-  currentPage = 1;
-  maxPage = 35;
+  currentPage: number = 1;
+  maxPage: number = 35;
 
-  constructor(private sharedService: SharedService, public simulationManager: SimulationManagerService){
-  }
+  constructor(private sharedService: SharedService){}
 
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
@@ -26,11 +24,7 @@ export class GridFooterComponent {
 
   setPageInput(): void {
     const page = (<HTMLInputElement>document.getElementById("myNumber")).value;
-    let pageNb = parseInt(page);
-    if(pageNb > this.simulationManager.maxPage){
-      pageNb = this.simulationManager.maxPage;
-    }
-    this.sharedService.changeCount(pageNb);
+    this.sharedService.changeCount(parseInt(page));
   }
 
   incrementPage(): void {

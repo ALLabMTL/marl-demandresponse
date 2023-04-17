@@ -3,9 +3,9 @@ import sys
 sys.path.append("../marl-demandresponse")
 
 import pandas as pd
+from utils import house_solar_gain
 
 from v0.agents.MPC import best_MPC_action
-from v0.utils import house_solar_gain
 
 global_mpc_memory = [None, None]
 
@@ -41,16 +41,16 @@ class MPCController:
         if global_mpc_memory[0] != self.time_step:
             df = pd.DataFrame(obs).transpose()
             nb_agents = len(df.index)
-            Ua = df["Ua"].to_list()
-            Ca = df["Ca"].to_list()
-            Cm = df["Cm"].to_list()
-            Hm = df["Hm"].to_list()
-            initial_air_temperature = df["indoor_temp"].to_list()
-            initial_mass_temperature = df["mass_temp"].to_list()
-            target_temperature = df["target_temp"].to_list()
-            remaining_lockout = (df["lockout_duration"] - df["seconds_since_off"]) * df[
-                "turned_on"
-            ]
+            Ua = df["house_Ua"].to_list()
+            Ca = df["house_Ca"].to_list()
+            Cm = df["house_Cm"].to_list()
+            Hm = df["house_Hm"].to_list()
+            initial_air_temperature = df["house_temp"].to_list()
+            initial_mass_temperature = df["house_mass_temp"].to_list()
+            target_temperature = df["house_target_temp"].to_list()
+            remaining_lockout = (
+                df["hvac_lockout_duration"] - df["hvac_seconds_since_off"]
+            ) * df["hvac_turned_on"]
 
             rolling_horizon = self.rolling_horizon
             if self.solar_gain:
@@ -63,11 +63,13 @@ class MPCController:
                 solar_gain = [0] * rolling_horizon
 
             time_step_duration = self.time_step_duration
-            lockout_duration = df["lockout_duration"][0]
+            lockout_duration = df["hvac_lockout_duration"][0]
             reg_signal = [df["reg_signal"][0]] * rolling_horizon
             od_temp = [df["OD_temp"][0]] * rolling_horizon
-            HVAC_consumption = df["cooling_capacity"] / df["cop"]
-            HVAC_cooling = df["cooling_capacity"] / (1 + df["latent_cooling_fraction"])
+            HVAC_consumption = df["hvac_cooling_capacity"] / df["hvac_COP"]
+            HVAC_cooling = df["hvac_cooling_capacity"] / (
+                1 + df["hvac_latent_cooling_fraction"]
+            )
 
             global_mpc_memory[1] = best_MPC_action(
                 nb_agents,
