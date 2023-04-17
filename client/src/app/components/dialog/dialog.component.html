@@ -1,35 +1,88 @@
 <div class="dialog">
   <div class="info">
-    <p>House # {{this.simulationManager.housesData[this.id].id + 1}}</p>
+    <p>
+      House #
+      {{
+      this.simulationManager.pages[this.currentPage - 1].content[this.id].id +
+      1
+      }}
+    </p>
     <div class="house">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="200"
-        height="200"
-        viewBox="0 0 16 16"
-      >
-        <g [style.fill]="this.sharedService.houseColor(this.simulationManager.housesData[this.id].tempDifference)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 16 16">
+        <g [style.fill]="
+            this.sharedService.houseColor(
+              this.simulationManager.pages[this.currentPage - 1].content[
+                this.id
+              ].tempDifference
+            )
+          ">
           <path
-            d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"
-          />
-          <path
-            d="m8 3.293l6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6Z"
-          />
+            d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z" />
+          <path d="m8 3.293l6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6Z" />
         </g>
       </svg>
     </div>
     <p>House information :</p>
     <ul>
-      <li>Actual temperature : {{this.simulationManager.housesData[this.id].indoorTemp}}</li>
-      <li>Target temperature : {{this.simulationManager.housesData[this.id].targetTemp}}</li>
-      <li>Temperature difference : {{this.simulationManager.housesData[this.id].tempDifference}}</li>
-      <li>HVAC status : {{this.simulationManager.housesData[this.id].hvacStatus}}</li>
-      <li *ngIf="this.simulationManager.housesData[this.id].secondsSinceOff">
-        Seconds since off : {{this.simulationManager.housesData[this.id].secondsSinceOff}}
+      <li>
+        Actual temperature :
+        {{
+        this.simulationManager.pages[this.currentPage - 1].content[this.id]
+        .indoorTemp
+        }}
       </li>
-  </ul>
+      <li>
+        Target temperature :
+        {{
+        this.simulationManager.pages[this.currentPage - 1].content[this.id]
+        .targetTemp
+        }}
+      </li>
+      <li>
+        Temperature difference :
+        {{
+        this.simulationManager.pages[this.currentPage - 1].content[this.id]
+        .tempDifference
+        }}
+      </li>
+      <li>
+        HVAC status :
+        {{
+        this.simulationManager.pages[this.currentPage - 1].content[this.id]
+        .hvacStatus
+        }}
+      </li>
+      <li *ngIf="
+          this.simulationManager.pages[this.currentPage - 1].content[this.id]
+            .secondsSinceOff
+        ">
+        Seconds since off :
+        {{
+        this.simulationManager.pages[this.currentPage - 1].content[this.id]
+        .secondsSinceOff
+        }}
+      </li>
+    </ul>
   </div>
   <div class="graphs">
     <p>Graphs :</p>
+    <div style="display: block; margin-bottom: 1rem;">
+      <canvas baseChart #a=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData"
+        [options]="lineChartOptions" *ngIf="lineChartData">
+      </canvas>
+      <button id="zoom1" mat-raised-button (click)="resetZoomGraph(0)">Reset Zoom</button>
+    </div>
+    <div style="display: block; margin-bottom: 1rem;">
+      <canvas baseChart #b=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData2"
+        [options]="lineChartOptions" *ngIf="lineChartData2">
+      </canvas>
+      <button id="zoom2" mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
+    </div>
+    <div style="display: block;">
+      <canvas baseChart #c=base-chart width="250" height="80" [type]="'line'" [data]="lineChartData3"
+        [options]="lineChartOptions3" *ngIf="lineChartData3">
+      </canvas>
+      <button id="zoom2" mat-raised-button (click)="resetZoomGraph(1)">Reset Zoom</button>
+    </div>
   </div>
 </div>

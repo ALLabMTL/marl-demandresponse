@@ -1,7 +1,8 @@
-import numpy as np
-import cvxpy as cp
-import sys
 import os
+import sys
+
+import cvxpy as cp
+import numpy as np
 
 id_rng = np.random.default_rng()
 unique_ID = str(int(id_rng.random() * 1000000))
@@ -164,7 +165,7 @@ def best_MPC_action(
         constraints,
     )
 
-    problem.solve(solver=cp.GUROBI, NodefileStart=0.5)
+    problem.solve(solver=cp.GUROBI, NodefileStart=0.5, verbose=True)
 
     os.remove(path)
     sys.stdout = sys.__stdout__

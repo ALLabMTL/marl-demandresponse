@@ -1,30 +1,41 @@
 mat-slider {
-  margin-left: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  width: 190px;
+  width: 12rem;
 }
 
 mat-chip-listbox {
   margin-top: 1rem;
 }
+
+.temp_checkbox{
+  margin-bottom: 0.5rem;
+}
+
 .hvac_filter {
   margin-left: 1rem;
-  margin-top: 1.5rem;
-  margin-bottom: 2rem;
-
+  margin-top: 1rem;
+  // margin-bottom: 2rem;
 }
+
 .temp_filter {
   margin-left: 1rem;
-  margin-top: 1.5rem;
-  
+  // margin-top: 1.5rem; 
+}
+
+.values_temp p{
+  display:inline-table;
+  margin-left: 15px;
+  text-align: center;
+  //table-layout: fixed;
+}
+
+.values_temp_selected {
+ // text-align: center;
+  margin-left: 15px;
 }
 
 .scale {
-  // position: absolute;
-  // bottom: 0;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .scale .scale_gradient {
@@ -47,18 +58,15 @@ mat-chip-listbox {
   display: table;
   width: 15.3rem;
   table-layout: fixed;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   color: black;
 }
 
 .scale_chart span {
   display: table-cell;
-  // text-align: center;
-  // padding-left: 1rem;
 }
 
 .scale .scale_text {
-  // text-align: center;
   font-size: 1rem;
   padding-left: 1.2rem;
   color: black;
@@ -76,9 +84,9 @@ mat-chip-listbox {
 }
 
 .hvac_status {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   padding-left: 1.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .hvac-status-legend {
@@ -90,7 +98,7 @@ mat-chip-listbox {
 .circle_lockout {
   width: 30px;
   height: 30px;
-  background-color: grey;
+  background-color: rgb(255, 255, 255);
   border-radius: 50%;
   border: 1px solid black;
 }
@@ -117,7 +125,9 @@ mat-chip-listbox {
 }
 
 .filter {
-  margin: 2rem 1rem 1.5rem 1rem;
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
 }
 
 .floor_filter {
@@ -127,7 +137,6 @@ mat-chip-listbox {
 
 .filter-title {
   font-size: 1rem;
-  // margin-left: 0.7rem;
   padding-left: 1.2rem;
   margin-top: 1rem;
   color: black;
@@ -138,7 +147,5 @@ mat-chip-listbox {
   color: black
 }
 
-// .filter {
-//   margin-top: 2rem;
-//   margin-bottom: 2rem;
-// }
+
+
