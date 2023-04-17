@@ -43,6 +43,19 @@ agents_dict = {
 
 
 class ControllerManager(Experiment):
+    """
+    The ControllerManager class manages the simulation of multiple agents interacting with an environment. It initializes the environment and agents, runs the simulation, and logs metrics. The class inherits from the Experiment class.
+
+    Attributes:
+        env: the environment that the agents interact with
+        nb_agents: the number of agents in the simulation
+        speed: the speed of the simulation
+        obs_dict: the current observation dictionary of the environment
+        num_state: the number of states in the environment
+        actors: a dictionary containing the controllers for each agent
+        static_props: the static properties of the simulation
+        current_time_step: the current time step of the simulation
+    """
     env: Environment
     nb_agents: int
     speed: float
@@ -54,10 +67,12 @@ class ControllerManager(Experiment):
 
     @property
     def time_steps_per_episode(self) -> int:
+        """Returns the number of time steps per episode based on the number of time steps and episodes."""
         return int(self.static_props.nb_time_steps / self.static_props.nb_episodes)
 
     @property
     def time_steps_train_log(self) -> int:
+        """Returns the number of time steps between training log events based on the number of time steps and logs."""
         return int(self.static_props.nb_time_steps / self.static_props.nb_logs)
 
     def __init__(
@@ -66,6 +81,7 @@ class ControllerManager(Experiment):
         socket_manager_service: SocketManager,
         metrics_service: Metrics,
     ) -> None:
+        """Initializes a new instance of the class with the given services and default state."""
         self.client_manager_service = client_manager_service
         self.socket_manager_service = socket_manager_service
         self.metrics_service = metrics_service
@@ -73,6 +89,16 @@ class ControllerManager(Experiment):
         self.pause = False
 
     async def initialize(self, config: MarlConfig) -> None:
+        """
+        Initialize the environment, actors and metrics.
+
+        Parameters:
+            config : MarlConfig
+                Configuration object containing environment, simulation and agent properties.
+
+        Returns:
+            None
+        """
         random.seed(config.simulation_props.net_seed)
         self.current_time_step = 0
         self.stop = False
@@ -106,6 +132,16 @@ class ControllerManager(Experiment):
         self.obs_dict = self.env.reset()
 
     async def start(self, config: MarlConfig) -> None:
+        """
+        Start the simulation.
+
+        Parameters:
+            config : MarlConfig
+                Configuration object containing environment, simulation and agent properties.
+
+        Returns:
+            None
+        """
         if not self.pause or self.stop:
             await self.initialize(config)
         else:
@@ -151,6 +187,7 @@ class ControllerManager(Experiment):
         await self.emit_stop()
 
     async def emit_stop(self):
+        """Emit a message to the UI once the simulation has stopped."""
         if self.stop or (self.current_time_step == self.static_props.nb_time_steps):
             self.metrics_service.update_final()
             await self.client_manager_service.log(
@@ -164,12 +201,33 @@ class ControllerManager(Experiment):
             )
 
     def get_actions(self, obs_dict) -> dict:
+        """
+        Calculate the actions for each agent.
+
+        Parameters:
+            obs_dict : List[EnvironmentObsDict]
+                List of observations of the environment for each agent.
+
+        Returns:
+            actions : dict
+                Dictionary containing the actions for each agent.
+        """
         actions = {}
         for agent_id, actor in self.actors.items():
             actions[agent_id] = actor.act(obs_dict)
         return actions
 
     async def reset_environment(self, step) -> None:
+        """
+        Reset the environment if a new episode has started.
+
+        Parameters:
+            step : int
+                The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
             await self.client_manager_service.log(
                 text=f"New episode at time {step}",
@@ -180,6 +238,16 @@ class ControllerManager(Experiment):
             self.obs_dict = self.env.reset()
 
     async def log_statistics(self, step) -> None:
+        """
+        Log the statistics of the current episode.
+
+        Parameters:
+            step : int
+                The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_train_log == self.time_steps_train_log - 1:
             await self.client_manager_service.log(
                 text=f"Logging stats at time {step}",
@@ -193,6 +261,17 @@ class ControllerManager(Experiment):
             self.metrics_service.reset()
 
     async def should_stop(self, step) -> bool:
+        """
+        Check if the simulation has to stop or pause.
+
+        Parameters:
+            step : int
+                The current time step.
+
+        Returns:
+            stop : bool
+                True if the simulation has to stop, False otherwise.
+        """
         if self.stop:
             await self.client_manager_service.log(
                 emit=True,
@@ -213,6 +292,16 @@ class ControllerManager(Experiment):
         return False
 
     def initialize_actors(self, config: MarlConfig) -> None:
+        """
+        Initialize the controllers for each agent.
+
+        Parameters:
+            config : MarlConfig
+                Configuration object containing environment, simulation and agent properties.
+
+        Returns:
+            None
+        """
         for house_id in range(self.nb_agents):
             agent_prop: Dict[str, Union[str, int]] = {"id": house_id}
             if config.simulation_props.agent:
@@ -228,6 +317,13 @@ class ControllerManager(Experiment):
             )
 
     async def end_simulation(self) -> None:
+        """
+        Ends the simulation and updates metrics.
+
+        If the simulation has already been stopped or has reached the maximum number
+        of time steps, the final metrics are updated and logs are emitted to indicate
+        that the simulation has stopped.
+        """
         if self.stop or (self.current_time_step == self.static_props.nb_time_steps):
             self.metrics_service.update_final()
             await self.client_manager_service.log(
@@ -241,6 +337,19 @@ class ControllerManager(Experiment):
             )
 
     async def stop_sim(self, stop_state: bool) -> None:
+        """
+        Stops the simulation.
+
+        If the `stop_state` parameter is True, the simulation is stopped by calling the
+        `end_simulation` method. If the `stop_state` parameter is False, the simulation
+        will continue to run.
+
+        Parameters:
+            stop_state: A boolean value indicating whether or not to stop the simulation.
+
+        Returns:
+            None.
+        """
         if stop_state:
             await self.end_simulation()
 

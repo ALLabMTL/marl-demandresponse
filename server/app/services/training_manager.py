@@ -33,6 +33,19 @@ agents_dict: Dict[str, Tuple[Trainable, str]] = {
 
 
 class TrainingManager(Experiment):
+    """
+    Manage training for a multi-agent reinforcement learning system.
+
+    This class manages the training of a multi-agent reinforcement learning system. It implements the Experiment interface, which allows it to be used by the ExperimentRunner to run experiments.
+
+    Attributes:
+        env (Environment): The environment object.
+        nb_agents (int): The number of agents in the environment.
+        speed (float): The speed of the simulation.
+        obs_dict (List[EnvironmentObsDict]): A list of environment observations.
+        agent (Trainable): The trainable agent used for training.
+        static_props (SimulationProperties): A SimulationProperties object containing various simulation properties.
+    """
     env: Environment
     nb_agents: int
     speed: float
@@ -42,22 +55,67 @@ class TrainingManager(Experiment):
 
     @property
     def time_steps_per_episode(self) -> int:
+        """
+        Return the number of time steps per episode.
+
+        Parameters: 
+            None
+
+        Returns:
+            int: The number of time steps per episode.
+        """
         return int(self.static_props.nb_time_steps / self.static_props.nb_episodes)
 
     @property
     def time_steps_train_log(self) -> int:
+        """
+        Return the number of time steps per training log.
+
+        Parameters: 
+            None
+
+        Returns:
+            int: The number of time steps per training log.
+        """
         return int(self.static_props.nb_time_steps / self.static_props.nb_logs)
 
     @property
     def time_steps_per_epoch(self) -> int:
+        """
+        Return the number of time steps per epoch.
+
+        Parameters: 
+            None
+
+        Returns:
+            int: The number of time steps per epoch.
+        """
         return int(self.static_props.nb_time_steps / self.static_props.nb_epochs)
 
     @property
     def time_steps_test_log(self) -> int:
+        """
+        Return the number of time steps per test log.
+
+        Parameters: 
+            None
+
+        Returns:
+            int: The number of time steps per test log.
+        """
         return int(self.static_props.nb_time_steps / self.static_props.nb_test_logs)
 
     @property
     def time_steps_per_saving_actor(self) -> int:
+        """
+        Return the number of time steps per saving actor.
+
+        Parameters: 
+            None
+
+        Returns:
+            int: The number of time steps per saving actor.
+        """
         return int(
             self.static_props.nb_time_steps / self.static_props.nb_inter_saving_actor
         )
@@ -67,12 +125,32 @@ class TrainingManager(Experiment):
         client_manager_service: ClientManagerService,
         metrics_service: Metrics,
     ) -> None:
+        """
+        Initialize a TrainingManager instance.
+
+        Parameters:
+            client_manager_service (ClientManagerService): The client manager service.
+            metrics_service (Metrics): The metrics service.
+
+        Returns: 
+            None
+        """
         self.client_manager_service = client_manager_service
         self.metrics_service = metrics_service
         self.stop = False
         self.pause = False
 
     async def initialize(self, config: MarlConfig) -> None:
+        """
+        Initialize the environment and the agents for training.
+
+        Parameters:
+            config (MarlConfig): The configuration for the training.
+
+        Returns: 
+            None
+        """
+        
         random.seed(config.simulation_props.net_seed)
         self.static_props = config.simulation_props
         self.current_time_step = 0
@@ -108,6 +186,15 @@ class TrainingManager(Experiment):
         self.obs_dict = self.env.reset()
 
     async def start(self, config: MarlConfig) -> None:
+        """
+        Start the training.
+
+        Parameters:
+            config (MarlConfig): The configuration for the training.
+
+        Returns: 
+                None
+        """
         if not self.pause or self.stop:
             await self.initialize(config)
         else:
@@ -207,6 +294,15 @@ class TrainingManager(Experiment):
         )
 
     def test_policy(self, step: int) -> None:
+        """
+        Test the agent's policy at a given time step.
+
+        Parameters:
+            step (int): The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_test_log == self.time_steps_test_log - 1:
             logger.info("Testing at time %d", step)
             self.test(step)
@@ -223,6 +319,15 @@ class TrainingManager(Experiment):
             )
 
     async def update_agent(self, step: int) -> None:
+        """
+        Update the agent's parameters at a given time step.
+
+        Parameters:
+            step (int): The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_per_epoch == self.time_steps_per_epoch - 1:
             await self.client_manager_service.log(
                 text=f"Updating agent at time {step}",
@@ -233,6 +338,15 @@ class TrainingManager(Experiment):
             self.agent.update(step)
 
     async def log_statistics(self, step: int) -> None:
+        """
+        Log the statistics for the current training epoch at a given time step.
+
+        Parameters:
+            step (int): The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_train_log == self.time_steps_train_log - 1:
             await self.client_manager_service.log(
                 text=f"Logging stats at time {step}",
@@ -246,6 +360,12 @@ class TrainingManager(Experiment):
             self.metrics_service.reset()
 
     async def end_simulation(self) -> None:
+        """
+        End the simulation and saves the agent if necessary.
+
+        Returns:
+            None
+        """
         if self.static_props.save_actor_name:
             path = os.path.join(".", "actors", self.static_props.save_actor_name)
             self.agent.save(path)
@@ -264,6 +384,15 @@ class TrainingManager(Experiment):
             )
 
     async def should_stop(self, step) -> bool:
+        """
+        Determine if the training should stop based on the current step.
+
+        Parameters:
+            step (int): The current step.
+
+        Returns:
+            bool: Whether the training should stop.
+        """
         if self.stop:
             await self.client_manager_service.log(
                 emit=True,
@@ -284,6 +413,15 @@ class TrainingManager(Experiment):
         return False
 
     async def reset_environment(self, step) -> None:
+        """
+        Reset the environment at the end of an episode.
+
+        Parameters:
+            step (int): The current time step.
+
+        Returns:
+            None
+        """
         if step % self.time_steps_per_episode == self.time_steps_per_episode - 1:
             await self.client_manager_service.log(
                 text=f"New episode at time {step}",
@@ -294,6 +432,15 @@ class TrainingManager(Experiment):
             self.obs_dict = self.env.reset()
 
     async def stop_sim(self, stop_state: bool) -> None:
+        """
+        Stop the simulation if the given stop_state is True.
+
+        Parameters:
+            stop_state (bool): Whether to stop the simulation.
+
+        Returns:
+            None
+        """
         if stop_state:
             await self.end_simulation()
 

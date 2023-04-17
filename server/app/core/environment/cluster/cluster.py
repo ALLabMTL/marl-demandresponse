@@ -15,6 +15,26 @@ from app.core.environment.simulatable import Simulatable
 
 
 class Cluster(Simulatable):
+    """
+    Class representing a cluster of buildings.
+
+    Attributes:
+        init_props : ClusterPropreties
+            The initial properties of the cluster.
+        current_power_consumption : float
+            The current power consumption of the cluster.
+        max_power : float
+            The maximum power consumption of the cluster.
+        buildings : List[Building]
+            A list of buildings in the cluster.
+        agent_communicators : Dict[int, List[int]]
+            A dictionary representing the communication links between agents.
+        id_houses_messages : List[int]
+            A list of ids of the houses for which messages will be sent.
+        communication_builder : AgentCommunicationBuilder
+            An object used for building communication links between agents.
+    """
+    
     init_props: ClusterPropreties
     current_power_consumption: float
     max_power: float

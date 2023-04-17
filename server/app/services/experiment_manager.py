@@ -6,6 +6,12 @@ from app.utils.logger import logger
 
 
 class ExperimentManager:
+    """
+    Class that manages the experiment, including initializing it, starting it, and updating its state. 
+
+    Attributes:
+        experiment (Experiment): The current Experiment instance.
+    """
     experiment: Experiment
 
     def __init__(
@@ -13,6 +19,13 @@ class ExperimentManager:
         controller_manager: ControllerManager,
         training_manager: TrainingManager,
     ) -> None:
+        """
+        Initialize a new instance of the ExperimentManager class.
+        
+        Parameters:
+            controller_manager: A ControllerManager object used to run the simulation in "simulation" mode.
+            training_manager: A TrainingManager object used to run the simulation in "train" mode.
+        """
         self.controller_manager = controller_manager
         self.training_manager = training_manager
         self.experiment = training_manager
@@ -24,6 +37,7 @@ class ExperimentManager:
             self.experiment = self.controller_manager
 
     def initialize(self) -> None:
+        """Initialize the experiment."""
         self.parser = ParserService()
         self.config = self.parser.config
         if self.config.simulation_props.mode == "train":
@@ -33,15 +47,29 @@ class ExperimentManager:
         self.experiment.initialize(self.config)
 
     async def start(self) -> None:
+        """Start the experiment."""
         await self.experiment.start(self.config)
 
     def change_speed(self, speed: float) -> None:
+        """
+        Change the speed of the simulation.
+
+        Parameters:
+            speed: A float value representing the new speed of the simulation.
+        """
         self.experiment.speed = speed
 
     async def update_experiment_state(self, stop: bool) -> None:
+        """
+        Update the state of the experiment (i.e. whether it is stopped or running).
+
+        Parameters:
+            stop: A boolean value representing whether the experiment should be stopped or not.
+        """
         self.experiment.stop = stop
         await self.experiment.stop_sim(stop)
         logger.debug(f"Experiment stop state: {self.experiment.stop}")
 
     def pause_simulation(self) -> None:
+        """Pause the simulation."""
         self.experiment.pause = True

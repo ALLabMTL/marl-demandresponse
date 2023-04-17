@@ -14,11 +14,35 @@ class Metrics:
         self,
         wandb_service: WandbManager,
     ) -> None:
+        """
+        Initializes the Metrics class with a WandbManager instance.
+
+        Parameters:
+        wandb_service : WandbManager
+            Instance of WandbManager to use for logging metrics.
+
+        Returns:
+            None
+        """
         self.wandb_service = wandb_service
 
     def initialize(
         self, nb_agents: int, start_stats_from: int, nb_time_steps: int
     ) -> None:
+        """
+        Initializes various metrics values to zero.
+
+        Parameters:
+            nb_agents : int
+                Number of agents in the environment.
+            start_stats_from : int
+                Time step from which to start computing statistics.
+            nb_time_steps : int
+                Total number of time steps.
+
+        Returns:
+            None
+        """
         self.nb_time_steps = nb_time_steps
         self.start_stats_from = start_stats_from
         self.nb_agents = nb_agents
@@ -44,6 +68,22 @@ class Metrics:
         rewards_dict: dict,
         time_step: int,
     ) -> None:
+        """
+        Updates the various metrics values for the given time step.
+
+        Parameters:
+            obs_dict : Dict[int, EnvironmentObsDict]
+                Dictionary of observation values for the current time step.
+            next_obs_dict : Dict[int, EnvironmentObsDict]
+                Dictionary of observation values for the next time step.
+            rewards_dict : dict
+                Dictionary of rewards for the current time step.
+            time_step : int
+                The current time step.
+
+        Returns:
+            None
+        """
         for k in range(self.nb_agents):
             temp_error = (
                 next_obs_dict[k]["indoor_temp"]
@@ -73,6 +113,18 @@ class Metrics:
             self.cumul_squared_max_error_temp = self.max_temp_error**2
 
     def log(self, time_step: int, time_steps_log: int, time: datetime):
+        """
+        Logs the various metrics values for the given time step.
+
+        Parameters:
+
+            time_step: The current time step.
+            time_steps_log: The number of time steps to log.
+            time: A datetime object indicating the current time.
+        Returns:
+            A dictionary of the logged metrics.
+        """
+
         if time_step >= self.start_stats_from:
             self.update_rms(time_step)
         else:
@@ -100,6 +152,15 @@ class Metrics:
         return metrics
 
     def update_final(self) -> None:
+        """
+        Updates the various metrics values for the final time step.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         self.update_rms(self.nb_time_steps)
         rms_log = {
             "RMSE signal per agent": self.rmse_sig_per_ag,
@@ -114,6 +175,11 @@ class Metrics:
         logger.info(f"RMS Max Error Temperature: {self.rms_max_error_temp} C")
 
     def reset(self):
+        """
+        Resets the cumulative average reward, temperature offset, temperature error,
+        maximum temperature error, signal offset, signal error, OD temperature, signal,
+        and consumption for all agents to zero.
+        """
         self.cumul_avg_reward = 0
         self.cumul_temp_offset = 0
         self.cumul_temp_error = 0
@@ -125,6 +191,15 @@ class Metrics:
         self.cumul_cons = 0
 
     def update_rms(self, time_step: int) -> None:
+        """
+        Updates the root-mean-squared errors for the signal and temperature for all agents
+        based on the current cumulative squared errors and number of time steps since starting
+        to collect statistics. The root-mean-squared error values are normalized by the number
+        of agents.
+
+        Parameters:
+            time_step (int): The current time step of the simulation.
+        """
         self.rmse_sig_per_ag = (
             np.sqrt(self.cumul_squared_error_sig / (time_step - self.start_stats_from))
             / self.nb_agents
@@ -144,6 +219,16 @@ class Metrics:
         mean_signal_error: float,
         tr_time_steps: int,
     ) -> None:
+        """
+        Logs the mean test return, mean temperature error, mean signal error, and number of
+        training steps to the WandB service.
+
+        Parameters:
+            mean_avg_return (float): The mean test return.
+            mean_temp_error (float): The mean temperature error.
+            mean_signal_error (float): The mean signal error.
+            tr_time_steps (int): The number of training steps.
+        """
         log = {
             "Mean test return": mean_avg_return,
             "Test mean temperature error": mean_temp_error,
@@ -153,4 +238,10 @@ class Metrics:
         self.wandb_service.log(log)
 
     def save_actor(self, path: str) -> None:
+        """
+        Saves the actor network to the specified path using the WandB service.
+
+        Parameters:
+            path (str): The path to save the actor network.
+        """
         self.wandb_service.save(path)
