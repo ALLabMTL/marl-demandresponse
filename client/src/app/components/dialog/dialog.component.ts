@@ -44,8 +44,8 @@ export class DialogComponent {
           label: category,
           fill: false,
           tension: 0,
-          borderColor: ['blue'],
-          backgroundColor: ['blue'],
+          borderColor: ['teal'],
+          backgroundColor: ['teal'],
           pointBackgroundColor: 'black',
           pointRadius: 0,
           pointHoverRadius: 15,
@@ -64,8 +64,8 @@ export class DialogComponent {
           label: category,
           fill: false,
           tension: 0,
-          borderColor: ['red'],
-          backgroundColor: ['red'],
+          borderColor: ['yellow'],
+          backgroundColor: ['yellow'],
           pointBackgroundColor: 'black',
           pointRadius: 0,
           pointHoverRadius: 15,
@@ -130,7 +130,7 @@ export class DialogComponent {
         label: 'Actual temperature',
         fill: false,
         tension: 0,
-        borderColor: 'black',
+        borderColor: 'white',
         backgroundColor: 'rgba(255,0,0,0.3)'
       }
     ]
@@ -145,7 +145,7 @@ export class DialogComponent {
         label: 'Temperature difference',
         fill: false,
         tension: 0,
-        borderColor: 'black',
+        borderColor: 'white',
         backgroundColor: 'rgba(255,0,0,0.3)'
       }
     ]
@@ -159,8 +159,8 @@ export class DialogComponent {
         data: [],
         label: 'HVAC status',
         fill: false,
-        tension: 0,
-        borderColor: 'black',
+        tension: 0, 
+        borderColor: 'white',
         backgroundColor: 'rgba(255,0,0,0.3)'
       }
     ],
@@ -192,7 +192,7 @@ export class DialogComponent {
       legend: {
         display: true,
         labels: {
-          color: 'black',
+          color: 'white',
           boxWidth: 5,
           boxHeight: 5,
         }
@@ -233,7 +233,7 @@ export class DialogComponent {
       legend: {
         display: true,
         labels: {
-          color: 'black',
+          color: 'white',
           boxWidth: 5,
           boxHeight: 5,
         }

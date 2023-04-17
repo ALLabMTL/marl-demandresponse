@@ -1,8 +1,9 @@
 .pagination {
-    background-color: rgb(255, 255, 255);
+    background-color: rgb(112, 134, 146);
     width: 20rem;
     height: 2rem;
     border-radius: 25px;
+    color: white;
     border: 1px solid rgba(0, 0, 0, 0.12);
 
     .prev-page {
@@ -34,8 +35,9 @@
             height: 20px;
             border-radius: 5px;
             text-align: center;
+            color: white;
             background-color: transparent;
-            border: 1px solid rgb(128, 162, 173, .5);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
         .input:focus {
@@ -52,6 +54,10 @@
             -moz-appearance: textfield;
         }
 
+    }
+
+    .chevron {
+        color: white;
     }
 
     .max-pages {

@@ -80,8 +80,8 @@ export class GraphsComponent implements AfterViewInit {
             label: category,
             fill: false,
             tension: 0,
-            borderColor: ['purple', 'red', 'yellow'],
-            backgroundColor: ['purple', 'red', 'yellow'],
+            borderColor: ['teal', 'red', 'yellow'],
+            backgroundColor: ['teal', 'red', 'yellow'],
             pointBackgroundColor: 'black',
             pointRadius: 0,
             pointHoverRadius: 15,
@@ -108,7 +108,7 @@ export class GraphsComponent implements AfterViewInit {
         label: 'Average temperature difference',
         fill: false,
         tension: 0,
-        borderColor: 'black',
+        borderColor: 'white',
         backgroundColor: 'rgba(255,0,0,0.3)'
       }
     ]
@@ -123,7 +123,7 @@ export class GraphsComponent implements AfterViewInit {
         label: 'Average indoor temperature',
         fill: false,
         tension: 0,
-        borderColor: 'black',
+        borderColor: 'white',
         backgroundColor: 'rgba(0,0,255,0.3)'
       }
     ],
@@ -139,7 +139,7 @@ export class GraphsComponent implements AfterViewInit {
         label: 'Outdoor temperature',
         fill: false,
         tension: 0,
-        borderColor: 'black',
+        borderColor: 'white',
         backgroundColor: 'rgba(0,0,255,0.3)'
       }
     ],
@@ -171,7 +171,7 @@ export class GraphsComponent implements AfterViewInit {
       legend: {
         display: true,
         labels: {
-          color: 'black',
+          color: 'white',
           boxWidth: 5,
           boxHeight: 5,
         }

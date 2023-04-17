@@ -8,6 +8,7 @@ mat-chip-listbox {
 
 .temp_checkbox{
   margin-bottom: 0.5rem;
+  color: white;
 }
 
 .hvac_filter {
@@ -18,6 +19,7 @@ mat-chip-listbox {
 
 .temp_filter {
   margin-left: 1rem;
+  color: white;
   // margin-top: 1.5rem; 
 }
 
@@ -50,7 +52,7 @@ mat-chip-listbox {
     rgba(255, 255, 0, 100),
     rgba(255, 0, 0, 100)
   );
-  border: 1px solid rgba(0,0,0,0.5);
+  border: 1px solid rgba(0,0,0,1);
 }
 
 .scale_chart {
@@ -59,7 +61,7 @@ mat-chip-listbox {
   width: 15.3rem;
   table-layout: fixed;
   margin-bottom: 1.5rem;
-  color: black;
+  color: white;
 }
 
 .scale_chart span {
@@ -69,7 +71,7 @@ mat-chip-listbox {
 .scale .scale_text {
   font-size: 1rem;
   padding-left: 1.2rem;
-  color: black;
+  color: white;
 }
 
 .scale .input_precision {
@@ -92,7 +94,7 @@ mat-chip-listbox {
 .hvac-status-legend {
   padding-left: 50px;
   padding-top: 5px;
-  color: black;
+  color: white;
 }
 
 .circle_lockout {
@@ -139,12 +141,12 @@ mat-chip-listbox {
   font-size: 1rem;
   padding-left: 1.2rem;
   margin-top: 1rem;
-  color: black;
+  color: white;
 }
 
 .hvac-status-title {
   font-size: 1rem;
-  color: black
+  color: white;
 }
 
 

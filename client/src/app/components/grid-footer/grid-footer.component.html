@@ -5,7 +5,7 @@
       (click)="decrementPage()"
       [disabled]="currentPage === 1"
     >
-      <mat-icon>chevron_left</mat-icon>
+      <mat-icon class="chevron">chevron_left</mat-icon>
     </button>
 
     <div class="page-input">
@@ -29,7 +29,7 @@
       (click)="incrementPage()"
       [disabled]="currentPage === this.simulationManager.maxPage"
     >
-      <mat-icon>chevron_right</mat-icon>
+      <mat-icon class="chevron">chevron_right</mat-icon>
     </button>
   </div>
 </div>

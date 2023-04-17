@@ -1,6 +1,6 @@
 .container {
   position: relative;
-  background-color: rgb(245, 245, 245);
+  background-color: #464545;
   width: 85%;
   height: 95%;
   max-height: 100%;
@@ -12,6 +12,7 @@
   position: relative;
   top: 50%;
   transform: translateY(-50%);
+  color: white;
   // padding-top: 0.5rem;
 }
 
