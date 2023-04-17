@@ -5,5 +5,6 @@ ENV PYTHONUNBUFFERED=1
 COPY ./requirements.txt /server/requirements.txt
 WORKDIR /server
 RUN pip install -r requirements.txt
-COPY ./ /server
-CMD [ "/bin/bash", "-c", "pylint app/ --reports=y --errors-only --fail-on=E" ]
+COPY ./app/ /server/app
+COPY ./.pylintrc /server/.pylintrc
+CMD [ "/bin/bash", "-c", "pylint app/ --reports=y --errors-only --fail-on=E"]

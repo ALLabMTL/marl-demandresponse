@@ -17,7 +17,7 @@ class Perlin:
                 PerlinNoise(octaves=2**i * octaves_step, seed=seed)
             )
 
-    def calculate_noise(self, x) -> float:
+    def calculate_noise(self, x):
         noise = 0
 
         for j in range(self.nb_octaves - 1):

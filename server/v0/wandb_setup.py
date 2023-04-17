@@ -2,6 +2,7 @@ import wandb
 
 
 def wandb_setup(opt, config_dict):
+
     log_config = {"opt": vars(opt), "config_file": config_dict}
     wandb_run = wandb.init(
         settings=wandb.Settings(start_method="fork"),

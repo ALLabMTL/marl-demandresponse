@@ -22,8 +22,6 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { MatDialogModule } from '@angular/material/dialog';
-import { NgChartsModule } from 'ng2-charts';
-import { StopSimulationDialogComponent } from './components/stop-simulation-dialog/stop-simulation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +34,6 @@ import { StopSimulationDialogComponent } from './components/stop-simulation-dial
     GraphsComponent,
     TimestampComponent,
     DialogComponent,
-    StopSimulationDialogComponent,
   ],
   imports: [
     BrowserModule,
@@ -55,13 +52,9 @@ import { StopSimulationDialogComponent } from './components/stop-simulation-dial
     ReactiveFormsModule,
     AppRoutingModule,
     AppMaterialModule,
-    MatDialogModule,
-    NgChartsModule
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
-
-// providers: [SidebarComponent],
-//   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],

@@ -137,6 +137,7 @@ def make_graph(
 
 
 def make_legend(temperature_scale):
+
     fig = plt.figure(facecolor="#252525")
     gs = fig.add_gridspec(1, hspace=0)
     ax = gs.subplots(sharex=True)

@@ -1,4 +1,4 @@
-# %% Imports
+#%% Imports
 
 import json
 
@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# %% Classes
+#%% Classes
 
 
 class Actor(nn.Module):
