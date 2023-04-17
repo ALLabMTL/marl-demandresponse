@@ -1,114 +1,207 @@
-from copy import deepcopy
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
 
-GRAPH_MEMORY = 5000
+from app.core.environment.environment import EnvironmentObsDict
+from app.services.socket_manager_service import SocketManager
+from app.utils.logger import logger
+
+from .socket_manager_service import SocketManager
+
+DESCRIPTION_KEYS = [
+    "Number of HVAC",
+    "Number of locked HVAC",
+    "Outdoor temperature",
+    "Average indoor temperature",
+    "Average temperature difference",
+    "Regulation signal",
+    "Current consumption",
+    "Consumption error (%)",
+    "RMSE",
+    "Mass temperature",
+    "Target temperature",
+    "Average temperature error",
+]
 
 
 class ClientManagerService:
-    def __init__(self) -> None:
-        self.initialize_data()
+    description: Dict[int, Dict[str, str]]
+    temp_diff: np.ndarray
+    temp_err: np.ndarray
+    air_temp: np.ndarray
+    mass_temp: np.ndarray
+    target_temp: np.ndarray
+    outdoor_temp: np.ndarray
+    signal: np.ndarray
+    consumption: np.ndarray
+    recent_signal: np.ndarray
+    recent_consumption: np.ndarray
+    data_frame: pd.DataFrame
+    houses_data: Dict[int, EnvironmentObsDict]
 
-    def initialize_data(self) -> None:
-        self.data_messages = {}
+    @property
+    def description_values(self) -> list:
+        values = [
+            str(self.data_frame.shape[0]),  # "Number of HVAC",
+            str(
+                np.where(
+                    self.data_frame["lockout"],
+                    1,
+                    0,
+                ).sum()
+            ),  #  "Number of locked HVAC",
+            str(round(self.data_frame["OD_temp"][0], 2)),  # "Outdoor temperature",
+            str(
+                round(self.data_frame["indoor_temp"].mean(), 2)
+            ),  # "Average indoor temperature",
+            str(
+                round(self.data_frame["temperature_difference"].mean(), 2)
+            ),  # "Average temperature difference",
+            str(self.data_frame["reg_signal"][0]),  # "Regulation signal",
+            str(self.data_frame["cluster_hvac_power"][0]),  # "Current consumption",
+            str(
+                (
+                    self.data_frame["reg_signal"][0]
+                    - self.data_frame["cluster_hvac_power"][0]
+                )
+                / self.data_frame["reg_signal"][0]
+                * 100
+            ),  # "Consumption error (%)",
+            str(
+                np.sqrt(
+                    np.mean(
+                        (
+                            self.signal[-len(self.signal) :]
+                            - self.consumption[-len(self.consumption) :]
+                        )
+                        ** 2
+                    )
+                )
+            ),  # "RMSE",
+            str(round(self.data_frame["mass_temp"][0], 2)),
+            str(round(self.data_frame["target_temp"][0], 2)),
+            str(np.mean(self.temp_err)),
+        ]
+        return values
+
+    def __init__(
+        self,
+        socket_manager_service: SocketManager,
+    ) -> None:
+        self.socket_manager = socket_manager_service
+
+    def initialize_data(self, interface: bool) -> None:
+        self.interface = interface
+        self.description = {}
         self.temp_diff = np.array([])
         self.temp_err = np.array([])
         self.air_temp = np.array([])
         self.mass_temp = np.array([])
         self.target_temp = np.array([])
-        self.OD_temp = np.array([])
+        self.outdoor_temp = np.array([])
         self.signal = np.array([])
         self.consumption = np.array([])
-        # TODO: Make pydantic model
-        self.houses_messages: List[Dict[str, Union[str, float]]] = []
+        self.recent_signal = np.array([])
+        self.recent_consumption = np.array([])
+        self.data_frame = pd.DataFrame()
+        self.houses_data = {}
 
-    def update_data_change(self, obs_dict: Dict[int, dict]) -> Tuple[dict, dict]:
-        df = pd.DataFrame(obs_dict).transpose()
-        self.update_data(df)
-        self.houses_messages = []
-        for house_id in obs_dict.keys():
-            self.houses_messages.append({"id": house_id})
+    async def update_data(
+        self,
+        obs_dict: Dict[int, EnvironmentObsDict],
+        time_step: int,
+    ) -> None:
+        self.data_frame = pd.DataFrame(obs_dict).transpose()
+        self.data_frame["temperature_difference"] = (
+            self.data_frame["indoor_temp"] - self.data_frame["target_temp"]
+        )
+        self.data_frame["temperature_error"] = np.abs(
+            self.data_frame["indoor_temp"] - self.data_frame["target_temp"]
+        )
+        self.update_graph_data()
+        self.update_desc_data(time_step)
+        self.update_houses_data(obs_dict, time_step)
+        await self.log(
+            emit=True, endpoint="houseChange", data=self.houses_data[time_step]
+        )
+        await self.log(
+            emit=True,
+            endpoint="dataChange",
+            data=self.description[time_step],
+        )
+
+    def update_graph_data(self) -> None:
+        self.temp_diff = np.append(
+            self.temp_diff, self.data_frame["temperature_difference"].mean()
+        )
+        self.temp_err = np.append(
+            self.temp_err, self.data_frame["temperature_error"].mean()
+        )
+        self.air_temp = np.append(self.air_temp, self.data_frame["indoor_temp"].mean())
+        self.mass_temp = np.append(self.mass_temp, self.data_frame["mass_temp"].mean())
+        self.target_temp = np.append(
+            self.target_temp, self.data_frame["target_temp"].mean()
+        )
+        self.outdoor_temp = np.append(
+            self.outdoor_temp, self.data_frame["OD_temp"].mean()
+        )
+        self.signal = np.append(self.signal, self.data_frame["reg_signal"][0])
+        self.consumption = np.append(
+            self.consumption, self.data_frame["cluster_hvac_power"][0]
+        )
+
+    def update_desc_data(self, time_step: int) -> None:
+        description = dict(zip(DESCRIPTION_KEYS, self.description_values))
+        self.description.update({time_step: description})
+
+    def update_houses_data(
+        self, obs_dict: Dict[int, EnvironmentObsDict], time_step: int
+    ) -> None:
+        houses_data = []
+
+        for house_id, _ in enumerate(obs_dict):
+            houses_data.append({"id": house_id})
             if obs_dict[house_id]["turned_on"]:
-                self.houses_messages[house_id].update({"hvacStatus": "ON"})
+                houses_data[house_id].update({"hvacStatus": "ON"})
             elif obs_dict[house_id]["lockout"]:
-                self.houses_messages[house_id].update(
+                houses_data[house_id].update(
                     {
                         "hvacStatus": "Lockout",
                         "secondsSinceOff": obs_dict[house_id]["seconds_since_off"],
                     }
                 )
             else:
-                self.houses_messages[house_id].update(
+                houses_data[house_id].update(
                     {
                         "hvacStatus": "OFF",
                         "secondsSinceOff": obs_dict[house_id]["seconds_since_off"],
                     }
                 )
 
-            self.houses_messages[house_id]["indoorTemp"] = obs_dict[house_id][
-                "indoor_temp"
-            ]
-            self.houses_messages[house_id]["targetTemp"] = obs_dict[house_id][
-                "target_temp"
-            ]
-            self.houses_messages[house_id]["tempDifference"] = (
+            houses_data[house_id]["indoorTemp"] = obs_dict[house_id]["indoor_temp"]
+            houses_data[house_id]["targetTemp"] = obs_dict[house_id]["target_temp"]
+            houses_data[house_id]["tempDifference"] = (
                 obs_dict[house_id]["indoor_temp"] - obs_dict[house_id]["target_temp"]
             )
+        self.houses_data.update({time_step: houses_data})
 
-        return self.data_messages, self.houses_messages
+    async def log(
+        self,
+        text: str = "",
+        emit: bool = False,
+        endpoint: str = "",
+        data: Any = {},
+    ) -> None:
+        if self.interface and emit and endpoint != "":
+            await self.socket_manager.emit(endpoint, data)
+        if text != "":
+            logger.info(text)
 
-    def update_data(self, df: pd.DataFrame) -> None:
-        df["temperature_difference"] = df["indoor_temp"] - df["target_temp"]
-        df["temperature_error"] = np.abs(df["indoor_temp"] - df["target_temp"])
-        self.temp_diff = np.append(self.temp_diff, df["temperature_difference"].mean())
-        self.temp_err = np.append(self.temp_err, df["temperature_error"].mean())
-        self.air_temp = np.append(self.air_temp, df["indoor_temp"].mean())
-        self.mass_temp = np.append(self.mass_temp, df["mass_temp"].mean())
-        self.target_temp = np.append(self.target_temp, df["target_temp"].mean())
-        self.OD_temp = np.append(self.OD_temp, df["OD_temp"].mean())
-        self.signal = np.append(self.signal, df["reg_signal"][0])
-        self.consumption = np.append(self.consumption, df["cluster_hvac_power"][0])
-        self.update_data_messages(df)
-
-    def update_data_messages(self, df: pd.DataFrame):
-        # TODO: refactor this
-        self.data_messages = {}
-        self.data_messages["Number of HVAC"] = str(df.shape[0])
-        self.data_messages["Number of locked HVAC"] = str(
-            np.where(df["lockout"] & (df["turned_on"] == False), 1, 0).sum()
+    async def get_state_at(self, time_step: int) -> None:
+        await self.log(
+            emit=True, endpoint="timeStepData", data=self.description[time_step]
         )
-        self.data_messages["Outdoor temperature"] = (
-            str(round(df["OD_temp"][0], 2)) + " °C"
-        )
-        self.data_messages["Average indoor temperature"] = (
-            str(round(df["indoor_temp"].mean(), 2)) + " °C"
-        )
-        self.data_messages["Average temperature difference"] = (
-            str(round(df["temperature_difference"].mean(), 2)) + " °C"
-        )
-        self.data_messages["Regulation signal"] = str(df["reg_signal"][0])
-        self.data_messages["Current consumption"] = str(df["cluster_hvac_power"][0])
-        self.data_messages["Consumption error (%)"] = "{:.3f}%".format(
-            (df["reg_signal"][0] - df["cluster_hvac_power"][0])
-            / df["reg_signal"][0]
-            * 100
-        )
-        self.data_messages["RMSE"] = "{:.0f}".format(
-            np.sqrt(
-                np.mean(
-                    (
-                        self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                        - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
-                    )
-                    ** 2
-                )
-            )
-        )
-        self.data_messages["Cumulative average offset"] = "{:.0f}".format(
-            np.mean(
-                self.signal[max(-GRAPH_MEMORY, -len(self.signal)) :]
-                - self.consumption[max(-GRAPH_MEMORY, -len(self.consumption)) :]
-            )
+        await self.log(
+            emit=True, endpoint="houseChange", data=self.houses_data[time_step]
         )

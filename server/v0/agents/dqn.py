@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 
@@ -8,7 +8,7 @@ import torch.optim as optim
 from agents.buffer import ReplayBuffer, Transition
 from agents.network import DQN_network
 
-#%% Classes
+# %% Classes
 
 
 class DQN:
@@ -58,7 +58,7 @@ class DQN:
         state = torch.from_numpy(state).float().unsqueeze(0)
         with torch.no_grad():
             qs = self.policy_net(state)
-            return torch.argmax(qs).item()
+            return torch.argmax(qs).item(), None
 
     def store_transition(self, s, a, r, s_next):
         s = torch.tensor(s, dtype=torch.float).unsqueeze(0)
@@ -151,7 +151,7 @@ class DDQN(DQN):
         self.policy_optimizer.step()
 
 
-#%% Testing
+# %% Testing
 
 if __name__ == "__main__":
     pass

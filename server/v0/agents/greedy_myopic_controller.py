@@ -35,14 +35,14 @@ class GreedyMyopic:
 
     def get_action(self, obs):
         obs = pd.DataFrame(obs).transpose()
-        obs["temperature_difference"] = -(obs["house_temp"] - obs["house_target_temp"])
+        obs["temperature_difference"] = -(obs["indoor_temp"] - obs["target_temp"])
 
-        obs["power_consumption"] = obs["hvac_cooling_capacity"] / obs["hvac_COP"]
+        obs["power_consumption"] = obs["cooling_capacity"] / obs["COP"]
         obs = obs[
             [
                 "temperature_difference",
                 "power_consumption",
-                "hvac_lockout",
+                "lockout",
                 "reg_signal",
             ]
         ]
@@ -56,7 +56,7 @@ class GreedyMyopic:
                 row["power_consumption"] + total_consumption < target
                 or abs(row["power_consumption"] + total_consumption - target)
                 < abs(total_consumption - target)
-                and not row["hvac_lockout"]
+                and not row["lockout"]
             ):
                 total_consumption += row["power_consumption"]
                 obs.at[index, "HVAC_status"] = 1

@@ -18,5 +18,7 @@ htmlcov/
 .pytest_cache/
 .coverage
 
-
 /docs
+
+client/.angular/cache
+v1/client/.angular/cache

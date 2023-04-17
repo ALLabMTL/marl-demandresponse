@@ -1,4 +1,4 @@
-.container {
+.page {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -17,7 +17,7 @@
   align-items: center;
 }
 
-.house-id{
+.house-id {
   position: absolute;
   display: flex;
   justify-content: center;
@@ -42,16 +42,18 @@ mat-grid-tile {
 }
 
 .cell {
-  border: 1px solid black;
-  background-color: #424242;
-  opacity: 50%;
-  margin: 0.1rem;
-  border-radius: 10px;
+  border: 1px solid rgb(62, 62, 62);
+  // background-color: #424242;
+  // opacity: 50%;
+  // margin: 0.1rem;
+  // border-radius: 10px;
   // height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  position:relative;
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .circle {

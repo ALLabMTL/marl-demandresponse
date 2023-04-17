@@ -9,3 +9,4 @@ import { SimulationManagerService } from '@app/services/simulation-manager.servi
 export class InformationsComponent {
   constructor(public simulationManager: SimulationManagerService) {}
 }
+

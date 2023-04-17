@@ -1,4 +1,4 @@
-#%% Imports
+# %% Imports
 
 import os
 import random
@@ -11,7 +11,7 @@ import wandb
 
 from v0.utils import normStateDict
 
-#%% Functions
+# %% Functions
 
 
 def plot_env_test(env, action_type="off", n_steps=1000):
@@ -92,7 +92,7 @@ def plot_agent_test(env, agent, config_dict, n_steps=1000):
     plt.show()
 
 
-#%%
+# %%
 
 
 def colorPlotTestAgentHouseTemp(
