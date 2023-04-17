@@ -159,6 +159,7 @@ class Viewer:
         self.onetime_geoms.append(geom)
 
     def render(self, return_rgb_array=False):
+
         glClearColor(0.2, 0.2, 0.2, 1)
         self.window.clear()
         if self.legend:
@@ -167,6 +168,7 @@ class Viewer:
         self.window.dispatch_events()
         self.transform.enable()
         for geom in self.geoms:
+
             geom.render()
         for geom in self.onetime_geoms:
             geom.render()
@@ -193,6 +195,7 @@ class Viewer:
 
         @self.window.event
         def on_close():
+
             self.window.close()
             self.isopen = False
 
@@ -287,6 +290,7 @@ class Viewer:
         self.close()
 
     def draw_legend(self, x, y):
+
         self.legend = True
 
         self.legend_x = x

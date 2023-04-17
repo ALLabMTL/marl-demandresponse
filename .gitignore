@@ -36,5 +36,4 @@ save_ckpt/*/*.pt
 
 */docs/build/
 */.venv
-**/.env
 /.venv

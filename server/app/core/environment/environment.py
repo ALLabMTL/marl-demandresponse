@@ -1,194 +1,273 @@
 import random
-from copy import deepcopy
-from datetime import timedelta
-from typing import Dict, List
+from datetime import datetime, timedelta
+from typing import Dict
 
 import numpy as np
 
+from app.core.environment.cluster.building import Building
 from app.core.environment.cluster.cluster import Cluster
-from app.core.environment.environment_properties import (
-    EnvironmentObsDict,
-    EnvironmentProperties,
-)
+from app.core.environment.cluster.cluster_properties import TemperatureProperties
+from app.core.environment.environment_properties import EnvironmentProperties
 from app.core.environment.power_grid.power_grid import PowerGrid
-from app.core.environment.rewards_calculator import RewardsCalculator
-
-DAYS_IN_YEAR = 364.0
-SECONDS_IN_MINUTE = 60.0
-MINUTES_IN_HOUR = 60.0
-HOURS_IN_DAY = 24.0
-SECONDS_IN_DAY = SECONDS_IN_MINUTE * MINUTES_IN_HOUR * HOURS_IN_DAY
+from app.utils.utils import deadbandL2
 
 
 class Environment:
-    """
+    init_props: EnvironmentProperties
+    temp_props: TemperatureProperties
+    cluster: Cluster
+    power_grid: PowerGrid
+    date_time: datetime
+    current_od_temp: float
 
-    The Environment class implements the environment for a building cluster and its power grid.
-    The environment provides an interface for simulating the operation of a building cluster with a power grid.
-
-    Attributes:
-        init_props (EnvironmentProperties): An object containing the initial properties of the environment.
-        cluster (Cluster): An object representing the cluster of buildings.
-        date_time (datetime): A datetime object representing the current date and time in the environment.
-        current_od_temp (float): A float representing the current outdoor temperature in the environment.
-        power_grid (PowerGrid): An object representing the power grid.
-        rewards_calculator (RewardsCalculator): An object representing the rewards calculator.
-
-    """
-
-    def __init__(self, env_props: EnvironmentProperties) -> None:
-        """
-        Initialize a new instance of the Environment class with the provided environment properties.
-
-        Parameters:
-            env_props: EnvironmentProperties, the environment properties used to initialize the Environment instance.
-        """
-        self.init_props = deepcopy(env_props)
-        self.reset()
-
-    def reset(self) -> Dict[int, EnvironmentObsDict]:
-        """
-        Reset the Environment instance to its initial state.
-
-        Returns:
-            obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
-        """
-        self.cluster = Cluster(self.init_props.cluster_prop)
+    def __init__(self) -> None:
+        self.init_props = EnvironmentProperties()
         self.date_time = self.init_props.start_datetime
-        self.apply_noise()
-        self.compute_od_temp()
+        # TODO: compute phase inside TemperatureProperties dataclass
+        # TODO: get properties from parser_service, needs to be changed
+        self.temp_properties = TemperatureProperties()
+        self.cluster = Cluster()
         self.power_grid = PowerGrid(
-            self.init_props.power_grid_prop,
-            self.cluster,
+            self.cluster.max_power,
+            self.cluster.nb_hvacs,
+            self.cluster.buildings[0].initial_properties.solar_gain,
         )
-        self.rewards_calculator = RewardsCalculator(
-            self.init_props.reward_prop, self.init_props.cluster_prop.house_prop
-        )
-        self.power_grid.step(
-            self.date_time, self.init_props.time_step, self.current_od_temp
-        )
-        return self.get_obs()
+        self.compute_od_temp()
 
-    def step(
-        self, action_dict: Dict[int, bool]
-    ) -> tuple[Dict[int, EnvironmentObsDict], Dict[int, float]]:
-        """
-        Advance the simulation one time step.
+    def _reset(self) -> dict:
+        self.build_environment()
+        return self._get_obs()
 
-        Parameters:
-            action_dict: Dict[int, bool], a dictionary of binary actions for each building in the cluster.
-
-        Returns:
-            - obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
-            - rewards_dict: Dict[int, float], a dictionary of reward values for each building in the cluster.
-
-        """
-        # Step in time
+    def _step(self, action_dict: Dict[int, dict]):
         self.date_time += self.init_props.time_step
         # Cluster step
-        self.cluster.step(
+        self.cluster._step(
             self.current_od_temp, action_dict, self.date_time, self.init_props.time_step
         )
 
-        # Compute outdoor temperature before power grid step
         self.compute_od_temp()
 
         # Compute reward with the old grid signal
-        rewards_dict = self.rewards_calculator.compute_rewards(
-            self.cluster.buildings,
-            self.cluster.current_power_consumption,
-            self.power_grid.current_signal,
-        )
+        rewards_dict = self.compute_rewards()
 
         # Power grid step
-        self.power_grid.step(
-            self.date_time, self.init_props.time_step, self.current_od_temp
-        )
+        self.power_grid._step(self.date_time, self.init_props.time_step)
 
-        return self.get_obs(), rewards_dict
+        return self._get_obs(), rewards_dict
 
-    def get_obs(self) -> Dict[int, EnvironmentObsDict]:
-        """
-        Return the current observations of the Environment instance.
-
-        Returns:
-            obs_dict: Dict[int, EnvironmentObsDict], a dictionary of observation dictionaries for each building in the cluster.
-
-        """
-        obs_list: List[EnvironmentObsDict] = self.cluster.get_obs()
-        obs_dict: Dict[int, EnvironmentObsDict] = {}
-        for building_id, building in enumerate(obs_list):
-            building.update(
+    def _get_obs(self) -> Dict[int, dict]:
+        """"""
+        obs_dict = self.cluster._get_obs()
+        for i in range(self.cluster.nb_hvacs):
+            obs_dict[i].update(
                 {
                     "OD_temp": self.current_od_temp,
                     "datetime": self.date_time,
+                    "reg_signal": self.power_grid.current_signal,
                 }
             )
-            building.update(self.power_grid.get_obs())
-            obs_dict.update({building_id: building})
-
         return obs_dict
+
+    def build_environment(self) -> None:
+        self.init_props = EnvironmentProperties()
+        self.temp_properties = TemperatureProperties()
+        self.cluster = Cluster()
+        self.apply_noise()
+        self.date_time = self.init_props.start_datetime
+        self.compute_od_temp()
+        self.power_grid = PowerGrid(
+            self.cluster.max_power,
+            self.cluster.nb_hvacs,
+            self.cluster.buildings[0].initial_properties.solar_gain,
+        )
+        self.power_grid._step(self.date_time, self.init_props.start_datetime)
+        # TODO: compute OD_temp after step of cluster
+
+    def compute_rewards(self):
+        """
+        Compute the reward of each TCL agent
+
+        Returns:
+        rewards_dict: a dictionary, containing the rewards of each TCL agent.
+
+        Parameters:
+        temp_penalty_dict: a dictionary, containing the temperature penalty for each TCL agent
+        cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
+        power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
+        """
+
+        # TODO: Make it prettier
+        rewards_dict: dict[str, float] = {}
+        signal_penalty = self.reg_signal_penalty()
+
+        default_building = Building()
+
+        norm_temp_penalty = deadbandL2(
+            default_building.initial_properties.target_temp,
+            0,
+            default_building.initial_properties.target_temp + 1,
+        )
+
+        norm_sig_penalty = deadbandL2(
+            self.init_props.reward_properties.norm_reg_signal,
+            0,
+            0.75 * self.init_props.reward_properties.norm_reg_signal,
+        )
+
+        # Temperature penalties
+        temp_penalty_dict = {}
+        for building_id, _ in enumerate(self.cluster.buildings):
+            temp_penalty_dict[building_id] = self.compute_temp_penalty(building_id)
+
+            rewards_dict[building_id] = -1 * (
+                self.init_props.reward_properties.alpha_temp
+                * temp_penalty_dict[building_id]
+                / norm_temp_penalty
+                + self.init_props.reward_properties.alpha_sig
+                * signal_penalty
+                / norm_sig_penalty
+            )
+        return rewards_dict
+
+    def compute_temp_penalty(self, one_house_id: int) -> float:
+        """
+        Returns: a float, representing the positive penalty due to distance between the target (indoors) temperature and the indoors temperature in a house.
+
+        Parameters:
+        target_temp: a float. Target indoors air temperature, in Celsius.
+        deadband: a float. Margin of tolerance for indoors air temperature difference, in Celsius.
+        house_temp: a float. Current indoors air temperature, in Celsius
+        """
+        temp_penalty_mode = self.init_props.reward_properties.penalty_props.mode
+        temperature_penalty = 0
+        if temp_penalty_mode == "individual_L2":
+            building = self.cluster.buildings[one_house_id]
+            temperature_penalty = deadbandL2(
+                building.initial_properties.target_temp,
+                building.initial_properties.deadband,
+                building.indoor_temp,
+            )
+
+            # temperature_penalty = np.clip(temperature_penalty, 0, 20)
+
+        elif temp_penalty_mode == "common_L2":
+            ## Mean of all houses L2
+            for building in self.cluster.buildings:
+                building_temperature_penalty = deadbandL2(
+                    building.initial_properties.target_temp,
+                    building.initial_properties.deadband,
+                    building.indoor_temp,
+                )
+                temperature_penalty += building_temperature_penalty / len(
+                    self.cluster.buildings
+                )
+
+        # elif temp_penalty_mode == "common_max":
+        #     temperature_penalty = 0
+        #     for house_id in self.agent_ids:
+        #         house = self.cluster.houses[house_id]
+        #         house_temperature_penalty = deadbandL2(
+        #             house.target_temp, house.deadband, house.current_temp
+        #         )
+        #         if house_temperature_penalty > temperature_penalty:
+        #             temperature_penalty = house_temperature_penalty
+
+        # elif temp_penalty_mode == "mixture":
+        #     temp_penalty_params = self.default_env_prop["reward_prop"][
+        #         "temp_penalty_parameters"
+        #     ][temp_penalty_mode]
+
+        #     ## Common and max penalties
+        #     common_L2 = 0
+        #     common_max = 0
+        #     for house_id in self.agent_ids:
+        #         house = self.cluster.houses[house_id]
+        #         house_temperature_penalty = deadbandL2(
+        #             house.target_temp, house.deadband, house.current_temp
+        #         )
+        #         if house_id == one_house_id:
+        #             ind_L2 = house_temperature_penalty
+        #         common_L2 += house_temperature_penalty / self.nb_agents
+        #         if house_temperature_penalty > common_max:
+        #             common_max = house_temperature_penalty
+
+        #     ## Putting together
+        #     alpha_ind_L2 = temp_penalty_params["alpha_ind_L2"]
+        #     alpha_common_L2 = temp_penalty_params["alpha_common_L2"]
+        #     alpha_common_max = temp_penalty_params["alpha_common_max"]
+        #     temperature_penalty = (
+        #         alpha_ind_L2 * ind_L2
+        #         + alpha_common_L2 * common_L2
+        #         + alpha_common_max * common_max
+        #     ) / (alpha_ind_L2 + alpha_common_L2 + alpha_common_max)
+
+        else:
+            raise ValueError(
+                "Unknown temperature penalty mode: {}".format(temp_penalty_mode)
+            )
+
+        return temperature_penalty
+
+    def reg_signal_penalty(self) -> float:
+        """
+        Returns: a float, representing the positive penalty due to the distance between the regulation signal and the total power used by the TCLs.
+
+        Parameters:
+        cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
+        power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
+        """
+        sig_penalty_mode = self.init_props.reward_properties.penalty_props.mode
+
+        if sig_penalty_mode == "common_L2":
+            penalty = (
+                (
+                    self.cluster.current_power_consumption
+                    - self.power_grid.current_signal
+                )
+                / self.cluster.nb_agents
+            ) ** 2
+        else:
+            raise ValueError(f"Unknown signal penalty mode: {sig_penalty_mode}")
+
+        return penalty
 
     def compute_od_temp(self) -> None:
         """
-        Compute the outdoors temperature based on the time, according to a sinusoidal model and add a gaussian random factor.
-
-        Parameters:
-            self
+        Compute the outdoors temperature based on the time, according to a model
 
         Returns:
-            None
+        temperature: float, outdoors temperature, in Celsius.
+
+        Parameters:
+        self
+        date_time: datetime, current date and time.
+
         """
 
         # Sinusoidal model
         amplitude = (
-            self.init_props.temp_prop.day_temp - self.init_props.temp_prop.night_temp
-        ) / 2.0
-        bias = (
-            self.init_props.temp_prop.day_temp + self.init_props.temp_prop.night_temp
-        ) / 2.0
-        delay = -6.0 + self.init_props.temp_prop.phase  # Temperature is coldest at 6am
-        time_day = self.date_time.hour + self.date_time.minute / SECONDS_IN_MINUTE
+            self.temp_properties.day_temp - self.temp_properties.night_temp
+        ) / 2
+        bias = (self.temp_properties.day_temp + self.temp_properties.night_temp) / 2
+        delay = -6 + self.temp_properties.phase  # Temperature is coldest at 6am
+        time_day = self.date_time.hour + self.date_time.minute / 60.0
 
-        temperature = (
-            amplitude * np.sin(2 * np.pi * (time_day + delay) / HOURS_IN_DAY) + bias
-        )
+        temperature = amplitude * np.sin(2 * np.pi * (time_day + delay) / 24) + bias
 
         # Adding noise
-        temperature += random.gauss(0, self.init_props.temp_prop.temp_std)
+        temperature += random.gauss(0, self.temp_properties.temp_std_deviation)
         self.current_od_temp = temperature
 
     def apply_noise(self) -> None:
-        """
-        Apply noise to the environment by randomizing the start date and adding noise to the cluster.
-
-        This method applies noise to the environment by calling the `randomize_date()` method to randomize the start date, and then calling the `apply_noise()` method of the `Cluster` object to add noise to the cluster.
-
-        Parameters:
-            self
-
-        Returns:
-            None
-        """
         self.randomize_date()
         self.cluster.apply_noise()
 
-    def randomize_date(self) -> None:
-        """
-        Randomize the start date of the environment based on the `start_datetime` and `start_datetime_mode` properties of the `EnvironmentProperties` object.
-
-        If the `start_datetime_mode` property is set to "random", the start date is randomized by selecting a random number of days and seconds within the year and adding them to the `start_datetime` property. If the `start_datetime_mode` property is set to "fixed", the `start_datetime` property is left unchanged.
-
-        Parameters:
-            self
-
-        Returns:
-            None
-
-        """
+    def randomize_date(self):
         if self.init_props.start_datetime_mode == "random":
-            random_days = random.randrange(int(DAYS_IN_YEAR))
-            random_seconds = random.randrange(int(SECONDS_IN_DAY))
+            DAYS_IN_YEAR = 364
+            SECONDS_IN_DAY = 60 * 60 * 24
+            random_days = random.randrange(DAYS_IN_YEAR)
+            random_seconds = random.randrange(SECONDS_IN_DAY)
             self.date_time = self.init_props.start_datetime + timedelta(
                 days=random_days, seconds=random_seconds
             )

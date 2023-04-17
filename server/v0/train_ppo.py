@@ -1,4 +1,4 @@
-# %% Imports
+#%% Imports
 
 import os
 import random
@@ -20,10 +20,11 @@ from v0.utils import (
     test_ppo_agent,
 )
 
-# %% Functions
+#%% Functions
 
 
 def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
+
     id_rng = np.random.default_rng()
     unique_ID = str(int(id_rng.random() * 1000000))
 
@@ -50,6 +51,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
     obs_dict = env.reset()
 
     for t in range(opt.nb_time_steps):
+
         # Render observation
         if render:
             renderer.render(obs_dict)
@@ -137,7 +139,7 @@ def train_ppo(env, agent, opt, config_dict, render, log_wandb, wandb_run):
             wandb.save(os.path.join(path, "actor.pth"))
 
 
-# %% Train
+#%% Train
 
 if __name__ == "__main__":
     import os

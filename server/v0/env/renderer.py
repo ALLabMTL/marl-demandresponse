@@ -216,6 +216,7 @@ class Renderer:
             )
 
     def edit_data(self, df):
+
         self.data_messages = {}
         self.data_messages["Number of HVAC"] = str(df.shape[0])
         # self.data_messages["Number of HVAC Turned ON"] = str(
@@ -263,6 +264,7 @@ class Renderer:
         )
 
     def render(self, obs):
+
         df = pd.DataFrame(obs).transpose()
         df["temperature_difference"] = df["house_temp"] - df["house_target_temp"]
         df["temperature_error"] = np.abs(df["house_temp"] - df["house_target_temp"])
@@ -276,6 +278,7 @@ class Renderer:
         self.consumption = np.append(self.consumption, df["cluster_hvac_power"][0])
 
         if self.viewer is None:
+
             self.legend_data = self.draw_legend()
             self.viewer = rendering.Viewer(self.screen_width, self.screen_height)
             self.viewer.draw_legend(self.screen_height, 0)

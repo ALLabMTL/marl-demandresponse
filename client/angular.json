@@ -41,7 +41,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "5mb"
+                  "maximumError": "1mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -97,8 +97,7 @@
               "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.scss"
             ],
-            "scripts": [],
-            "codeCoverage": true
+            "scripts": []
           }
         },
         "lint": {
