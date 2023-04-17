@@ -54,7 +54,7 @@ export class GridComponent implements OnInit {
       return 'red';
     }
     else {
-      return 'gray';
+      return 'white';
     }
   }
 

@@ -1,45 +1,50 @@
-.dialog{
+.dialog {
     width: 70rem;
     height: 50rem;
     display: grid;
     grid-template-columns: 1fr 1.5fr;
-    background-color: #DDDDDD;
+    background-color: #ebebeb;
 }
 
-.info, .graphs{
+.info,
+.graphs {
     margin-left: 4rem;
     margin-top: 5rem;
 }
 
-.dialog p{
+.dialog p {
     font-weight: bold;
     font-size: large;
 }
 
-.house{
+.house {
     margin-bottom: 3rem;
     display: flex;
     justify-content: center;
 }
 
-.graphs{
+.graphs {
     display: grid;
-    width: 60%;
-    height: 60%;
+    width: 80%;
+    height: 20%;
 }
 
-#zoom1{
-    background-color: rgb(164, 161, 161);
+#zoom1 {
+    background-color: rgb(255, 255, 255);
     left: 10%;
-    height: 30px;
-    width: 100px;
+    height: 1.3rem;
+    width: 6rem;
+    top: 10%;
     font-size: 10px;
+    margin-bottom: 0.5rem;
 }
 
-#zoom2{
-    background-color: rgb(164, 161, 161);
+#zoom2 {
+    background-color: rgb(255, 255, 255);
     left: 10%;
-    height: 30px;
-    width: 100px;
+    height: 1.3rem;
+    width: 6rem;
+    top: 10%;
     font-size: 10px;
+    margin-bottom: 0.5rem;
 }
