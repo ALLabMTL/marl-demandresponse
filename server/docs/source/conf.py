@@ -1,7 +1,6 @@
 # pylint: disable=all
 # mypy: ignore-errors
-import os
-import sys
+import os, sys
 
 # Configuration file for the Sphinx documentation builder.
 #

@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
-
 from v0.wandb_setup import wandb_setup
 
 # %% Functions

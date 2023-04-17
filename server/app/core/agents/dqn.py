@@ -1,14 +1,11 @@
-#%% Imports
-
 import os
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from agents.buffer import ReplayBuffer, Transition
-from agents.network import DQN_network
 
-#%% Classes
+from app.core.agents.buffer import ReplayBuffer, Transition
+from app.core.agents.network import DQN_network
 
 
 class DQN:
@@ -83,6 +80,7 @@ class DQN:
         new_params = self.policy_net.state_dict()
         params = self.target_net.state_dict()
         for k in params.keys():
+            # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
             params[k] = (1 - self.tau) * params[k] + self.tau * new_params[k]
         self.target_net.load_state_dict(params)
 
@@ -151,7 +149,7 @@ class DDQN(DQN):
         self.policy_optimizer.step()
 
 
-#%% Testing
+# %% Testing
 
 if __name__ == "__main__":
     pass

@@ -3,15 +3,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from agents.network import Actor, Critic
 from torch.distributions import Categorical
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
+from app.core.agents.network import Actor, Critic
+from app.utils.logger import logger
+
 
 class PPO:
-    def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None):
+    def __init__(self, config_dict: dict, num_state=22, num_action=2, seed=1):
         super(PPO, self).__init__()
-        self.seed = opt.net_seed
+        self.seed = seed
         torch.manual_seed(self.seed)
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -26,7 +28,8 @@ class PPO:
         self.critic_net = Critic(
             num_state=num_state, layers=config_dict["PPO_prop"]["critic_layers"]
         ).to(self.device)
-        self.nb_agents = config_dict["default_env_prop"]["cluster_prop"]["nb_agents"]
+        # TODO: change this static value (only for tests)
+        self.nb_agents = 10
         self.batch_size = config_dict["PPO_prop"]["batch_size"]
         self.ppo_update_time = config_dict["PPO_prop"]["ppo_update_time"]
         self.max_grad_norm = config_dict["PPO_prop"]["max_grad_norm"]
@@ -34,8 +37,6 @@ class PPO:
         self.gamma = config_dict["PPO_prop"]["gamma"]
         self.lr_actor = config_dict["PPO_prop"]["lr_actor"]
         self.lr_critic = config_dict["PPO_prop"]["lr_critic"]
-        self.wandb_run = wandb_run
-        self.log_wandb = not opt.no_wandb
         self.zero_eoepisode_return = config_dict["PPO_prop"]["zero_eoepisode_return"]
 
         # Initialize buffer
@@ -43,7 +44,7 @@ class PPO:
         for agent in range(self.nb_agents):
             self.buffer[agent] = []
 
-        print(
+        logger.info(
             "ppo_update_time: {}, max_grad_norm: {}, clip_param: {}, gamma: {}, batch_size: {}, lr_actor: {}, lr_critic: {}".format(
                 self.ppo_update_time,
                 self.max_grad_norm,
@@ -64,8 +65,8 @@ class PPO:
     def select_action(self, state):
         state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
         with torch.no_grad():
+            # pylint: disable=not-callable
             action_prob = self.actor_net(state)
-        # print(action_prob)
         c = Categorical(action_prob.cpu())
         action = c.sample()
         return action.item(), action_prob[:, action.item()].item()
@@ -74,6 +75,7 @@ class PPO:
         # state = torch.from_numpy(state)
         state = state.to(self.device)
         with torch.no_grad():
+            # pylint: disable=not-callable
             value = self.critic_net(state)
         return value.cpu().item()
 
@@ -136,7 +138,7 @@ class PPO:
         ratios = np.array([])
         clipped_ratios = np.array([])
         gradient_norms = np.array([])
-        print("The agent is updating....")
+        logger.info("The agent is updating....")
         for i in range(self.ppo_update_time):
             for index in BatchSampler(
                 SubsetRandomSampler(range(len(sequential_buffer))),
@@ -144,15 +146,19 @@ class PPO:
                 False,
             ):
                 if self.training_step % 1000 == 0:
-                    print("Time step: {} ，train {} times".format(t, self.training_step))
+                    logger.info(
+                        "Time step: {} ，train {} times".format(t, self.training_step)
+                    )
                 # with torch.no_grad():
                 Gt_index = Gt[index].view(-1, 1)
 
+                # pylint: disable=not-callable
                 V = self.critic_net(state[index])
                 delta = Gt_index - V
                 advantage = delta.detach()
 
                 # epoch iteration, PPO core
+                # pylint: disable=not-callable
                 action_prob = self.actor_net(state[index]).gather(
                     1, action[index]
                 )  # new policy
@@ -189,62 +195,5 @@ class PPO:
                 )
                 self.critic_net_optimizer.step()
                 self.training_step += 1
-
-        if self.log_wandb:
-
-            max_ratio = np.max(ratios)
-            mean_ratio = np.mean(ratios)
-            median_ratio = np.median(ratios)
-            min_ratio = np.min(ratios)
-            per95_ratio = np.percentile(ratios, 95)
-            per75_ratio = np.percentile(ratios, 75)
-            per25_ratio = np.percentile(ratios, 25)
-            per5_ratio = np.percentile(ratios, 5)
-            max_cl_ratio = np.max(clipped_ratios)
-            mean_cl_ratio = np.mean(clipped_ratios)
-            median_cl_ratio = np.median(clipped_ratios)
-            min_cl_ratio = np.min(clipped_ratios)
-            per95_cl_ratio = np.percentile(clipped_ratios, 95)
-            per75_cl_ratio = np.percentile(clipped_ratios, 75)
-            per25_cl_ratio = np.percentile(clipped_ratios, 25)
-            per5_cl_ratio = np.percentile(clipped_ratios, 5)
-            max_gradient_norm = np.max(gradient_norms)
-            mean_gradient_norm = np.mean(gradient_norms)
-            median_gradient_norm = np.median(gradient_norms)
-            min_gradient_norm = np.min(gradient_norms)
-            per95_gradient_norm = np.percentile(gradient_norms, 95)
-            per75_gradient_norm = np.percentile(gradient_norms, 75)
-            per25_gradient_norm = np.percentile(gradient_norms, 25)
-            per5_gradient_norm = np.percentile(gradient_norms, 5)
-
-            self.wandb_run.log(
-                {
-                    "PPO max ratio": max_ratio,
-                    "PPO mean ratio": mean_ratio,
-                    "PPO median ratio": median_ratio,
-                    "PPO min ratio": min_ratio,
-                    "PPO ratio 95 percentile": per95_ratio,
-                    "PPO ratio 5 percentile": per5_ratio,
-                    "PPO ratio 75 percentile": per75_ratio,
-                    "PPO ratio 25 percentile": per25_ratio,
-                    "PPO max clipped ratio": max_cl_ratio,
-                    "PPO mean clipped ratio": mean_cl_ratio,
-                    "PPO median clipped ratio": median_cl_ratio,
-                    "PPO min clipped ratio": min_cl_ratio,
-                    "PPO clipped ratio 95 percentile": per95_cl_ratio,
-                    "PPO clipped ratio 5 percentile": per5_cl_ratio,
-                    "PPO clipped ratio 75 percentile": per75_cl_ratio,
-                    "PPO clipped ratio 25 percentile": per25_cl_ratio,
-                    "PPO max gradient norm": max_gradient_norm,
-                    "PPO mean gradient norm": mean_gradient_norm,
-                    "PPO median gradient norm": median_gradient_norm,
-                    "PPO min gradient norm": min_gradient_norm,
-                    "PPO gradient norm 95 percentile": per95_gradient_norm,
-                    "PPO gradient norm 5 percentile": per5_gradient_norm,
-                    "PPO gradient norm 75 percentile": per75_gradient_norm,
-                    "PPO gradient norm 25 percentile": per25_gradient_norm,
-                    "Training steps": t,
-                }
-            )
 
         self.reset_buffer()  # clear experience

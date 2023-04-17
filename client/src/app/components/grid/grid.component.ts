@@ -1,15 +1,14 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit} from '@angular/core';
 import { SharedService } from '@app/services/shared/shared.service';
-import { MatDialog } from '@angular/material/dialog';
+import {MatDialog} from '@angular/material/dialog';
 import { DialogComponent } from '../dialog/dialog.component';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { SidebarComponent } from '../sidebar/sidebar.component';
-import { HouseData } from '@app/classes/sidenav-data';
 
 
 interface PageData {
   id: number;
-  content: HouseData[];
+  content: string[100];
 }
 
 @Component({
@@ -21,64 +20,104 @@ interface PageData {
 export class GridComponent implements OnInit {
 
   @Input() pages: PageData[];
-  currentPage = 1;
-  // maxPage: number = 1;
-  // housesPerPage: number = 100;
-  precisionValueSelected = 0;
-  nbSquares = 100;
-  nbSquarePerLine = Math.sqrt(this.nbSquares);
+  currentPage: number = 1;
+  maxPage: number = 35;
+  precisionValueSelected: number = 0;
 
-  columnWidths = `repeat(10, ${100 / 10}%)`;
-  rowHeights = `repeat(10, ${100 / 10}%)`;
-
-  constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService) {
-    this.pages = [];
+  constructor(public sharedService: SharedService, public dialog: MatDialog, public simulationManager: SimulationManagerService){
+    this.pages = [
+      { id: 1, content: "Page 1" },
+      { id: 2, content: "Page 2" },
+      { id: 3, content: "Page 3" },
+    ]
   }
 
   ngOnInit() {
     this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+    this.currentPage = this.pages[0].id;
+    for (let i = 0; i < this.simulationManager.housesData.length; i++) {
+      console.log (this.simulationManager.housesData[i]);
+    }
     this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
-    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
-    this.sharedService.columnWidthsValue.subscribe(columnWidths => this.columnWidths = columnWidths);
-    this.sharedService.rowHeightsValue.subscribe(rowHeights => this.rowHeights = rowHeights);
+    //this.houseColor();
+    // console.log(this.houseColor(0.40));
   }
 
-  cells = new Array(this.nbSquares).fill(null);
+  cells = new Array(100).fill(null);
 
+  getColumnWidths() {
+    return `repeat(10, ${100 / 10}%)`;
+  }
 
-  getHvacColor(page: number, i: number): string {
-    if (this.simulationManager.pages[page].content[i].hvacStatus === 'ON') {
+  getRowHeights() {
+    return `repeat(10, ${100 / 10}%)`;
+  }
+
+  getHvacColor(i: number): string {
+    if (this.simulationManager.housesData[i].hvacStatus === 'ON') {
       return 'green';
-    }
-    else if (this.simulationManager.pages[page].content[i].hvacStatus === 'OFF') {
+    } 
+    else if(this.simulationManager.housesData[i].hvacStatus === 'OFF'){
       return 'red';
     }
-    else {
-      return 'white';
+    else{
+      return 'gray';
     }
   }
 
-  switchPage(pageNumber: number) {
-    this.currentPage = pageNumber;
-    this.sharedService.changeCount(pageNumber);
+  switchPage(id: number) {
+    this.currentPage += 1;
   }
-
-  // updatePages() {
-  //   const pages = [];
-  //   for (let i = 0; i < this.maxPage; i++) {
-  //     const startIndex = i * this.housesPerPage;
-  //     const endIndex = Math.min(startIndex + this.housesPerPage, this.simulationManager.housesData.length);
-  //     const pageContent: HouseData[] = this.simulationManager.housesData.slice(startIndex, endIndex);
-  //     pages.push({ id: i + 1, content: pageContent });
-  //   }
-  //   return pages;
-  // }
 
   openDialog(index: number) {
     this.dialog.open(DialogComponent, {
-      data: index
+      data :index
     });
 
   }
+
+  // houseColor(data: number) {
+  //   let upperBound = this.precisionValueSelected;
+  //   let middleUpperBound = this.precisionValueSelected/2;
+  //   let center = 0
+  //   let middleLowerBound = -(this.precisionValueSelected/2)
+  //   let lowerBound = -(this.precisionValueSelected);
+  //   let boundRange = upperBound - middleUpperBound;
+  //   console.log(data);
+  //   console.log(upperBound);
+  //   console.log(middleUpperBound);
+  //   console.log(center);
+  //   console.log(middleLowerBound);
+  //   console.log(lowerBound);
+
+
+  //   if(data < lowerBound){
+  //     return "rgba(0, 0, 255, 100)";
+  //   }
+  //   else if (lowerBound <= data && data < middleLowerBound) {
+  //     let temp = -(lowerBound - data)/boundRange;
+  //     let color = temp * 255;
+  //     return "rgba(0," + color + ", 255, 100)";
+  //   }
+  //   else if (middleLowerBound <= data && data < center) {
+  //     let temp = (boundRange + (middleLowerBound - data))/boundRange;
+  //     let color = temp * 255;
+  //     return "rgba(0, 255," + color + ", 100)";
+  //   }
+  //   else if (center <= data && data < middleUpperBound) {
+  //     let temp = (boundRange - (middleUpperBound - data))/boundRange;
+  //     let color = temp * 255;
+  //     return "rgba("+ color + ",255, 0, 100)";
+  //   }
+  //   else if (middleUpperBound <= data && data <= upperBound) {
+  //     let temp = (upperBound - data)/boundRange;
+  //     let color = temp * 255;
+  //     return "rgba(255," + color + ", 0, 100)";
+  //   }
+  //   else {
+  //     return "rgba(255, 0, 0, 100)";
+  //   }
+
+  // }
 
 }

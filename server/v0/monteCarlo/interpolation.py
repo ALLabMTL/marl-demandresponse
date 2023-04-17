@@ -15,6 +15,7 @@ NB_TIME_STEPS_BY_SIM = 450
 
 class PowerInterpolator:
     def __init__(self, path, parameters_dict, dict_keys):
+
         self.parameters_dict = parameters_dict  # All parameters used in the dataframe
         self.dict_keys = dict_keys
 
@@ -159,6 +160,7 @@ class PowerInterpolator:
 
 
 if __name__ == "__main__":
+
     parameters_dict = {
         "Ua_ratio": [1, 1.1],
         "Cm_ratio": [1, 1.1],

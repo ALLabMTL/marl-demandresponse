@@ -1,4 +1,4 @@
-# %% Imports
+#%% Imports
 
 import os
 import random
@@ -14,7 +14,7 @@ from v0.metrics import Metrics
 from v0.utils import adjust_config_train  # testAgentHouseTemperature,
 from v0.utils import normStateDict, saveDDPGDict, test_ppo_agent
 
-# %% Functions
+#%% Functions
 
 
 def train_ddpg(env, agent, opt, config_dict, render, log_wandb, wandb_run):
@@ -164,7 +164,7 @@ def get_running_reward(arr: np.ndarray, window=100):
     return running_reward
 
 
-# %% Train
+#%% Train
 
 if __name__ == "__main__":
     # import os

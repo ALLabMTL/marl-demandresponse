@@ -279,7 +279,7 @@ config_dict = {
                     "random_phase_offset": True,
                 },
             },
-            "nb_agents": 256,  # Number of houses
+            "nb_agents": 1,  # Number of houses
             "nb_agents_comm": 10,  # Maximal number of houses a single house communicates with
             "agents_comm_mode": "neighbours",  # Communication mode
             "agents_comm_parameters": {
