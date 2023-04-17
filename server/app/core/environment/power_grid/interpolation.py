@@ -22,11 +22,45 @@ NB_TIME_STEPS_BY_SIM = 450
 
 
 class PowerInterpolator(object):
+    """
+    Class that allows to interpolate the power demand based on the provided data.
+
+    Attributes:
+    -----------
+    base_power_props : BasePowerProperties
+        An instance of the `BasePowerProperties` class, which contains information about the power grid properties.
+    parameters_dict : Dict[str, List[float]]
+        A dictionary that contains the values of each parameter used in the power demand model.
+    dict_keys : List[str]
+        A list that contains the keys of the `parameters_dict` dictionary.
+    nb_params : List[int]
+        A list that contains the number of values for each parameter in the `parameters_dict` dictionary.
+    nb_params_multi : List[int]
+        A list that contains the multiplication factor for each parameter in the `parameters_dict` dictionary.
+    points : List[np.ndarray]
+        A list of NumPy arrays containing the coordinates of each point in the parameter space.
+    dimensions_array : List[int]
+        A list that contains the number of dimensions for each parameter in the `parameters_dict` dictionary.
+    values : np.ndarray
+        A NumPy array that contains the power demand values for each point in the parameter space.
+    default_building_props : BuildingProperties
+        An instance of the `BuildingProperties` class, which contains information about the building properties.
+    """
     def __init__(
         self,
         base_power_props: BasePowerProperties,
         default_building_props: BuildingProperties,
     ) -> None:
+        """
+        Constructor for the PowerInterpolator class.
+
+        Parameters
+            base_power_props (BasePowerProperties): Object containing information about the power grid and data files.
+            default_building_props (BuildingProperties): Object containing information about the building.
+       
+        Returns
+            None
+        """
         self.base_power_props = base_power_props
         with open(base_power_props.path_parameter_dict) as json_file:
             self.parameters_dict = json.load(json_file)
@@ -56,6 +90,15 @@ class PowerInterpolator(object):
         self.default_building_props = default_building_props
 
     def param2index(self, point_dict):
+        """
+        Converts a dictionary of power parameters to an index that can be used to extract power data from the loaded data files.
+
+        Parameters
+            point_dict (Dict[str, Any]): A dictionary containing the parameters to be converted to an index.
+      
+        Returns
+            index_df (int): An integer representing the index for the provided power parameters.
+        """
         "Return the index for a given set of parameters. ! If date in point_dict, must be the day # in the year (timetuple().tm_yday property of datetime)"
         assert point_dict.keys() == self.dict_keys
 
@@ -76,6 +119,15 @@ class PowerInterpolator(object):
         return index_df
 
     def interpolate_grid(self, point_dict):
+        """
+        Interpolates the power demand for a given set of power parameters using the loaded data files.
+
+        Parameters
+            point_dict (Dict[str, Any]): A dictionary containing the power parameters to be used for interpolation.
+        
+        Returns
+            result (float): The interpolated power demand value.
+        """
         point_coordinates = list(point_dict.values())
         result = interpn(self.points, self.values, point_coordinates)
         # print(result)
@@ -84,6 +136,12 @@ class PowerInterpolator(object):
     def interpolate_grid_fast(self, point_dict) -> float:
         """
         Returns a fast interpolation, using nearest neighbour for the house thermal parameters and linear interpolation for the other parameters.
+
+        Parameters
+            point_dict (Dict[str, Any]): A dictionary containing the power parameters to be used for interpolation.
+        
+        Returns
+            result (float): The interpolated power demand value.        
         """
         point_coordinates = list(point_dict.values())[
             4:
@@ -131,6 +189,15 @@ class PowerInterpolator(object):
         interp_nb_agents,
         buildings: List[Building],
     ) -> float:
+        """
+        Given a value, returns the closest values from a sorted numpy array. If value is inside the list range, return one lower and one higher. If all are lower or higher, return the two extreme values.
+
+        Parameters
+            array (numpy.ndarray): A sorted numpy array.
+            value (float): The value for which to find the closest values.
+        Returns
+            closest (numpy.ndarray): An array containing the two closest values.
+        """
         base_power = 0.0
 
         if self.default_building_props.solar_gain:
@@ -175,6 +242,18 @@ class PowerInterpolator(object):
         return base_power
 
     def clip_interpolation_point(self, point: Dict[str, float]) -> Dict[str, float]:
+        """
+        Interpolates the power demand for a given set of power parameters using the loaded data files.
+
+        Parameters
+            date_time (datetime): A datetime object containing the current date and time.
+            current_od_temp (float): The current outdoor temperature.
+            interp_nb_agents (int): The number of buildings to use for interpolation.
+            buildings (List[Building]): A list of Building objects representing the buildings in the simulation.
+        
+        Returns
+            result (float): The interpolated power demand value.
+        """
         for key in point.keys():
             values = np.array(self.parameters_dict[key])
             if point[key] > np.max(values):

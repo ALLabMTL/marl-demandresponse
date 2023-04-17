@@ -17,6 +17,17 @@ class PowerGridObsDict(TypedDict):
 
 
 class PowerGrid(Simulatable):
+    """
+    Simulatable object representing a power grid, with functionality to update the power supply based on the current environment and compute a signal. 
+
+    Attributes:
+        init_props (PowerGridProperties): The initial properties of the power grid.
+        base_power (float): The base power of the power grid.
+        current_signal (float): The current signal of the power grid.
+        cluster (Cluster): The cluster in which the power grid is situated.
+        signal_calculator (SignalCalculator): An object used to compute the current signal of the power grid.
+        power_interpolator (PowerInterpolator): An object used to interpolate the power of the power grid.
+    """
     init_props: PowerGridProperties
     base_power: float
     current_signal: float
@@ -25,6 +36,7 @@ class PowerGrid(Simulatable):
     power_interpolator: PowerInterpolator
 
     def __init__(self, power_grid_props: PowerGridProperties, cluster: Cluster) -> None:
+        """Initialize a new instance of the PowerGrid class."""
         #  TODO: use parser service
         self.init_props = power_grid_props
         # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
@@ -51,11 +63,31 @@ class PowerGrid(Simulatable):
             )
 
     def reset(self) -> dict:
+        """
+        Reset the state of the power grid environment.
+
+        Parameters:
+            None
+
+        Returns:
+            dict: Empty dictionary.
+        """
         return {}
 
     def step(
         self, date_time: datetime, time_step: timedelta, current_od_temp: float
     ) -> EnvironmentObsDict:
+        """
+        Simulate one step in the power grid environment.
+
+        Parameters:
+            date_time (datetime): The current datetime.
+            time_step (timedelta): The time delta between the current datetime and the previous one.
+            current_od_temp (float): The current outdoor temperature.
+
+        Returns:
+            EnvironmentObsDict: A dictionary containing the current regulatory signal.
+        """
         self.power_step(date_time, time_step, current_od_temp)
         self.current_signal = self.signal_calculator.compute_signal(
             self.base_power, date_time
@@ -67,17 +99,46 @@ class PowerGrid(Simulatable):
         return self.get_obs()
 
     def get_obs(self) -> EnvironmentObsDict:
+        """
+        Get the current observation of the power grid environment.
+
+        Parameters:
+            None
+
+        Returns:
+            EnvironmentObsDict: A dictionary containing the current regulatory signal.
+        """
         obs_dict: EnvironmentObsDict = EnvironmentObsDict(
             reg_signal=self.current_signal
         )
         return obs_dict
 
     def apply_noise(self) -> None:
+        """
+        Apply noise to the current regulatory signal.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
         pass
 
     def power_step(
         self, date_time: datetime, time_step: timedelta, current_od_temp: float
     ) -> None:
+        """
+        Simulate one step in the power grid environment's power consumption.
+
+        Parameters:
+            date_time (datetime): The current datetime.
+            time_step (timedelta): The time delta between the current datetime and the previous one.
+            current_od_temp (float): The current outdoor temperature.
+
+        Returns:
+            None
+        """
         if self.init_props.base_power_props.mode == "constant":
             self.base_power = (
                 self.init_props.base_power_props.avg_power_per_hvac

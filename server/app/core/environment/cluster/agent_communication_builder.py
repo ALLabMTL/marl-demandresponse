@@ -10,11 +10,40 @@ from app.core.environment.cluster.cluster_properties import (
 
 
 class AgentCommunicationBuilder:
+    """
+    Builds a communication graph between agents. The communication graph determines the agents with whom a
+    particular agent can communicate during the simulation. There are four communication modes implemented:
+        - neighbours: agents can communicate with their closest neighbours in a circular fashion.
+        - closed_groups: agents are grouped into sets, each set containing a maximum of max_nb_agents_communication
+            agents, and agents can communicate only with agents within the same set.
+        - random_fixed: agents are connected to a fixed number of other agents, drawn randomly with replacement
+            from the entire set of agents.
+        - neighbours_2D: agents can communicate with their neighbours in a 2D grid.
+
+
+    Attributes: 
+        agents_comm_props: AgentsCommunicationProperties
+            The properties of the agents' communication.
+        nb_comm: int
+            The maximum number of agents that each agent can communicate with.
+        nb_agents: int
+            The total number of agents.
+        agent_ids: List[int]
+            The list of IDs of all agents.
+
+    """
     def __init__(
         self,
         agents_comm_props: AgentsCommunicationProperties,
         nb_agents: int,
     ) -> None:
+        """
+        Initialize an instance of the AgentCommunicationBuilder class.
+
+        Parameters:
+            - agents_comm_props: An instance of the AgentsCommunicationProperties class which stores the properties of the communication between agents.
+            - nb_agents: The number of agents in the simulation.
+        """
         self.agents_comm_props = agents_comm_props
         self.nb_comm = np.minimum(
             agents_comm_props.max_nb_agents_communication,
@@ -24,12 +53,15 @@ class AgentCommunicationBuilder:
         self.agent_ids = list(range(nb_agents))
 
     def get_comm_link_list(self) -> Dict[int, List[int]]:
+        """
+        Return a dictionary with the IDs of agents as keys and a list of IDs of agents with which they can communicate as values.
+        """
         mode = getattr(self, self.agents_comm_props.mode)
         return mode()
 
     def neighbours(self) -> Dict[int, List[int]]:
         """
-        Gets the neighbours of each agent in a circular fashion,
+        Get the neighbours of each agent in a circular fashion,
         if agent_id is 5:
             the half before will be [0, 1, 2, 3, 4]
             and half after will be [6, 7, 8, 9, 10]
@@ -52,6 +84,10 @@ class AgentCommunicationBuilder:
         return agent_communicators
 
     def closed_groups(self) -> Dict[int, List[int]]:
+        """
+        Return a dictionary with the IDs of agents as keys and a list of IDs of agents with which they can communicate within the same group.
+        Agents are grouped into sets, each containing a maximum of max_nb_agents_communication agents.
+        """
         agent_communicators: Dict[int, List[int]] = {}
 
         for agent_id in self.agent_ids:
@@ -73,15 +109,28 @@ class AgentCommunicationBuilder:
         return agent_communicators
 
     def random_sample(self) -> Dict[int, List[int]]:
+        """
+        This method is intended to return a dictionary with the IDs of agents as keys and a list of IDs of 
+        randomly selected agents with which they can communicate.
+        """
         return {}
 
     def random_fixed(self) -> Dict[int, List[int]]:
+        """
+        Returns a dictionary with the IDs of agents as keys and a list of IDs of randomly selected agents with which 
+        they can communicate. Each agent is connected to a fixed number of other agents, 
+        drawn randomly with replacement from the entire set of agents.
+        """
         agent_communicators: Dict[int, List[int]] = {}
         for agent_id in self.agent_ids:
             agent_communicators[agent_id] = self.get_random_sample(agent_id)
         return agent_communicators
 
     def neighbours_2D(self) -> Dict[int, List[int]]:
+        """
+        Returns a dictionary with the IDs of agents as keys and a list of IDs of neighbouring agents with which they can communicate in a 2D grid.
+        The communication distance is limited by the max_communication_distance parameter and the row size is specified by the row_size parameter.
+        """
         if len(self.agent_ids) % self.agents_comm_props.row_size != 0:
             # TODO: put this in validator of model
             raise ValueError("Neighbours 2D row_size must be a divisor of nb_agents")
@@ -139,6 +188,16 @@ class AgentCommunicationBuilder:
         return agent_communicators
 
     def get_random_sample(self, agent_id) -> List[int]:
+        """
+        Returns a list of `nb_comm` randomly selected agent IDs, excluding the given `agent_id`.
+
+        Parameters:
+            agent_id (int): The ID of the agent to exclude from the possible IDs that can be selected.
+
+        Returns:
+            List[int]: A list of `nb_comm` randomly selected agent IDs, excluding the given `agent_id`.
+        """
+        possible_ids = d
         possible_ids = deepcopy(self.agent_ids)
         possible_ids.remove(agent_id)
         return random.sample(possible_ids, k=self.nb_comm)

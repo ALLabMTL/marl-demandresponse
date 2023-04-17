@@ -26,6 +26,24 @@ DESCRIPTION_KEYS = [
 
 
 class ClientManagerService:
+    """
+    Class that manages the client-side data and interactions with the server.
+
+    Attributes:
+        description (Dict[int, Dict[str, str]]): A dictionary containing a summary of the current state of the simulation.
+        temp_diff (np.ndarray): An array containing the average temperature difference between the indoor and target temperatures.
+        temp_err (np.ndarray): An array containing the average temperature error between the indoor and target temperatures.
+        air_temp (np.ndarray): An array containing the average indoor temperature.
+        mass_temp (np.ndarray): An array containing the average mass temperature.
+        target_temp (np.ndarray): An array containing the average target temperature.
+        outdoor_temp (np.ndarray): An array containing the average outdoor temperature.
+        signal (np.ndarray): An array containing the current regulation signal.
+        consumption (np.ndarray): An array containing the current consumption.
+        recent_signal (np.ndarray): An array containing the recent regulation signal.
+        recent_consumption (np.ndarray): An array containing the recent consumption.
+        data_frame (pd.DataFrame): A dataframe containing the observation data for all houses.
+        houses_data (Dict[int, EnvironmentObsDict]): A dictionary containing the observation data for each individual house.
+    """
     description: Dict[int, Dict[str, str]]
     temp_diff: np.ndarray
     temp_err: np.ndarray
@@ -42,6 +60,12 @@ class ClientManagerService:
 
     @property
     def description_values(self) -> list:
+        """
+        A property that returns a list of values to be used in the description of client data at each timestep.
+
+        Returns:
+        list: A list of values to be used in the description of client data at each timestep.
+        """
         values = [
             str(self.data_frame.shape[0]),  # "Number of HVAC",
             str(
@@ -89,9 +113,21 @@ class ClientManagerService:
         self,
         socket_manager_service: SocketManager,
     ) -> None:
+        """
+        Initialize a new ClientManagerService object.
+
+        Parameters:
+            socket_manager_service (SocketManager): An instance of the SocketManager class.
+        """
         self.socket_manager = socket_manager_service
 
     def initialize_data(self, interface: bool) -> None:
+        """
+        Initialize data attributes for the ClientManagerService object.
+
+        Parameters:
+            interface (bool): A boolean value indicating whether an interface is being used.
+        """
         self.interface = interface
         self.description = {}
         self.temp_diff = np.array([])
@@ -112,6 +148,13 @@ class ClientManagerService:
         obs_dict: Dict[int, EnvironmentObsDict],
         time_step: int,
     ) -> None:
+        """
+        Update data attributes for the ClientManagerService object.
+
+        Parameters:
+            obs_dict (Dict[int, EnvironmentObsDict]): A dictionary of dictionaries that stores environment data for each client at each timestep.
+            time_step (int): An integer indicating the current timestep.
+        """
         self.data_frame = pd.DataFrame(obs_dict).transpose()
         self.data_frame["temperature_difference"] = (
             self.data_frame["indoor_temp"] - self.data_frame["target_temp"]
@@ -132,6 +175,7 @@ class ClientManagerService:
         )
 
     def update_graph_data(self) -> None:
+        """Update graph data attributes for the ClientManagerService object."""
         self.temp_diff = np.append(
             self.temp_diff, self.data_frame["temperature_difference"].mean()
         )
@@ -152,12 +196,25 @@ class ClientManagerService:
         )
 
     def update_desc_data(self, time_step: int) -> None:
+        """
+        Update description data attributes for the ClientManagerService object.
+
+        Parameters:
+            time_step (int): An integer indicating the current timestep.
+        """
         description = dict(zip(DESCRIPTION_KEYS, self.description_values))
         self.description.update({time_step: description})
 
     def update_houses_data(
         self, obs_dict: Dict[int, EnvironmentObsDict], time_step: int
     ) -> None:
+        """
+        Update houses data attributes for the ClientManagerService object.
+
+        Parameters:
+            obs_dict (Dict[int, EnvironmentObsDict]): A dictionary of dictionaries that stores environment data for each client at each timestep.
+            time_step (int): An integer indicating the current timestep.
+        """
         houses_data = []
 
         for house_id, _ in enumerate(obs_dict):
@@ -193,12 +250,34 @@ class ClientManagerService:
         endpoint: str = "",
         data: Any = {},
     ) -> None:
+        """
+        Log a message and optionally emits it over a socket.
+
+        Parameters:
+            text (str): The message to be logged. If not provided, no message will be logged.
+            emit (bool): Whether or not to emit the message over a socket. Defaults to False.
+            endpoint (str): The endpoint to emit the message to. Only applicable if emit is True. Defaults to an empty string.
+            data (Any): Any additional data to be included with the emitted message. Only applicable if emit is True. Defaults to an empty dictionary.
+
+        Returns:
+            None
+        """
+
         if self.interface and emit and endpoint != "":
             await self.socket_manager.emit(endpoint, data)
         if text != "":
             logger.info(text)
 
     async def get_state_at(self, time_step: int) -> None:
+        """
+        Log the description and house data at a specific time step.
+
+        Args:
+            time_step (int): The time step to log the data for.
+
+        Returns:
+            None
+        """
         await self.log(
             emit=True, endpoint="timeStepData", data=self.description[time_step]
         )

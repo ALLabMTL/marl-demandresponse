@@ -15,6 +15,19 @@ from app.utils.utils import compute_solar_gain
 
 
 class Building(Simulatable):
+    """
+    Simulatable object representing a building with HVAC system.
+
+    Attributes:
+        init_props (BuildingProperties): Initial properties of the building.
+        current_mass_temp (float): Current temperature of the building mass in Celsius.
+        indoor_temp (float): Current indoor air temperature in Celsius.
+        hvac (HVAC): HVAC object.
+        max_consumption (float): Maximum power consumption of the HVAC system in Watts.
+        current_solar_gain (float): Current solar gain of the building in Watts.
+    """
+
+
     init_props: BuildingProperties
     current_mass_temp: float
     indoor_temp: float
@@ -23,10 +36,24 @@ class Building(Simulatable):
     current_solar_gain: float
 
     def __init__(self, building_props: BuildingProperties) -> None:
+        """
+        Constructor for the Building class.
+
+        Parameters:
+            building_props: A BuildingProperties object that contains the properties of the building.
+        Returns:
+            None
+        """
         self.init_props = deepcopy(building_props)
         self.reset()
 
     def reset(self) -> EnvironmentObsDict:
+        """
+        Resets the state of the building.
+
+        Returns:
+            An EnvironmentObsDict object that contains the state of the building.
+        """
         self.hvac = HVAC(self.init_props.hvac_prop)
         self.max_consumption = self.hvac.init_props.max_consumption
         self.current_solar_gain = 0.0
@@ -51,7 +78,12 @@ class Building(Simulatable):
         self.update_temperature(od_temp, time_step, date_time)
 
     def get_obs(self) -> EnvironmentObsDict:
-        """Generate building observation dictionnary."""
+        """
+        Generate building observation dictionnary.
+
+        Returns:
+            An EnvironmentObsDict object that contains the current observation of the building.
+        """
         state_dict: EnvironmentObsDict = self.hvac.get_obs()
         state_dict.update(
             {
@@ -69,7 +101,16 @@ class Building(Simulatable):
         return state_dict
 
     def message(self, thermal_message: bool, hvac_message: bool) -> BuildingMessage:
-        """Message sent by the building to other agents."""
+        """
+        Message sent by the building to other agents.
+        
+        Parameters:
+            thermal_message: A boolean indicating whether to include thermal properties in the message.
+            hvac_message: A boolean indicating whether to include HVAC properties in the message.
+        
+        Returns:
+            A BuildingMessage object that contains the message to be sent by the building.
+        """
         message: BuildingMessage = {
             "seconds_since_off": self.hvac.seconds_since_off,
             "curr_consumption": self.hvac.get_power_consumption(),
@@ -101,7 +142,8 @@ class Building(Simulatable):
     def update_temperature(
         self, od_temp: float, time_step: timedelta, date_time: datetime
     ) -> None:
-        """Update the temperature of the house.
+        """
+        Update the temperature of the house.
 
         Return: -
         Parameters:
