@@ -4,13 +4,45 @@
   </p>
 
   <div class="temp_filter">
-    <mat-slide-toggle color="primary" class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetSlider()">
+    <mat-slide-toggle color="primary" class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetInput()">
       Temperature difference
     </mat-slide-toggle>
     <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
       >Temperature difference</mat-checkbox
     > -->
-    <mat-slider
+    <div class = "input_boxes_temp">
+      <p>Min:</p>
+    <div class="page-input">
+      <input
+        class="input_temp"
+        (keyup.enter)="this.simulationManager.filterByTempDiff()"
+        (blur)="this.simulationManager.filterByTempDiff()"
+        type="number"
+        min=" {{ this.simulationManager.tempSelectRange.min }}"
+        max="{{ this.simulationManager.tempSelectRange.max }}"
+        step="0.01"
+        value = "0"
+        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.min"
+        [disabled]="!this.simulationManager.isTempChecked"
+      />
+    </div> <!-- value = "{{ this.simulationManager.tempSelectRange.min }}" -->
+    <p>Max:</p>
+    <div class="page-input">
+      <input
+        class="input_temp"
+        (keyup.enter)="this.simulationManager.filterByTempDiff()"
+        (blur)="this.simulationManager.filterByTempDiff()"
+        type="number"
+        min=" {{ this.simulationManager.tempSelectRange.min }}"
+        max="{{this.simulationManager.tempSelectRange.max }}"
+        step="0.01"
+        value = "0"
+        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.max"
+        [disabled]="!this.simulationManager.isTempChecked"
+      />
+    </div> <!-- value = "{{ this.simulationManager.tempSelectRange.max }}" -->
+  </div>
+    <!-- <mat-slider
       [min]="this.simulationManager.minValueSliderInit"
       [max]="this.simulationManager.maxValueSliderInit"
       step="0.01"
@@ -24,7 +56,7 @@
     >
       <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"/>
       <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"/>
-    </mat-slider>
+    </mat-slider> -->
     <!-- <div class="values_temp_selected" *ngIf ="this.simulationManager.isTempFiltered">
     <p tag="temp_interval"> Interval selected: [{{this.simulationManager.tempSelectRangeInput.min}}, {{this.simulationManager.tempSelectRangeInput.max}}]</p>
     </div> -->

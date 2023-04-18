@@ -38,15 +38,13 @@ export class SimulationManagerService {
   isFilteredHvac = false;
   isTempFiltered = false;
   hvacStatus = ' ';
-  minValueSliderInit = -1;
-  maxValueSliderInit = 1;
   tempSelectRange: { min: number; max: number } = {
-    min: this.minValueSliderInit,
-    max: this.maxValueSliderInit,
+    min: 0,
+    max: 0,
   };
   tempSelectRangeInput: { min: number; max: number } = {
-    min: this.minValueSliderInit,
-    max: this.maxValueSliderInit,
+    min: 0,
+    max: 0,
   };
 
   sortingOptionSelected = ' ';
@@ -93,15 +91,13 @@ export class SimulationManagerService {
     this.isFilteredHvac = false;
     this.isTempFiltered = false;
     this.hvacStatus = ' ';
-    this.minValueSliderInit = -1;
-    this.maxValueSliderInit = 1;
-    this.tempSelectRange = {
-      min: this.minValueSliderInit,
-      max: this.maxValueSliderInit,
+    this.tempSelectRange = { // to get the min max from original houses data
+      min: 0,
+      max: 0,
     };
-    this.tempSelectRangeInput = {
-      min: this.minValueSliderInit,
-      max: this.maxValueSliderInit,
+    this.tempSelectRangeInput = { // interval chosen on interface
+      min: 0,
+      max: 0
     };
 
     this.sortingOptionSelected = ' ';
@@ -345,11 +341,20 @@ export class SimulationManagerService {
     this.isTempFiltered = true;
     this.housesData = this.originalHousesData;
 
-    this.tempDiffHousesData = this.housesData.filter(
-      (e) =>
-        e.tempDifference >= this.tempSelectRangeInput.min &&
-        e.tempDifference <= this.tempSelectRangeInput.max
-    );
+    if(this.tempSelectRangeInput.min == null || this.tempSelectRangeInput.max == null) {
+      this.removeTempDiffFilter();
+    } else {
+      console.log("temp",this.tempSelectRangeInput.min );
+
+      if((this.tempSelectRangeInput.min >= this.tempSelectRange.min && this.tempSelectRangeInput.min <= this.tempSelectRange.max) || (this.tempSelectRangeInput.max >= this.tempSelectRange.min && this.tempSelectRangeInput.max <= this.tempSelectRange.max)) {
+
+      this.tempDiffHousesData = this.housesData.filter(
+        (e) =>
+          e.tempDifference >= this.tempSelectRangeInput.min &&
+          e.tempDifference <= this.tempSelectRangeInput.max
+      );
+      }
+    }
 
     this.updateFilteredHouses();
   }

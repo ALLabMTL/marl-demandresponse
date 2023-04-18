@@ -23,6 +23,26 @@ mat-chip-listbox {
   // margin-top: 1.5rem; 
 }
 
+
+.input_temp {
+  margin-left: 8px;
+  width: 56px;
+  height: 35px;
+  border-radius: 5px;
+  text-align: center;
+  color: white;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.input_boxes_temp {
+  display:flex;
+  p {
+    margin-top: 10px;
+    margin-left: 8px;
+  }
+}
+
 .values_temp p{
   display:inline-table;
   margin-left: 15px;
