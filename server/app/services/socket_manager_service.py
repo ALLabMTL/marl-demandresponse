@@ -8,6 +8,7 @@ class SocketManager:
     """
 
     def __init__(self) -> None:
+        """Initialize the SocketManager instance by creating a socketio.AsyncServer instance with the "asgi" async_mode and allowing requests from any origin."""
         self._sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 
     @property

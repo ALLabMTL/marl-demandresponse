@@ -10,6 +10,47 @@ from app.utils.logger import logger
 
 
 class Metrics:
+    """
+    A class that keeps track of various metrics values during training and logs them using a WandbManager instance.
+
+    Attributes:
+        wandb_service : WandbManager
+            An instance of WandbManager used for logging metrics.
+        nb_time_steps : int
+            Total number of time steps.
+        start_stats_from : int
+            Time step from which to start computing statistics.
+        nb_agents : int
+            Number of agents in the environment.
+        cumul_avg_reward : float
+            Cumulative average reward over all time steps.
+        cumul_temp_offset : float
+            Cumulative temperature offset over all time steps.
+        cumul_temp_error : float
+            Cumulative temperature error over all time steps.
+        cumul_signal_offset : float
+            Cumulative signal offset over all time steps.
+        cumul_signal_error : float
+            Cumulative signal error over all time steps.
+        cumul_squared_error_temp : float
+            Cumulative squared error of temperature over all time steps.
+        max_temp_error : float
+            Maximum temperature error over all time steps.
+        cumul_OD_temp : float
+            Cumulative outside temperature over all time steps.
+        cumul_signal : float
+            Cumulative signal over all time steps.
+        cumul_cons : float
+            Cumulative consumption over all time steps.
+        cumul_squared_error_sig : float
+            Cumulative squared error of signal over all time steps.
+        rmse_sig_per_ag : float
+            Root-mean-squared error of signal per agent.
+        rmse_temp : float
+            Root-mean-squared error of temperature.
+        rms_max_error_temp : float
+            Root-mean-squared maximum error of temperature.
+    """
     def __init__(
         self,
         wandb_service: WandbManager,

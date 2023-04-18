@@ -10,6 +10,18 @@ from app.core.environment.simulatable import Simulatable
 
 
 class HVAC(Simulatable):
+    """
+    Class representing a Heating, Ventilation, and Air Conditioning (HVAC) system, which can be simulated
+    within an environment. Inherits from the `Simulatable` class.
+    
+    Attributes:
+    - init_props (HvacProperties): The initial properties of the HVAC system, represented by a `HvacProperties`
+      instance.
+    - seconds_since_off (int): The number of seconds since the HVAC was turned off.
+    - lockout (bool): A flag indicating whether the HVAC is currently in a lockout period, during which it cannot
+      be turned on.
+    - turned_on (bool): A flag indicating whether the HVAC is currently turned on.
+    """
     init_props: HvacProperties
     seconds_since_off: int
     lockout: bool

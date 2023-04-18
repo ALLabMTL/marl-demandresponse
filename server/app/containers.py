@@ -10,6 +10,18 @@ from app.services.wandb_service import WandbManager
 
 
 class Container(containers.DeclarativeContainer):
+    """
+    A declarative container for dependency injection.
+
+    Attributes:
+        socket_manager_service (providers.Singleton): A singleton provider for the SocketManager service.
+        client_manager_service (providers.Singleton): A singleton provider for the ClientManagerService service, which depends on the SocketManager service.
+        wandb_service (providers.Singleton): A singleton provider for the WandbManager service.
+        metrics_service (providers.Singleton): A singleton provider for the Metrics service, which depends on the WandbManager service.
+        controller_manager (providers.Singleton): A singleton provider for the ControllerManager service, which depends on the ClientManagerService, Metrics, and SocketManager services.
+        training_manager (providers.Singleton): A singleton provider for the TrainingManager service, which depends on the ClientManagerService and Metrics services.
+        experiment_manager (providers.Singleton): A singleton provider for the ExperimentManager service, which depends on the TrainingManager and ControllerManager services.
+    """
     socket_manager_service = providers.Singleton(SocketManager)
 
     client_manager_service = providers.Singleton(

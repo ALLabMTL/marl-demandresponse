@@ -13,6 +13,7 @@ from app.core.environment.simulatable import Simulatable
 
 
 class PowerGridObsDict(TypedDict):
+    """This class is a dictionary that represents the observation space of the power grid environment"""
     reg_signal: float
 
 
@@ -37,7 +38,7 @@ class PowerGrid(Simulatable):
 
     def __init__(self, power_grid_props: PowerGridProperties, cluster: Cluster) -> None:
         """Initialize a new instance of the PowerGrid class."""
-        #  TODO: use parser service
+        #TODO: use parser service
         self.init_props = power_grid_props
         # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
         self.init_props.artificial_ratio = (

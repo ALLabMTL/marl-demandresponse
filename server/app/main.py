@@ -18,6 +18,7 @@ from app.utils.settings import settings
 
 
 class ExtendedFastAPI(FastAPI):
+    """The ExtendedFastAPI class is a subclass of FastAPI that adds a container attribute of type Container."""
     container: Container
 
 
@@ -25,6 +26,15 @@ class ExtendedFastAPI(FastAPI):
 def create_app(
     sio: SocketManager = Provide["socket_manager_service"],
 ) -> ExtendedFastAPI:
+    """
+    Create an instance of the FastAPI application and mounts the endpoint and websocket routers.
+    
+    Parameters:
+        sio (SocketManager): A SocketManager instance to handle websockets connections.
+    
+    Returns:
+        ExtendedFastAPI: An instance of the FastAPI application.
+    """
     app = ExtendedFastAPI()
 
     app.include_router(endpointRoute, prefix="/api")
@@ -38,6 +48,12 @@ def create_app(
 
 @inject
 def app_setup() -> None:
+    """
+    Set up the required services for the application, such as the parser service and wandb.
+    
+    Returns:
+        None.
+    """
     # TODO: setup parser service, wandb...
     pass
 
@@ -60,6 +76,13 @@ app.container = container
 
 @app.on_event("startup")
 async def startup() -> None:
+    """
+    Event handler for the FastAPI startup event. Logs a message to indicate the server has started
+    and calls the `app_setup` method.
+    
+    Returns:
+        None.
+    """
     logger.info(f"Started backend on port {Color.BOLD}{settings.PORT}{Color.END}")
     logger.info(
         f"WS Endpoint available at {Color.BOLD}ws://localhost:{settings.PORT}/{Color.END}"
@@ -70,6 +93,12 @@ async def startup() -> None:
 @app.on_event("shutdown")
 @inject
 def shutdown() -> None:
+    """
+    Event handler for the FastAPI shutdown event. Logs a message to indicate the server is shutting down.
+    
+    Returns:
+        None.
+    """
     logger.info(f"Shutting down server...")
 
 
