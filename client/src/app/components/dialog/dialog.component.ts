@@ -46,9 +46,10 @@ export class DialogComponent {
           tension: 0,
           borderColor: ['teal'],
           backgroundColor: ['teal'],
-          pointBackgroundColor: 'black',
+          pointBackgroundColor: 'white',
           pointRadius: 0,
-          pointHoverRadius: 15,
+          pointHoverRadius: 5,
+          pointHitRadius: 10
         };
       }
       );
@@ -66,9 +67,10 @@ export class DialogComponent {
           tension: 0,
           borderColor: ['yellow'],
           backgroundColor: ['yellow'],
-          pointBackgroundColor: 'black',
+          pointBackgroundColor: 'white',
           pointRadius: 0,
-          pointHoverRadius: 15,
+          pointHoverRadius: 5,
+          pointHitRadius: 10
         };
       }
       );
@@ -99,9 +101,10 @@ export class DialogComponent {
           tension: 0,
           borderColor: ['green'],
           backgroundColor: ['green'],
-          pointBackgroundColor: 'black',
+          pointBackgroundColor: 'white',
           pointRadius: 0,
-          pointHoverRadius: 15,
+          pointHoverRadius: 5,
+          pointHitRadius: 10
         };
       }
       );
@@ -173,6 +176,21 @@ export class DialogComponent {
     display: true,
     align: 'center',
 
+    scales: {
+      y: 
+        {
+          ticks: {
+            color: "white"
+          }
+        },
+        x: 
+        {
+          ticks: {
+            color: "white"
+          }
+        }
+    },
+
     plugins: {
       zoom: {
         zoom: {
@@ -210,8 +228,17 @@ export class DialogComponent {
     scales: {
       y: {
         type: 'category',
-        labels: ["ON", "Lockout", "OFF"]
+        labels: ["ON", "Lockout", "OFF"],
+        ticks: {
+          color: "white"
+        }
       },
+      x: 
+        {
+          ticks: {
+            color: "white"
+          }
+        },
     },
 
     plugins: {

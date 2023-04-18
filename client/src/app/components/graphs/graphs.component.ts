@@ -1,6 +1,6 @@
 import { Component, AfterViewInit, ViewChild, ViewChildren, QueryList, ElementRef } from '@angular/core';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
-import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
+import { Chart, ChartConfiguration, ChartOptions, Color } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
@@ -42,9 +42,10 @@ export class GraphsComponent implements AfterViewInit {
             tension: 0,
             borderColor: ['blue', 'white'],
             backgroundColor: ['blue', 'white'],
-            pointBackgroundColor: 'black',
+            pointBackgroundColor: 'white',
             pointRadius: 0,
-            pointHoverRadius: 15,
+            pointHoverRadius: 5,
+            pointHitRadius: 10
           };
         }
         );
@@ -62,9 +63,10 @@ export class GraphsComponent implements AfterViewInit {
             tension: 0,
             borderColor: ['green', 'orange'],
             backgroundColor: ['green', 'orange'],
-            pointBackgroundColor: 'black',
+            pointBackgroundColor: 'white',
             pointRadius: 0,
-            pointHoverRadius: 15,
+            pointHoverRadius: 5,
+            pointHitRadius: 10
           };
         }
         );
@@ -82,9 +84,10 @@ export class GraphsComponent implements AfterViewInit {
             tension: 0,
             borderColor: ['teal', 'red', 'yellow'],
             backgroundColor: ['teal', 'red', 'yellow'],
-            pointBackgroundColor: 'black',
+            pointBackgroundColor: 'white',
             pointRadius: 0,
-            pointHoverRadius: 15,
+            pointHoverRadius: 5,
+            pointHitRadius: 10
           };
         }
         );
@@ -110,7 +113,7 @@ export class GraphsComponent implements AfterViewInit {
         tension: 0,
         borderColor: 'white',
         backgroundColor: 'rgba(255,0,0,0.3)'
-      }
+      },
     ]
   };
 
@@ -152,6 +155,22 @@ export class GraphsComponent implements AfterViewInit {
     display: true,
     align: 'center',
 
+    scales: {
+      y: 
+        {
+          ticks: {
+            color: "white"
+          }
+        },
+        x: 
+        {
+          ticks: {
+            color: "white"
+          }
+        }
+    },
+
+
     plugins: {
       zoom: {
         zoom: {
@@ -177,7 +196,7 @@ export class GraphsComponent implements AfterViewInit {
         }
       }
     }
-  } as ChartOptions<'line'>;
+  } as unknown as ChartOptions<'line'>;
 
   public lineChartLegend = true;
 
