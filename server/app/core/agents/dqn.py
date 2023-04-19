@@ -3,48 +3,88 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from pydantic import BaseModel, Field
 
 from app.core.agents.buffer import ReplayBuffer, Transition
 from app.core.agents.network import DQN_network
+from app.utils.utils import normStateDict
+
+
+class DQNProperties(BaseModel):
+    """Properties for DQN agent."""
+
+    network_layers: list[int] = Field(
+        default=[100, 100],
+        description="List of layer sizes for the DQN network.",
+    )
+    gamma: float = Field(
+        default=0.99,
+        description="Discount factor for the reward.",
+    )
+    tau: float = Field(
+        default=0.001,
+        description="Soft target update parameter.",
+    )
+    lr: float = Field(
+        default=3e-3,
+        description="Learning rate for the DQN network.",
+    )
+    buffer_capacity: int = Field(
+        default=524288,
+        description="Capacity of the replay buffer.",
+    )
+    batch_size: int = Field(
+        default=256,
+        description="Batch size for the DQN agent.",
+    )
+    epsilon_decay: float = Field(
+        default=0.99998,
+        description="Epsilon decay rate for the DQN agent.",
+    )
+    min_epsilon: float = Field(
+        default=0.01,
+        description="Minimum epsilon for the DQN agent.",
+    )
+
+
+from app.core.agents.agent import Agent
 
 
 class DQN:
-    def __init__(self, config_dict, opt, num_state=22, num_action=2, wandb_run=None):
+    def __init__(
+        self,
+        static_props: DQNProperties,
+        opt,
+        num_state=22,
+        num_action=2,
+        wandb_run=None,
+    ):
         super().__init__()
         self.seed = opt.net_seed
         torch.manual_seed(self.seed)
         if opt.save_actor_name:
             self.path = os.path.join(".", "actors", opt.save_actor_name)
 
-        self.agent_prop = config_dict["DQN_prop"]
-        self.inner_layers = self.agent_prop["network_layers"]
-        self.gamma = self.agent_prop["gamma"]
-        self.tau = self.agent_prop["tau"]
-        self.buffer_cap = self.agent_prop["buffer_capacity"]
-        self.lr = self.agent_prop["lr"]
-        self.batch_size = self.agent_prop["batch_size"]
+        self.static_props = static_props
 
         self.policy_net = DQN_network(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["DQN_prop"]["network_layers"],
+            layers=static_props.network_layers,
         )
         self.target_net = DQN_network(
             num_state=num_state,
             num_action=num_action,
-            layers=config_dict["DQN_prop"]["network_layers"],
+            layers=static_props.network_layers,
         )
         self.target_net.load_state_dict(self.policy_net.state_dict())  # same weights
 
-        self.buffer = ReplayBuffer(self.buffer_cap)
-
-        # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # if self.device.type == 'cuda':
-        #    self.policy_net.to(self.device)
-        #    self.target_net.to(self.device)
+        self.buffer = ReplayBuffer(self.static_props.buffer_capacity)
 
         # TODO weight decay?
-        self.policy_optimizer = optim.Adam(self.policy_net.parameters(), self.lr)
+        self.policy_optimizer = optim.Adam(
+            self.policy_net.parameters(), self.static_props.lr
+        )
 
     def save(self):
         if not os.path.exists(self.path):
@@ -69,11 +109,6 @@ class DQN:
         a = torch.cat(batch.action)
         r = torch.cat(batch.reward)
         s_next = torch.cat(batch.next_state)
-        # if self.device.type == 'cuda':
-        #    s.to(self.device)
-        #    a.to(self.device)
-        #    r.to(self.device)
-        #    s_next.to(self.device)
         return s, a, r, s_next
 
     def update_target_network(self):
@@ -81,14 +116,16 @@ class DQN:
         params = self.target_net.state_dict()
         for k in params.keys():
             # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
-            params[k] = (1 - self.tau) * params[k] + self.tau * new_params[k]
+            params[k] = (1 - self.static_props.tau) * params[
+                k
+            ] + self.static_props.tau * new_params[k]
         self.target_net.load_state_dict(params)
 
     def update(self):
-        if len(self.buffer) < self.batch_size:
+        if len(self.buffer) < self.static_props.batch_size:
             return  # exit if there are not enough transitions in buffer
 
-        transitions = self.buffer.sample(self.batch_size)
+        transitions = self.buffer.sample(self.static_props.batch_size)
         batch = Transition(*zip(*transitions))
         state, action, reward, next_state = self.convert_batch(batch)
 
@@ -99,7 +136,9 @@ class DQN:
         next_q_values = self.target_net(next_state).max(1)[0].detach()
 
         # Compute expected Q(s,a)
-        expected_q_values = reward + (next_q_values.unsqueeze(1) * self.gamma)
+        expected_q_values = reward + (
+            next_q_values.unsqueeze(1) * self.static_props.gamma
+        )
 
         # Compute loss
         criterion = nn.SmoothL1Loss()  # Huber with beta/delta=1 (default)
@@ -115,41 +154,30 @@ class DQN:
         self.update_target_network()
 
 
-class DDQN(DQN):
-    def __init__(self, config_dict, opt, num_state=20, num_action=2):
-        super().__init__(config_dict, opt, num_state, num_action)
+class DQNAgent(Agent):
+    def __init__(self, agent_properties, config_dict, num_state=22, num_action=2):
+        self.id = agent_properties["id"]
+        self.agent_name = agent_properties["actor_name"]
+        self.agent_path = os.path.join(".", "actors", self.agent_name)
+        self.config_dict = config_dict
 
-    def update(self):
-        if len(self.buffer) < self.batch_size:
-            return  # exit if there are not enough transitions in buffer
+        self.seed = agent_properties["net_seed"]
+        torch.manual_seed(self.seed)
+        self.DQN_net = DQN_network(
+            num_state=num_state,
+            num_action=num_action,
+            layers=config_dict["DQN_prop"]["network_layers"],
+        )
+        self.DQN_net.load_state_dict(
+            torch.load(os.path.join(self.agent_path, "DQN.pth"))
+        )
+        self.DQN_net.eval()
 
-        transitions = self.buffer.sample(self.batch_size)
-        batch = Transition(*zip(*transitions))
-        state, action, reward, next_state = self.convert_batch(batch)
-
-        # Compute Q(s,a) from state
-        q_values = self.policy_net(state).gather(1, action)
-        next_action = self.policy_net(next_state).argmax(dim=1, keepdim=True)
-
-        # Compute max Q(s',a) from next state
-        next_q_values = self.target_net(next_state).gather(1, next_action).detach()
-
-        # Compute expected Q(s,a)
-        expected_q_values = reward + (next_q_values.unsqueeze(1) * self.gamma)
-
-        # Compute loss
-        criterion = nn.SmoothL1Loss()  # Huber with beta/delta=1 (default)
-        loss = criterion(q_values, expected_q_values)
-
-        # Optimize the model
-        self.policy_optimizer.zero_grad()
-        loss.backward()
-        for param in self.policy_net.parameters():
-            param.grad.data.clamp_(-1, 1)  # clamp gradients
-        self.policy_optimizer.step()
-
-
-# %% Testing
-
-if __name__ == "__main__":
-    pass
+    def act(self, obs_dict):
+        obs_dict = obs_dict[self.id]
+        state = normStateDict(obs_dict, self.config_dict)
+        state = torch.from_numpy(state).float().unsqueeze(0)
+        with torch.no_grad():
+            qs = self.DQN_net(state)
+        action = torch.argmax(qs).item()
+        return action

@@ -20,13 +20,13 @@ class Environment:
     date_time: datetime
     current_od_temp: float
 
-    def __init__(self) -> None:
-        self.init_props = EnvironmentProperties()
+    def __init__(self, env_props: EnvironmentProperties) -> None:
+        self.init_props = env_props
         self.date_time = self.init_props.start_datetime
         # TODO: compute phase inside TemperatureProperties dataclass
         # TODO: get properties from parser_service, needs to be changed
         self.temp_properties = TemperatureProperties()
-        self.cluster = Cluster()
+        self.cluster = Cluster(env_props.cluster_prop)
         self.power_grid = PowerGrid(
             self.cluster.max_power,
             self.cluster.nb_hvacs,
@@ -71,7 +71,7 @@ class Environment:
     def build_environment(self) -> None:
         self.init_props = EnvironmentProperties()
         self.temp_properties = TemperatureProperties()
-        self.cluster = Cluster()
+        self.cluster = Cluster(self.init_props.cluster_prop)
         self.apply_noise()
         self.date_time = self.init_props.start_datetime
         self.compute_od_temp()
@@ -109,9 +109,9 @@ class Environment:
         )
 
         norm_sig_penalty = deadbandL2(
-            self.init_props.reward_properties.norm_reg_signal,
+            self.init_props.reward_prop.norm_reg_sig,
             0,
-            0.75 * self.init_props.reward_properties.norm_reg_signal,
+            0.75 * self.init_props.reward_prop.norm_reg_sig,
         )
 
         # Temperature penalties
@@ -120,10 +120,10 @@ class Environment:
             temp_penalty_dict[building_id] = self.compute_temp_penalty(building_id)
 
             rewards_dict[building_id] = -1 * (
-                self.init_props.reward_properties.alpha_temp
+                self.init_props.reward_prop.alpha_temp
                 * temp_penalty_dict[building_id]
                 / norm_temp_penalty
-                + self.init_props.reward_properties.alpha_sig
+                + self.init_props.reward_prop.alpha_sig
                 * signal_penalty
                 / norm_sig_penalty
             )
@@ -138,7 +138,7 @@ class Environment:
         deadband: a float. Margin of tolerance for indoors air temperature difference, in Celsius.
         house_temp: a float. Current indoors air temperature, in Celsius
         """
-        temp_penalty_mode = self.init_props.reward_properties.penalty_props.mode
+        temp_penalty_mode = self.init_props.reward_prop.penalty_props.mode
         temperature_penalty = 0
         if temp_penalty_mode == "individual_L2":
             building = self.cluster.buildings[one_house_id]
@@ -216,7 +216,7 @@ class Environment:
         cluster_hvac_power: a float. Total power used by the TCLs, in Watts.
         power_grid_reg_signal: a float. Regulation signal, or target total power, in Watts.
         """
-        sig_penalty_mode = self.init_props.reward_properties.penalty_props.mode
+        sig_penalty_mode = self.init_props.reward_prop.penalty_props.mode
 
         if sig_penalty_mode == "common_L2":
             penalty = (

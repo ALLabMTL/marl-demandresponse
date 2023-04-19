@@ -1,0 +1,138 @@
+{
+    "house_prop": {
+        "Ua": 218.0,
+        "Ca": 908000.0,
+        "Hm": 2840.0,
+        "Cm": 3450000.0,
+        "target_temp": 20,
+        "deadband": 0,
+        "init_air_temp": 20,
+        "init_mass_temp": 20,
+        "solar_gain": true,
+        "nb_hvacs": 1,
+        "window_area": 7.175,
+        "shading_coeff": 0.67
+    },
+    "noise_house_prop": {
+        "std_start_temp": 3.0,
+        "std_target_temp": 1.0,
+        "factor_thermo_low": 0.9,
+        "factor_thermo_high": 1.1
+    },
+    "hvac_prop": {
+        "cop": 2.5,
+        "cooling_capacity": 15000,
+        "latent_cooling_fraction": 0.35,
+        "lockout_duration": 40
+    },
+    "noise_hvac_prop": {
+        "std_latent_cooling_fraction": 0.05,
+        "factor_COP_low": 0.95,
+        "factor_COP_high": 1.05,
+        "factor_cooling_capacity_low": 0.9,
+        "factor_cooling_capacity_high": 1.1,
+        "lockout_noise": 0,
+        "cooling_capacity_list": [
+            12500,
+            15000,
+            17500
+        ]
+    },
+    "env_prop": {
+        "start_datetime": "2021-01-01T00:00:00",
+        "start_datetime_mode": "fixed",
+        "time_step": 4.0,
+        "state_properties": {
+            "hour": false,
+            "day": false,
+            "solar_gain": false,
+            "thermal": false,
+            "hvac": false
+        },
+        "message_properties": {
+            "thermal": false,
+            "hvac": false
+        },
+        "reward_properties": {
+            "alpha_temp": 1.0,
+            "alpha_sig": 1.0,
+            "norm_reg_signal": 7500,
+            "penalty_props": {
+                "mode": "common_L2",
+                "alpha_ind_l2": 1.0,
+                "alpha_common_l2": 1.0,
+                "alpha_common_max": 0.0
+            }
+        }
+    },
+    "PPO_prop": {
+        "actor_layers": [
+            100,
+            100
+        ],
+        "critic_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "lr_critic": 0.003,
+        "lr_actor": 0.003,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ppo_update_time": 10,
+        "batch_size": 256,
+        "zero_eoepisode_return": false
+    },
+    "MAPPO_prop": {
+        "actor_layers": [
+            100,
+            100
+        ],
+        "critic_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "lr_critic": 0.003,
+        "lr_actor": 0.003,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ppo_update_time": 10,
+        "batch_size": 256,
+        "zero_eoepisode_return": false
+    },
+    "DDPG_prop": {
+        "actor_hidden_dim": 256,
+        "critic_hidden_dim": 256,
+        "lr_critic": 0.003,
+        "lr_actor": 0.003,
+        "soft_tau": 0.01,
+        "clip_param": 0.2,
+        "max_grad_norm": 0.5,
+        "ddpg_update_time": 10,
+        "batch_size": 64,
+        "buffer_capacity": 524288,
+        "episode_num": 10000,
+        "learn_interval": 100,
+        "random_steps": 100,
+        "gumbel_softmax_tau": 1.0,
+        "DDPG_shared": true,
+        "gamma": 0.99
+    },
+    "DQN_prop": {
+        "network_layers": [
+            100,
+            100
+        ],
+        "gamma": 0.99,
+        "tau": 0.001,
+        "lr": 0.003,
+        "buffer_capacity": 524288,
+        "batch_size": 256,
+        "epsilon_decay": 0.99998,
+        "min_epsilon": 0.01
+    },
+    "MPC_prop": {
+        "rolling_horizon": 15
+    }
+}

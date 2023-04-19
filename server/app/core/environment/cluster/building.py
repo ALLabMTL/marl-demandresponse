@@ -1,6 +1,4 @@
 import random
-from abc import ABC
-from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import List
 
@@ -9,19 +7,28 @@ import numpy as np
 from app.core.environment.cluster.building_properties import (
     BuildingNoiseProperties,
     BuildingProperties,
+    ThermalProperties,
 )
-from app.core.environment.cluster.hvac import HVAC
+from app.core.environment.cluster.hvac import HVAC, HVACObsDict
 from app.core.environment.simulatable import Simulatable
+
+
+class BuildingObsDict(HVACObsDict, ThermalProperties):
+    target_temp: float
+    deadband: float
+    indoor_temp: float
+    mass_temp: float
+    solar_gain: float
 
 
 class Building(Simulatable):
     initial_properties: BuildingProperties
     noise_properties: BuildingNoiseProperties
-    indoor_temp: int
-    current_mass_temp: int
-    current_solar_gain: int
+    indoor_temp: float
+    current_mass_temp: float
+    current_solar_gain: float
     hvacs: List[HVAC]
-    max_consumption: int
+    max_consumption: float
 
     def __init__(self) -> None:
         super().__init__()
@@ -60,7 +67,7 @@ class Building(Simulatable):
             hvac._step(action, time_step)
         self.update_temperature(od_temp, time_step, date_time)
 
-    def _get_obs(self) -> dict:
+    def _get_obs(self) -> BuildingObsDict:
         super()._get_obs()
         # TODO: this doesnt work with multiple hvacs
         state_dict = {}
@@ -78,7 +85,7 @@ class Building(Simulatable):
                     "solar_gain": self.current_solar_gain,
                 }
             )
-        return state_dict
+        return BuildingObsDict(**state_dict)
 
     def message(self, thermal: bool, hvac: bool) -> dict:
         """
@@ -105,7 +112,7 @@ class Building(Simulatable):
         return message
 
     def update_temperature(
-        self, od_temp: int, time_step: timedelta, date_time: datetime
+        self, od_temp: float, time_step: timedelta, date_time: datetime
     ) -> None:
         """
         Update the temperature of the house

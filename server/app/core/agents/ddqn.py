@@ -9,10 +9,10 @@ class DDQN(DQN):
         super().__init__(config_dict, opt, num_state, num_action)
 
     def update(self):
-        if len(self.buffer) < self.batch_size:
+        if len(self.buffer) < self.static_props.batch_size:
             return  # exit if there are not enough transitions in buffer
 
-        transitions = self.buffer.sample(self.batch_size)
+        transitions = self.buffer.sample(self.static_props.batch_size)
         batch = Transition(*zip(*transitions))
         state, action, reward, next_state = self.convert_batch(batch)
 
@@ -24,7 +24,9 @@ class DDQN(DQN):
         next_q_values = self.target_net(next_state).gather(1, next_action).detach()
 
         # Compute expected Q(s,a)
-        expected_q_values = reward + (next_q_values.unsqueeze(1) * self.gamma)
+        expected_q_values = reward + (
+            next_q_values.unsqueeze(1) * self.static_props.gamma
+        )
 
         # Compute loss
         criterion = nn.SmoothL1Loss()  # Huber with beta/delta=1 (default)
