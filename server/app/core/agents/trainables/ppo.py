@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 from collections import namedtuple
 from typing import Dict, List
@@ -130,7 +131,7 @@ class PPO(Trainable):
                 action_prob = self.actor_net(state)
             c = Categorical(action_prob.cpu())
             action = c.sample()
-            actions[obs_id] = action.item()
+            actions[obs_id] = bool(action.item())
             probs[obs_id] = action_prob[:, action.item()].item()
         self.last_probs = probs
         self.last_actions = actions

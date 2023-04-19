@@ -31,6 +31,9 @@ export class GridFooterComponent {
     if (pageNb > this.simulationManager.maxPage) {
       pageNb = this.simulationManager.maxPage;
     }
+    if (pageNb < 1) {
+      pageNb = 1;
+    }
     this.sharedService.changeCount(pageNb);
   }
 

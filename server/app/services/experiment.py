@@ -20,7 +20,7 @@ class Experiment(ABC):
     pause: bool
 
     @abstractmethod
-    def initialize(self, config: MarlConfig) -> None:
+    async def initialize(self, config: MarlConfig) -> None:
         """It's an abstract method that initializes the experiment with the given MarlConfig object."""
 
     @abstractmethod

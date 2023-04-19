@@ -6,6 +6,20 @@ mat-chip-listbox {
   margin-top: 1rem;
 }
 
+.input_temp:focus {
+  outline: none;
+}
+
+.input_temp::-webkit-outer-spin-button,
+.input_temp::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input_temp[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .temp_checkbox {
   margin-bottom: 0.5rem;
   color: white;

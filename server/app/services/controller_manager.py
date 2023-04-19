@@ -1,6 +1,6 @@
 import random
 from time import sleep
-from typing import Dict, List, Union
+from typing import Dict, Union
 
 from app.core.agents.controllers.bangbang_controllers import (
     AlwaysOnController,
@@ -60,7 +60,7 @@ class ControllerManager(Experiment):
     env: Environment
     nb_agents: int
     speed: float
-    obs_dict: List[EnvironmentObsDict]
+    obs_dict: Dict[int, EnvironmentObsDict]
     num_state: int
     actors: Dict[int, Controller]
     static_props: SimulationProperties
@@ -88,6 +88,7 @@ class ControllerManager(Experiment):
         self.metrics_service = metrics_service
         self.stop = False
         self.pause = False
+        self.speed = 2
 
     async def initialize(self, config: MarlConfig) -> None:
         """
@@ -107,7 +108,6 @@ class ControllerManager(Experiment):
         logger.info("Initializing environment...")
         self.env = Environment(config.env_prop)
         self.nb_agents = config.env_prop.cluster_prop.nb_agents
-        self.speed = 2.0
         self.obs_dict = self.env.reset()
         self.num_state = len(norm_state_dict(self.obs_dict, self.env.init_props)[0])
         self.metrics_service.initialize(
@@ -144,7 +144,12 @@ class ControllerManager(Experiment):
             None
         """
         if not self.pause or self.stop:
-            await self.initialize(config)
+            await self.client_manager_service.log(
+                text="Starting simulation...",
+                emit=True,
+                endpoint="success",
+                data={"message": "Starting simulation"},
+            )
         else:
             await self.client_manager_service.log(
                 text=f"Continuing simulation",
@@ -156,6 +161,8 @@ class ControllerManager(Experiment):
         self.pause = False
 
         for step in range(self.current_time_step, self.static_props.nb_time_steps):
+            if self.current_time_step == 0:
+                print(self.obs_dict[0])
             # Check if UI stopped or paused simulation
             if await self.should_stop(step):
                 break
