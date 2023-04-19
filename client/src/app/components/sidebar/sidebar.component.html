@@ -22,6 +22,7 @@
         max="{{ this.simulationManager.tempSelectRange.max }}"
         step="0.01"
         value = "0"
+        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.min"
         [disabled]="!this.simulationManager.isTempChecked"
       />
     </div> <!-- value = "{{ this.simulationManager.tempSelectRange.min }}" -->
