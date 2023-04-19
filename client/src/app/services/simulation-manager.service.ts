@@ -346,11 +346,14 @@ export class SimulationManagerService {
     } else {
       console.log("temp",this.tempSelectRangeInput.min );
 
+      //if((this.tempSelectRangeInput.min >= this.tempSelectRange.min && this.tempSelectRangeInput.min <= this.tempSelectRange.max) || (this.tempSelectRangeInput.max >= this.tempSelectRange.min && this.tempSelectRangeInput.max <= this.tempSelectRange.max)) {
+
       this.tempDiffHousesData = this.housesData.filter(
         (e) =>
           e.tempDifference >= this.tempSelectRangeInput.min &&
           e.tempDifference <= this.tempSelectRangeInput.max
       );
+      //}
     }
 
     this.updateFilteredHouses();

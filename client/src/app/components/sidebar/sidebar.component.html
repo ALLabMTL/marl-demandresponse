@@ -4,141 +4,218 @@
   </p>
 
   <div class="temp_filter">
-    <mat-slide-toggle color="primary" class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked"
-      (click)="this.resetInput()">
+    <mat-slide-toggle color="primary" class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetInput()">
       Temperature difference
     </mat-slide-toggle>
-    <div class="input_boxes_temp">
+    <!-- <mat-checkbox class="temp_checkbox" (click)="tempCheckbox()"
+      >Temperature difference</mat-checkbox
+    > -->
+    <div class = "input_boxes_temp">
       <p>Min:</p>
-      <div class="page-input">
-        <input class="input_temp" (keyup.enter)="this.simulationManager.filterByTempDiff()"
-          (blur)="this.simulationManager.filterByTempDiff()" type="number"
-          min=" {{ this.simulationManager.tempSelectRange.min }}" max="{{ this.simulationManager.tempSelectRange.max }}"
-          step="0.01" value="0" [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"
-          [disabled]="!this.simulationManager.isTempChecked" />
-      </div> 
-      <p>Max:</p>
-      <div class="page-input">
-        <input class="input_temp" (keyup.enter)="this.simulationManager.filterByTempDiff()"
-          (blur)="this.simulationManager.filterByTempDiff()" type="number"
-          min=" {{ this.simulationManager.tempSelectRange.min }}" max="{{this.simulationManager.tempSelectRange.max }}"
-          step="0.01" value="0" [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"
-          [disabled]="!this.simulationManager.isTempChecked" />
-      </div> 
+    <div class="page-input">
+      <input
+        class="input_temp"
+        (keyup.enter)="this.simulationManager.filterByTempDiff()"
+        (blur)="this.simulationManager.filterByTempDiff()"
+        type="number"
+        min=" {{ this.simulationManager.tempSelectRange.min }}"
+        max="{{ this.simulationManager.tempSelectRange.max }}"
+        step="0.01"
+        value = "0"
+        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.min"
+        [disabled]="!this.simulationManager.isTempChecked"
+      />
+    </div> <!-- value = "{{ this.simulationManager.tempSelectRange.min }}" -->
+    <p>Max:</p>
+    <div class="page-input">
+      <input
+        class="input_temp"
+        (keyup.enter)="this.simulationManager.filterByTempDiff()"
+        (blur)="this.simulationManager.filterByTempDiff()"
+        type="number"
+        min=" {{ this.simulationManager.tempSelectRange.min }}"
+        max="{{this.simulationManager.tempSelectRange.max }}"
+        step="0.01"
+        value = "0"
+        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.max"
+        [disabled]="!this.simulationManager.isTempChecked"
+      />
+    </div> <!-- value = "{{ this.simulationManager.tempSelectRange.max }}" -->
+  </div>
+    <!-- <mat-slider
+      [min]="this.simulationManager.minValueSliderInit"
+      [max]="this.simulationManager.maxValueSliderInit"
+      step="0.01"
+      name = "tempDiff"
+      ngDefaultControl
+      showTickMarks
+      discrete
+      [displayWith]="formatLabel"
+      [disabled]="!this.simulationManager.isTempChecked"
+      (mouseup)="this.simulationManager.filterByTempDiff()"
+    >
+      <input matSliderStartThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"/>
+      <input matSliderEndThumb [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"/>
+    </mat-slider> -->
+    <!-- <div class="values_temp_selected" *ngIf ="this.simulationManager.isTempFiltered">
+    <p tag="temp_interval"> Interval selected: [{{this.simulationManager.tempSelectRangeInput.min}}, {{this.simulationManager.tempSelectRangeInput.max}}]</p>
+    </div> -->
+    <div class="values_temp">
+    <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
+    <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
+    </div>
+  </div>
 
-      <div class="values_temp">
-        <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
-        <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
-      </div>
+  <mat-divider></mat-divider>
 
-      <mat-divider></mat-divider>
+  <div class="hvac_filter">
+    <mat-slide-toggle color="primary" class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled" (click)="this.resetHvacFilter()">
+      HVAC status
+    </mat-slide-toggle>
+    <div>
+      <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
+        ON
+      </mat-checkbox>
+      <mat-checkbox class="off_chip" #off_check color = "primary" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
+        OFF
+      </mat-checkbox>
+      <mat-checkbox class="lockout_chip" #lockout_check color = "primary" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
+        Lockout
+      </mat-checkbox>
+    </div>
+  </div>
 
-      <div class="hvac_filter">
-        <mat-slide-toggle color="primary" class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled"
-          (click)="this.resetHvacFilter()">
-          HVAC status
-        </mat-slide-toggle>
-        <div>
-          <mat-checkbox class="on_chip" #on_check color="primary" value="ON"
-            [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked"
-            (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
-            ON
-          </mat-checkbox>
-          <mat-checkbox class="off_chip" #off_check color="primary" value="OFF"
-            [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"
-            (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
-            OFF
-          </mat-checkbox>
-          <mat-checkbox class="lockout_chip" #lockout_check color="primary" value="Lockout"
-            [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked"
-            (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
-            Lockout
-          </mat-checkbox>
-        </div>
-      </div>
+  <mat-divider></mat-divider>
+  <!-- <div class="floor_filter">
+    <mat-checkbox class="floor_checkbox" (click)="floorCheckbox()"
+      >Number of floors</mat-checkbox
+    >
+    <mat-slider
+      min="0"
+      max="4"
+      step="1"
+      showTickMarks
+      discrete
+      [displayWith]="formatLabel"
+      [disabled]="!isFloorChecked"
+    >
+      <input matSliderThumb />
+    </mat-slider>
+  </div> -->
+  <!-- <div class="floor_filter">
+    <mat-checkbox class="house_checkbox">Houses</mat-checkbox>
+    <mat-checkbox class="vehicule_checkbox">Vehicules</mat-checkbox>
+    <mat-checkbox class="compagnie_checkbox">Compagnies</mat-checkbox>
+  </div> -->
 
-      <mat-divider></mat-divider>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Sort by</mat-label>
+      <mat-select>
+        <mat-option 
+          style="font-size: 12px" 
+          value="indoorTempInc"
+          (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')"
+          >Indoor temp. : increasing</mat-option
+        >
+        <mat-option
+          style="font-size: 12px"
+          value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
+          >Indoor temp. : decreasing</mat-option
+        >
+        <mat-option
+          style="font-size: 12px"
+          value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
+          >Temp. diff. : increasing</mat-option
+        >
+        <mat-option
+          style="font-size: 12px"
+          value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
+          >Temp. diff. : decreasing</mat-option
+        >
+        <mat-option
+          style="font-size: 12px"
+          value="noSorting"
+          (click)="this.simulationManager.removeSorting()"
+          >No sorting</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="filter">
+    <mat-form-field appearance="fill">
+      <mat-label>Agents per page</mat-label>
+      <mat-select
+        placeholder="{{ this.nbSquares }}"
+        (selectionChange)="setSquareNb($event.value)"
+      >
+        <mat-option
+          *ngFor="let option of nbSquareOptions"
+          style="font-size: 12px"
+          value="{{ option }}"
+          >{{ option }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </div>
 
-      <div class="filter">
-        <mat-form-field appearance="fill">
-          <mat-label>Sort by</mat-label>
-          <mat-select>
-            <mat-option style="font-size: 12px" value="indoorTempInc"
-              (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')">Indoor temp. :
-              increasing</mat-option>
-            <mat-option style="font-size: 12px" value="indoorTempDec"
-              (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')">Indoor temp. :
-              decreasing</mat-option>
-            <mat-option style="font-size: 12px" value="tempDiffInc"
-              (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')">Temp. diff. : increasing</mat-option>
-            <mat-option style="font-size: 12px" value="tempDiffDec"
-              (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')">Temp. diff. : decreasing</mat-option>
-            <mat-option style="font-size: 12px" value="noSorting" (click)="this.simulationManager.removeSorting()">No
-              sorting</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <mat-divider></mat-divider>
-      <div class="filter">
-        <mat-form-field appearance="fill">
-          <mat-label>Agents per page</mat-label>
-          <mat-select placeholder="{{ this.nbSquares }}" (selectionChange)="setSquareNb($event.value)">
-            <mat-option *ngFor="let option of nbSquareOptions" style="font-size: 12px" value="{{ option }}">{{ option
-              }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+  <mat-divider></mat-divider>
 
-      <mat-divider></mat-divider>
-
-      <div class="scale">
-        <p class="scale_text"><b>Color Temperature Scale</b></p>
-        <mat-form-field class="precision">
-          <mat-label>Scale precision</mat-label>
-          <input id="precisionValue" type="number" matInput [formControl]="numberFormControl" placeholder="Ex. 0.5"
-            [(ngModel)]="precisionValueSelected" (keyup.enter)="scaleChartPrecision()" (blur)="scaleChartPrecision()"
-            value="0.5" />
-          <mat-error *ngIf="
+  <div class="scale">
+    <p class="scale_text"><b>Color Temperature Scale</b></p>
+    <mat-form-field class="precision">
+      <mat-label>Scale precision</mat-label>
+      <input
+        id="precisionValue"
+        type="number"
+        matInput
+        [formControl]="numberFormControl"
+        placeholder="Ex. 0.5"
+        [(ngModel)]="precisionValueSelected"
+        (keyup.enter)="scaleChartPrecision()"
+        (blur)="scaleChartPrecision()"
+        value="0.5"
+      />
+      <mat-error
+        *ngIf="
           numberFormControl.hasError('min') &&
           !numberFormControl.hasError('required')
-        ">
-            Positive numbers only
-          </mat-error>
-          <mat-error *ngIf="numberFormControl.hasError('required')">
-            Precision is <strong>required</strong>
-          </mat-error>
-        </mat-form-field>
+        "
+      >
+        Positive numbers only
+      </mat-error>
+      <mat-error *ngIf="numberFormControl.hasError('required')">
+        Precision is <strong>required</strong>
+      </mat-error>
+    </mat-form-field>
 
-        <div class="scale_gradient"></div>
-        <div class="scale_chart">
-          <span class="min">
-            {{ negMin }}
-          </span>
-          <span class="midmin">
-            {{ negMidMin }}
-          </span>
-          <span class="mid">
-            {{ mid }}
-          </span>
-          <span class="midmax">
-            {{ posMidMax }}
-          </span>
-          <span class="max">
-            {{ posMax }}
-          </span>
-        </div>
-        <mat-divider></mat-divider>
-        <div class="hvac_status">
-          <p class="hvac-status-title"><b>HVAC Status: </b></p>
-          <div class="circle_lockout">
-            <p class="hvac-status-legend">Lockout</p>
-          </div>
-          <div class="circle_hvac_on">
-            <p class="hvac-status-legend">ON</p>
-          </div>
-          <div class="circle_hvac_off">
-            <p class="hvac-status-legend">OFF</p>
-          </div>
-        </div>
-      </div>
+    <div class="scale_gradient"></div>
+    <div class="scale_chart">
+      <span class="min">
+        {{ negMin }}
+      </span>
+      <span class="midmin">
+        {{ negMidMin }}
+      </span>
+      <span class="mid">
+        {{ mid }}
+      </span>
+      <span class="midmax">
+        {{ posMidMax }}
+      </span>
+      <span class="max">
+        {{ posMax }}
+      </span>
     </div>
+    <mat-divider></mat-divider>
+    <div class="hvac_status">
+      <p class="hvac-status-title"><b>HVAC Status: </b></p>
+      <div class="circle_lockout">
+        <p class="hvac-status-legend">Lockout</p>
+      </div>
+      <div class="circle_hvac_on"><p class="hvac-status-legend">ON</p></div>
+      <div class="circle_hvac_off"><p class="hvac-status-legend">OFF</p></div>
+    </div>
+  </div>
+</div>
