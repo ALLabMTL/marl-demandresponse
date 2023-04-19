@@ -42,7 +42,7 @@ class ExperimentManager:
             self.experiment = self.training_manager
         elif self.config.simulation_props.mode == "simulation":
             self.experiment = self.controller_manager
-        await self.experiment.initialize(self.config)
+        self.experiment.stop = False
 
     async def start(self) -> None:
         """Start the experiment."""
