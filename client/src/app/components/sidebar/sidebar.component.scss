@@ -6,7 +6,7 @@ mat-chip-listbox {
   margin-top: 1rem;
 }
 
-.temp_checkbox{
+.temp_checkbox {
   margin-bottom: 0.5rem;
   color: white;
 }
@@ -34,15 +34,18 @@ mat-chip-listbox {
 }
 
 .input_boxes_temp {
-  display:flex;
+  display: flex;
+
   p {
     margin-top: 10px;
     margin-left: 8px;
   }
+
+  flex-direction: column;
 }
 
-.values_temp p{
-  display:inline-table;
+.values_temp p {
+  display: inline-table;
   margin-left: 15px;
   text-align: center;
 }
@@ -60,15 +63,13 @@ mat-chip-listbox {
   width: 200px;
   height: 50px;
   margin-left: 1.3rem;
-  background: linear-gradient(
-    to right,
-    rgba(0, 0, 255, 100),
-    rgba(0, 255, 255, 100),
-    rgba(0, 255, 0, 100),
-    rgba(255, 255, 0, 100),
-    rgba(255, 0, 0, 100)
-  );
-  border: 1px solid rgba(0,0,0,1);
+  background: linear-gradient(to right,
+      rgba(0, 0, 255, 100),
+      rgba(0, 255, 255, 100),
+      rgba(0, 255, 0, 100),
+      rgba(255, 255, 0, 100),
+      rgba(255, 0, 0, 100));
+  border: 1px solid rgba(0, 0, 0, 1);
 }
 
 .scale_chart {
@@ -129,6 +130,7 @@ mat-chip-listbox {
   border-radius: 50%;
   border: 1px solid black;
 }
+
 .circle_hvac_off {
   margin-top: 10px;
   width: 30px;
@@ -164,6 +166,3 @@ mat-chip-listbox {
   font-size: 1rem;
   color: white;
 }
-
-
-
