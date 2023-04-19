@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pandas as pd
 
 from app.core.agents.controllers.controller import Controller
@@ -53,9 +54,10 @@ class GreedyMyopic(Controller):
             int: The action to be taken by the agent.
         """
         self.time_step += 1
+        obs_dict = deepcopy(obs)
         if global_myopic_memory[0] != self.time_step:
-            self.last_obs = obs
-            self.get_action(obs)
+            self.last_obs = obs_dict
+            self.get_action(obs_dict)
             global_myopic_memory[0] = self.time_step
             global_myopic_memory[1] = GreedyMyopic.actions_df
         action = global_myopic_memory[1].loc[self.id]["HVAC_status"]

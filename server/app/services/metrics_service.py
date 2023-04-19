@@ -51,6 +51,7 @@ class Metrics:
         rms_max_error_temp : float
             Root-mean-squared maximum error of temperature.
     """
+
     def __init__(
         self,
         wandb_service: WandbManager,
@@ -98,6 +99,7 @@ class Metrics:
         self.cumul_signal = 0.0
         self.cumul_cons = 0.0
         self.cumul_squared_error_sig = 0.0
+        self.cumul_squared_max_error_temp = 0.0
         self.rmse_sig_per_ag = nan
         self.rmse_temp = nan
         self.rms_max_error_temp = nan

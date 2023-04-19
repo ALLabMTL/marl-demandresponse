@@ -23,8 +23,9 @@ export class SimulationManagerService {
   housesData: HouseData[] = [];
   houseDataFiltered: HouseData[] = [];
   originalHousesData: HouseData[] = [];
-  started = true;
+  started = false;
   stopped = true;
+  connected: boolean;
   speed = '4';
   nbTimeSteps = 0;
   step = 4;
@@ -61,6 +62,7 @@ export class SimulationManagerService {
   currentPage = 1;
   nbSquares = 100;
 
+
   // houseData1: HouseData[];
   // houseData2: HouseData[];
 
@@ -71,13 +73,13 @@ export class SimulationManagerService {
     this.sharedService.currentPageCount.subscribe(
       (currentPage) => (this.currentPage = currentPage)
     );
-
+    this.connected = false;
     this.sidenavData = [];
     this.propertyNames = [];
     this.propertyValues = [];
     this.housesData = [];
 
-    this.started = true;
+    this.started = false;
     this.stopped = true;
     this.pages = [];
     this.houseDataFiltered = [];
@@ -147,8 +149,8 @@ export class SimulationManagerService {
     this.tempSelectRange.min =
       this.originalHousesData.length > 0
         ? Math.min(
-            ...this.originalHousesData.map((data) => data.tempDifference)
-          )
+          ...this.originalHousesData.map((data) => data.tempDifference)
+        )
         : 0;
 
     this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
@@ -156,8 +158,8 @@ export class SimulationManagerService {
     this.tempSelectRange.max =
       this.originalHousesData.length > 0
         ? Math.max(
-            ...this.originalHousesData.map((data) => data.tempDifference)
-          )
+          ...this.originalHousesData.map((data) => data.tempDifference)
+        )
         : 0;
 
     this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));

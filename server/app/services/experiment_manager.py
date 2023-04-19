@@ -1,18 +1,21 @@
 from app.services.controller_manager import ControllerManager
 from app.services.experiment import Experiment
-from app.services.parser_service import ParserService
+from app.services.parser_service import MarlConfig, ParserService
 from app.services.training_manager import TrainingManager
 from app.utils.logger import logger
 
 
 class ExperimentManager:
     """
-    Class that manages the experiment, including initializing it, starting it, and updating its state. 
+    Class that manages the experiment, including initializing it, starting it, and updating its state.
 
     Attributes:
         experiment (Experiment): The current Experiment instance.
+        config (MarlConfig): Config of experiment.
     """
+
     experiment: Experiment
+    config: MarlConfig
 
     def __init__(
         self,
@@ -21,7 +24,7 @@ class ExperimentManager:
     ) -> None:
         """
         Initialize a new instance of the ExperimentManager class.
-        
+
         Parameters:
             controller_manager: A ControllerManager object used to run the simulation in "simulation" mode.
             training_manager: A TrainingManager object used to run the simulation in "train" mode.
@@ -29,22 +32,17 @@ class ExperimentManager:
         self.controller_manager = controller_manager
         self.training_manager = training_manager
         self.experiment = training_manager
-        self.parser = ParserService()
-        self.config = self.parser.config
-        if self.config.simulation_props.mode == "train":
-            self.experiment = self.training_manager
-        elif self.config.simulation_props.mode == "simulation":
-            self.experiment = self.controller_manager
 
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Initialize the experiment."""
-        self.parser = ParserService()
-        self.config = self.parser.config
+        parser = ParserService()
+        self.config = parser.config
+        logger.debug("Config initialized")
         if self.config.simulation_props.mode == "train":
             self.experiment = self.training_manager
         elif self.config.simulation_props.mode == "simulation":
             self.experiment = self.controller_manager
-        self.experiment.initialize(self.config)
+        await self.experiment.initialize(self.config)
 
     async def start(self) -> None:
         """Start the experiment."""
@@ -68,7 +66,6 @@ class ExperimentManager:
         """
         self.experiment.stop = stop
         await self.experiment.stop_sim(stop)
-        logger.debug(f"Experiment stop state: {self.experiment.stop}")
 
     def pause_simulation(self) -> None:
         """Pause the simulation."""

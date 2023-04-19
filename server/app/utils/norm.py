@@ -184,8 +184,15 @@ def norm_state_dict(
     """
     norm_agents_list: List[np.ndarray] = []
     for obs_dict_id in obs_dicts.keys():
-        norm_dict = norm_cluster_dict(
-            obs_dicts[obs_dict_id], env_props.reward_prop.norm_reg_sig
+        norm_dict = norm_hvac_dict(
+            obs_dicts[obs_dict_id],
+            env_props.state_prop.hvac,
+            env_props.cluster_prop.house_prop.hvac_prop,
+        )
+        norm_dict.update(
+            norm_cluster_dict(
+                obs_dicts[obs_dict_id], env_props.reward_prop.norm_reg_sig
+            )
         )
         norm_dict.update(norm_powergrid_dict(obs_dicts[obs_dict_id], env_props))
         norm_dict.update(

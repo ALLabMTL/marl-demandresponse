@@ -2,7 +2,7 @@ import os
 import random
 from copy import deepcopy
 from time import sleep
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import torch
@@ -46,10 +46,11 @@ class TrainingManager(Experiment):
         agent (Trainable): The trainable agent used for training.
         static_props (SimulationProperties): A SimulationProperties object containing various simulation properties.
     """
+
     env: Environment
     nb_agents: int
     speed: float
-    obs_dict: List[EnvironmentObsDict]
+    obs_dict: Dict[int, EnvironmentObsDict]
     agent: Trainable
     static_props: SimulationProperties
 
@@ -58,7 +59,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per episode.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -71,7 +72,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per training log.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -84,7 +85,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per epoch.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -97,7 +98,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per test log.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -110,7 +111,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per saving actor.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -132,13 +133,14 @@ class TrainingManager(Experiment):
             client_manager_service (ClientManagerService): The client manager service.
             metrics_service (Metrics): The metrics service.
 
-        Returns: 
+        Returns:
             None
         """
         self.client_manager_service = client_manager_service
         self.metrics_service = metrics_service
         self.stop = False
         self.pause = False
+        self.speed = 2
 
     async def initialize(self, config: MarlConfig) -> None:
         """
@@ -147,10 +149,10 @@ class TrainingManager(Experiment):
         Parameters:
             config (MarlConfig): The configuration for the training.
 
-        Returns: 
+        Returns:
             None
         """
-        
+
         random.seed(config.simulation_props.net_seed)
         self.static_props = config.simulation_props
         self.current_time_step = 0
@@ -158,7 +160,6 @@ class TrainingManager(Experiment):
         logger.info("Initializing environment...")
         self.env = Environment(config.env_prop)
         self.nb_agents = config.env_prop.cluster_prop.nb_agents
-        self.speed = 2.0
         self.obs_dict = self.env.reset()
         self.num_state = len(norm_state_dict(self.obs_dict, self.env.init_props)[0])
         self.metrics_service.initialize(
@@ -177,12 +178,12 @@ class TrainingManager(Experiment):
             endpoint="agent",
             data=self.static_props.agent,
         )
-        await self.client_manager_service.log(
-            text="Starting simulation...",
-            emit=True,
-            endpoint="success",
-            data={"message": "Starting simulation"},
-        )
+        # await self.client_manager_service.log(
+        #     text="Starting simulation...",
+        #     emit=True,
+        #     endpoint="success",
+        #     data={"message": "Starting simulation"},
+        # )
         self.obs_dict = self.env.reset()
 
     async def start(self, config: MarlConfig) -> None:
@@ -192,17 +193,22 @@ class TrainingManager(Experiment):
         Parameters:
             config (MarlConfig): The configuration for the training.
 
-        Returns: 
+        Returns:
                 None
         """
         if not self.pause or self.stop:
-            await self.initialize(config)
-        else:
             await self.client_manager_service.log(
-                text=f"Continuing simulation",
+                text="Starting simulation...",
                 emit=True,
                 endpoint="success",
-                data={"message": f"Continuing simulation"},
+                data={"message": "Starting simulation"},
+            )
+        else:
+            await self.client_manager_service.log(
+                text="Continuing simulation",
+                emit=True,
+                endpoint="success",
+                data={"message": "Continuing simulation"},
             )
 
         self.pause = False
@@ -256,7 +262,7 @@ class TrainingManager(Experiment):
             await self.log_statistics(step)
 
             # Test policy
-            self.test_policy(step)
+            await self.test_policy(step)
             self.current_time_step += 1
 
         await self.end_simulation()
@@ -293,7 +299,7 @@ class TrainingManager(Experiment):
             mean_avg_return, mean_temp_error, mean_signal_error, tr_time_steps
         )
 
-    def test_policy(self, step: int) -> None:
+    async def test_policy(self, step: int) -> None:
         """
         Test the agent's policy at a given time step.
 
@@ -304,7 +310,13 @@ class TrainingManager(Experiment):
             None
         """
         if step % self.time_steps_test_log == self.time_steps_test_log - 1:
-            logger.info("Testing at time %d", step)
+            await self.client_manager_service.log(
+                text=f"Testing at time {step}",
+                emit=True,
+                endpoint="success",
+                data={"message": f"Testing at time {step}"},
+            )
+
             self.test(step)
 
         if (

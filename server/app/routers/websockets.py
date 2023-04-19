@@ -19,6 +19,7 @@ def register_endpoints(
     @sio.on("connect")
     async def connect(sid, *args) -> None:
         logger.debug(f"Client connected with sid {sid}")
+        await experiment_manager.initialize()
         await sio.emit("connected", {"message": f"Client connected with sid: {sid}"})
 
     @sio.on("disconnect")
@@ -28,7 +29,6 @@ def register_endpoints(
 
     @sio.on("train")
     async def train(sid, *args) -> None:
-        logger.debug("Starting experiment")
         # await experiment_manager.update_experiment_state(False)
         await experiment_manager.start()
 

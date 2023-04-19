@@ -13,7 +13,7 @@ export class SocketCommunicationService {
     public socketService: SocketService,
     private snackBarService: NotificationService,
     private simulationManager: SimulationManagerService
-  ) {}
+  ) { }
 
   connect(): void {
     if (!this.socketService.isSocketAlive()) {
@@ -33,8 +33,8 @@ export class SocketCommunicationService {
   configureSocket() {
     this.socketService.on('connected', () => {
       this.snackBarService.openSuccessSnackBar('Connected to server', '');
+      this.simulationManager.connected = true;
       this.changeSpeed(this.simulationManager.speed);
-      this.startSimulation();
     });
 
     this.socketService.on('dataChange', (data: SidenavData) => {
