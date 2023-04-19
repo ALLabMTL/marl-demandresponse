@@ -53,14 +53,6 @@ export class SidebarComponent {
     this.simulationManager.removeHvacFilter();
   }
 
-  // tempCheckbox(): void {
-  //   this.isTempChecked = !this.isTempChecked;
-  // }
-
-  // floorCheckbox(): void {
-  //   this.isFloorChecked = !this.isFloorChecked;
-  // }
-
   scaleChartPrecision(): void {
     const precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
     this.sharedService.changePrecisionValue(parseFloat(precisionValue));
