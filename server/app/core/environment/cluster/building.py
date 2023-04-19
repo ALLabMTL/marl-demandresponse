@@ -27,7 +27,6 @@ class Building(Simulatable):
         current_solar_gain (float): Current solar gain of the building in Watts.
     """
 
-
     init_props: BuildingProperties
     current_mass_temp: float
     indoor_temp: float
@@ -103,11 +102,11 @@ class Building(Simulatable):
     def message(self, thermal_message: bool, hvac_message: bool) -> BuildingMessage:
         """
         Message sent by the building to other agents.
-        
+
         Parameters:
             thermal_message: A boolean indicating whether to include thermal properties in the message.
             hvac_message: A boolean indicating whether to include HVAC properties in the message.
-        
+
         Returns:
             A BuildingMessage object that contains the message to be sent by the building.
         """

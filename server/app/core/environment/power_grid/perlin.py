@@ -13,6 +13,7 @@ class Perlin:
         period (float): The period of the Perlin noise.
         seed (int): The seed for the Perlin noise.
     """
+
     def __init__(self, amplitude, nb_octaves, octaves_step, period, seed):
         """
         Initialize a Perlin object.

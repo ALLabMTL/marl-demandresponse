@@ -13,6 +13,7 @@ class Experiment(ABC):
         stop: a boolean indicating whether or not the experiment should be stopped.
         pause: a boolean indicating whether or not the experiment should be paused.
     """
+
     speed: float
     agent_name: str
     stop: bool
@@ -21,14 +22,11 @@ class Experiment(ABC):
     @abstractmethod
     def initialize(self, config: MarlConfig) -> None:
         """It's an abstract method that initializes the experiment with the given MarlConfig object."""
-        pass
 
     @abstractmethod
     async def start(self, config: MarlConfig) -> None:
         """Tt's an abstract method that starts the experiment with the given MarlConfig object."""
-        pass
 
     @abstractmethod
     async def stop_sim(self, stop_state: bool) -> None:
         """It's an abstract method that stops the simulation and sets the stop attribute to stop_state."""
-        pass

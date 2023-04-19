@@ -56,6 +56,7 @@ class ControllerManager(Experiment):
         static_props: the static properties of the simulation
         current_time_step: the current time step of the simulation
     """
+
     env: Environment
     nb_agents: int
     speed: float

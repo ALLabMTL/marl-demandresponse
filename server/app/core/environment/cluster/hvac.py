@@ -13,7 +13,7 @@ class HVAC(Simulatable):
     """
     Class representing a Heating, Ventilation, and Air Conditioning (HVAC) system, which can be simulated
     within an environment. Inherits from the `Simulatable` class.
-    
+
     Attributes:
     - init_props (HvacProperties): The initial properties of the HVAC system, represented by a `HvacProperties`
       instance.
@@ -22,6 +22,7 @@ class HVAC(Simulatable):
       be turned on.
     - turned_on (bool): A flag indicating whether the HVAC is currently turned on.
     """
+
     init_props: HvacProperties
     seconds_since_off: int
     lockout: bool

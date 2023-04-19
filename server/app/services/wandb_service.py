@@ -1,6 +1,6 @@
 import wandb
+from app.services.parser_service import ParserService
 
-# from wandb import Run, RunDisabled
 metrics = [
     "Mean train return",
     "Mean temperature offset",
@@ -22,31 +22,25 @@ class WandbManager:
     Attributes:
         should_log (bool): Determines if logging is enabled.
     """
+
     should_log: bool = False
 
-    def initialize(
-        self, config_dict, env_seed, net_seed, exp_name, nb_agents, log=False
-    ) -> None:
+    def initialize(self) -> None:
         """
         Initialize the logging manager with the provided configuration.
 
         Parameters:
-            config_dict (dict): Configuration dictionary.
-            env_seed (int): Environment seed value.
-            net_seed (int): Network seed value.
-            exp_name (str): Experiment name.
-            nb_agents (int): Number of agents.
             log (bool): Determines if logging is enabled. Default is False.
         """
-        self.should_log = log
-        if log:
-            log_config = {"config_file": config_dict}
+        global_conf = ParserService().config
+        self.should_log = global_conf.CLI_config.wandb
+        if self.should_log:
+            log_config = {"config_file": global_conf}
             self.wandb_run = wandb.init(
-                settings=wandb.Settings(start_method="fork"),
-                project="ProofConcept",
-                entity="marl-dr",
+                settings=wandb.Settings(start_method="spawn"),
+                project=global_conf.CLI_config.wandb_project,
                 config=log_config,
-                name=f"{exp_name}_TCLs-{nb_agents}_envseed-{env_seed}_netseed-{net_seed}",
+                name=f"{global_conf.CLI_config.experiment_name}_TCLs-{global_conf.env_prop.cluster_prop.nb_agents}_netseed-{global_conf.simulation_props.net_seed}",
             )
             for metric in metrics:
                 self.wandb_run.define_metric(name=metric, step_metric="Training steps")

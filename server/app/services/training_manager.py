@@ -46,6 +46,7 @@ class TrainingManager(Experiment):
         agent (Trainable): The trainable agent used for training.
         static_props (SimulationProperties): A SimulationProperties object containing various simulation properties.
     """
+
     env: Environment
     nb_agents: int
     speed: float
@@ -58,7 +59,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per episode.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -71,7 +72,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per training log.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -84,7 +85,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per epoch.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -97,7 +98,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per test log.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -110,7 +111,7 @@ class TrainingManager(Experiment):
         """
         Return the number of time steps per saving actor.
 
-        Parameters: 
+        Parameters:
             None
 
         Returns:
@@ -132,7 +133,7 @@ class TrainingManager(Experiment):
             client_manager_service (ClientManagerService): The client manager service.
             metrics_service (Metrics): The metrics service.
 
-        Returns: 
+        Returns:
             None
         """
         self.client_manager_service = client_manager_service
@@ -147,10 +148,10 @@ class TrainingManager(Experiment):
         Parameters:
             config (MarlConfig): The configuration for the training.
 
-        Returns: 
+        Returns:
             None
         """
-        
+
         random.seed(config.simulation_props.net_seed)
         self.static_props = config.simulation_props
         self.current_time_step = 0
@@ -192,7 +193,7 @@ class TrainingManager(Experiment):
         Parameters:
             config (MarlConfig): The configuration for the training.
 
-        Returns: 
+        Returns:
                 None
         """
         if not self.pause or self.stop:

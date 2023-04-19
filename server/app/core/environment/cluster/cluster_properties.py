@@ -5,6 +5,7 @@ class TemperatureProperties(pydantic.BaseModel):
     """
     Pydantic model for temperature properties.
     """
+
     day_temp: float = pydantic.Field(
         default=26.0,
         description="Day temperature.",
@@ -31,6 +32,7 @@ class AgentsCommunicationProperties(pydantic.BaseModel):
     """
     Pydantic model for agent communication properties.
     """
+
     mode: str = "neighbours"
     row_size: int = 5
     max_communication_distance: int = 2
@@ -41,5 +43,6 @@ class MessageProperties(pydantic.BaseModel):
     """
     Pydantic model for message properties.
     """
+
     thermal: bool = False
     hvac: bool = False

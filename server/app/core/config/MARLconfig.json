@@ -2,7 +2,7 @@
   "CLI_config": {
     "experiment_name": "default",
     "interface": true,
-    "wandb": false
+    "wandb": true
   },
   "simulation_props": {
     "mode": "train",
@@ -92,7 +92,11 @@
             "factor_cooling_capacity_low": 0.9,
             "factor_cooling_capacity_high": 1.1,
             "lockout_noise": 0,
-            "cooling_capacity_list": [12500, 15000, 17500]
+            "cooling_capacity_list": [
+              12500,
+              15000,
+              17500
+            ]
           }
         }
       }
@@ -111,19 +115,31 @@
       },
       "signal_properties": {
         "mode": "perlin",
-        "amplitude_ratios": [0.1, 0.3],
+        "amplitude_ratios": [
+          0.1,
+          0.3
+        ],
         "amplitude_per_hvac": 6000,
         "nb_octaves": 5,
         "octaves_step": 5,
         "period": 300,
-        "periods": [400, 1200]
+        "periods": [
+          400,
+          1200
+        ]
       },
       "artificial_ratio": 1.0
     }
   },
   "PPO_prop": {
-    "actor_layers": [100, 100],
-    "critic_layers": [100, 100],
+    "actor_layers": [
+      100,
+      100
+    ],
+    "critic_layers": [
+      100,
+      100
+    ],
     "gamma": 0.99,
     "lr_critic": 0.003,
     "lr_actor": 0.003,
@@ -134,8 +150,14 @@
     "zero_eoepisode_return": false
   },
   "MAPPO_prop": {
-    "actor_layers": [100, 100],
-    "critic_layers": [100, 100],
+    "actor_layers": [
+      100,
+      100
+    ],
+    "critic_layers": [
+      100,
+      100
+    ],
     "gamma": 0.99,
     "lr_critic": 0.003,
     "lr_actor": 0.003,
@@ -164,7 +186,10 @@
     "gamma": 0.99
   },
   "DQN_prop": {
-    "network_layers": [100, 100],
+    "network_layers": [
+      100,
+      100
+    ],
     "gamma": 0.99,
     "tau": 0.001,
     "lr": 0.003,

@@ -51,6 +51,7 @@ class Metrics:
         rms_max_error_temp : float
             Root-mean-squared maximum error of temperature.
     """
+
     def __init__(
         self,
         wandb_service: WandbManager,
@@ -101,6 +102,7 @@ class Metrics:
         self.rmse_sig_per_ag = nan
         self.rmse_temp = nan
         self.rms_max_error_temp = nan
+        self.wandb_service.initialize()
 
     def update(
         self,
@@ -185,7 +187,7 @@ class Metrics:
             "Time (hour)": time.hour,
             "Time step": time_step,
         }
-
+        breakpoint()
         self.wandb_service.log(metrics)
 
         logger.info(f"Stats : {metrics}")

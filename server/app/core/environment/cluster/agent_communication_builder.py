@@ -21,7 +21,7 @@ class AgentCommunicationBuilder:
         - neighbours_2D: agents can communicate with their neighbours in a 2D grid.
 
 
-    Attributes: 
+    Attributes:
         agents_comm_props: AgentsCommunicationProperties
             The properties of the agents' communication.
         nb_comm: int
@@ -32,6 +32,7 @@ class AgentCommunicationBuilder:
             The list of IDs of all agents.
 
     """
+
     def __init__(
         self,
         agents_comm_props: AgentsCommunicationProperties,
@@ -110,15 +111,15 @@ class AgentCommunicationBuilder:
 
     def random_sample(self) -> Dict[int, List[int]]:
         """
-        This method is intended to return a dictionary with the IDs of agents as keys and a list of IDs of 
+        This method is intended to return a dictionary with the IDs of agents as keys and a list of IDs of
         randomly selected agents with which they can communicate.
         """
         return {}
 
     def random_fixed(self) -> Dict[int, List[int]]:
         """
-        Returns a dictionary with the IDs of agents as keys and a list of IDs of randomly selected agents with which 
-        they can communicate. Each agent is connected to a fixed number of other agents, 
+        Returns a dictionary with the IDs of agents as keys and a list of IDs of randomly selected agents with which
+        they can communicate. Each agent is connected to a fixed number of other agents,
         drawn randomly with replacement from the entire set of agents.
         """
         agent_communicators: Dict[int, List[int]] = {}

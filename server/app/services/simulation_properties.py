@@ -27,6 +27,7 @@ class SimulationProperties(pydantic.BaseModel):
         save_actor_name (str): Name of the actor to save.
         nb_inter_saving_actor (int): Number of time steps between saving the actor.
     """
+
     mode: Literal["train", "simulation"] = pydantic.Field(
         default="simulation",
         description="Mode of the simulation.",

@@ -28,7 +28,6 @@ class Controller(abc.ABC):
         Returns:
             None
         """
-        pass
 
     @abc.abstractmethod
     def act(self, obs_dict: dict) -> Union[bool, Dict[str, bool]]:
@@ -43,4 +42,3 @@ class Controller(abc.ABC):
             value. If the action is a dictionary, then it will contain boolean values for each key-value pair representing the
             actions for each subcomponent of the agent.
         """
-        pass

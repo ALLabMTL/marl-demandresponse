@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         BASE_URL: A string representing the base URL for the FastAPI application. The default value is "http://localhost:5678".
         VERBOSE: A boolean indicating whether or not verbose output should be enabled. The value is True if the environment variable VERBOSE is set, otherwise it is False.
     """
+
     # FastAPI settings
     PORT = 5678
     SUBDOMAIN = "marl-demandresponse_PI_4"

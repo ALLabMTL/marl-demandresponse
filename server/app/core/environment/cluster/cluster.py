@@ -34,7 +34,7 @@ class Cluster(Simulatable):
         communication_builder : AgentCommunicationBuilder
             An object used for building communication links between agents.
     """
-    
+
     init_props: ClusterPropreties
     current_power_consumption: float
     max_power: float

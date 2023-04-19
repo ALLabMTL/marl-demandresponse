@@ -16,6 +16,7 @@ class SignalProperties(BaseModel):
         period (int): The period of the power grid signal (default: 300).
         periods (List[int]): The periods of the sinusoidal signals (default: [400, 1200]).
     """
+
     # TODO: implement other modes
     mode: str = "perlin"
     amplitude_ratios: List[float] = [0.1, 0.3]
@@ -40,6 +41,7 @@ class BasePowerProperties(BaseModel):
         interp_update_period (int): The update period of the interpolator (default: 300).
         interp_nb_agents (int): The number of agents used to compute the interpolator (default: 100).
     """
+
     # TODO: Think about a better way to do it
     mode: str = "constant"
     avg_power_per_hvac: int = 4200
@@ -61,6 +63,7 @@ class PowerGridProperties(BaseModel):
         signal_properties (SignalProperties): The properties related to the power grid signal (default: SignalProperties()).
         artificial_ratio (float): The artificial ratio of the power grid (default: 1.0).
     """
+
     artificial_signal_ratio_range: int = 1
     base_power_props: BasePowerProperties = BasePowerProperties()
     signal_properties: SignalProperties = SignalProperties()

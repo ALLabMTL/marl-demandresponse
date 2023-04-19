@@ -46,6 +46,7 @@ class PowerInterpolator(object):
     default_building_props : BuildingProperties
         An instance of the `BuildingProperties` class, which contains information about the building properties.
     """
+
     def __init__(
         self,
         base_power_props: BasePowerProperties,
@@ -57,7 +58,7 @@ class PowerInterpolator(object):
         Parameters
             base_power_props (BasePowerProperties): Object containing information about the power grid and data files.
             default_building_props (BuildingProperties): Object containing information about the building.
-       
+
         Returns
             None
         """
@@ -95,7 +96,7 @@ class PowerInterpolator(object):
 
         Parameters
             point_dict (Dict[str, Any]): A dictionary containing the parameters to be converted to an index.
-      
+
         Returns
             index_df (int): An integer representing the index for the provided power parameters.
         """
@@ -124,7 +125,7 @@ class PowerInterpolator(object):
 
         Parameters
             point_dict (Dict[str, Any]): A dictionary containing the power parameters to be used for interpolation.
-        
+
         Returns
             result (float): The interpolated power demand value.
         """
@@ -139,9 +140,9 @@ class PowerInterpolator(object):
 
         Parameters
             point_dict (Dict[str, Any]): A dictionary containing the power parameters to be used for interpolation.
-        
+
         Returns
-            result (float): The interpolated power demand value.        
+            result (float): The interpolated power demand value.
         """
         point_coordinates = list(point_dict.values())[
             4:
@@ -250,7 +251,7 @@ class PowerInterpolator(object):
             current_od_temp (float): The current outdoor temperature.
             interp_nb_agents (int): The number of buildings to use for interpolation.
             buildings (List[Building]): A list of Building objects representing the buildings in the simulation.
-        
+
         Returns
             result (float): The interpolated power demand value.
         """

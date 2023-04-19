@@ -22,6 +22,7 @@ class Container(containers.DeclarativeContainer):
         training_manager (providers.Singleton): A singleton provider for the TrainingManager service, which depends on the ClientManagerService and Metrics services.
         experiment_manager (providers.Singleton): A singleton provider for the ExperimentManager service, which depends on the TrainingManager and ControllerManager services.
     """
+
     socket_manager_service = providers.Singleton(SocketManager)
 
     client_manager_service = providers.Singleton(

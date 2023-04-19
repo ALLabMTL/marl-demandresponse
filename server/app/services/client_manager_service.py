@@ -44,6 +44,7 @@ class ClientManagerService:
         data_frame (pd.DataFrame): A dataframe containing the observation data for all houses.
         houses_data (Dict[int, EnvironmentObsDict]): A dictionary containing the observation data for each individual house.
     """
+
     description: Dict[int, Dict[str, str]]
     temp_diff: np.ndarray
     temp_err: np.ndarray

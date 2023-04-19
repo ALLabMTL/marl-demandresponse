@@ -20,19 +20,15 @@ class Simulatable(ABC):
     @abstractmethod
     def reset(self):
         """Reset the simulation to its initial state."""
-        pass
 
     @abstractmethod
     def step(self, *args, **kwargs):
         """Take a step in the simulation using the provided arguments."""
-        pass
 
     @abstractmethod
     def get_obs(self):
         """Get the current observation of the simulation."""
-        pass
 
     @abstractmethod
     def apply_noise(self) -> None:
         """Apply noise to the simulation to simulate real-world variability. This method does not return anything."""
-        pass

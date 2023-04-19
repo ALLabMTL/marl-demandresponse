@@ -1,3 +1,5 @@
+from typing import Union
+
 from pydantic import BaseModel, Field
 
 from app.core.agents.trainables.ddpg import DDPGProperties
@@ -17,7 +19,7 @@ class MPCProperties(BaseModel):
 
     Attributes:
         rolling_horizon (int): Rolling horizon for the MPC agent.
-    """""
+    """
 
     rolling_horizon: int = Field(
         default=15,
@@ -49,6 +51,10 @@ class CLIConfig(BaseModel):
         default=False,
         description="Whether to use wandb.",
     )
+    wandb_project: str = Field(
+        default="myproject",
+        description="Project name for wandb.",
+    )
 
 
 class MarlConfig(BaseModel):
@@ -68,6 +74,7 @@ class MarlConfig(BaseModel):
         DQN_prop (DQNProperties): Properties for the DQN agent.
         MPC_prop (MPCProperties): Properties for the MPC agent.
     """
+
     CLI_config: CLIConfig = CLIConfig()
     simulation_props: SimulationProperties = SimulationProperties()
     env_prop: EnvironmentProperties = EnvironmentProperties()
@@ -88,12 +95,13 @@ class ParserService:
     Attributes:
         config (MarlConfig): Configuration data for the MARL environment.
     """
+
     def __init__(self) -> None:
         """
         Initialize the ParserService object.
-    
+
         This method creates a new ParserService object and loads the configuration data for the MARL environment.
-        If the configuration file is not found, it uses the default configuration. 
+        If the configuration file is not found, it uses the default configuration.
         """
         try:
             self.config = MarlConfig.parse_file("core/config/MARLconfig.json")

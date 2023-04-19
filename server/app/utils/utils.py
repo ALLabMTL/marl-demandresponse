@@ -4,12 +4,12 @@ from datetime import datetime
 def deadbandL2(target, deadband, value):
     """
     Return the square of the difference between the value and the target, if the value is outside of the target plus or minus half the deadband; otherwise returns 0.
-    
+
     Parameters:
         target: a float representing the target value.
         deadband: a float representing the deadband around the target value.
         value: a float representing the actual value to check.
-    
+
     Returns:
             deadband_L2: a float representing the square of the difference between value and target, or 0 if value is within the deadband.
     """
@@ -26,12 +26,13 @@ def deadbandL2(target, deadband, value):
 def sort_dict_keys(point, dict_keys):
     """
     Sort a dictionary by a given set of keys, returning a new dictionary with the same keys as the original but in the order specified by the dict_keys argument.
-    
+
     Parameters:
         point: a dictionary to be sorted.
         dict_keys: a list of keys in the order in which they should appear in the sorted dictionary.
     Returns:
-        sorted_point: a new dictionary with the same keys as point, but in the order specified by dict_keys."""
+        sorted_point: a new dictionary with the same keys as point, but in the order specified by dict_keys.
+    """
     sorted_point = {}
     for key in dict_keys:
         sorted_point[key] = point[key]

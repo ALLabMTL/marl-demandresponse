@@ -7,11 +7,12 @@ from app.utils.logger import logger
 
 class ExperimentManager:
     """
-    Class that manages the experiment, including initializing it, starting it, and updating its state. 
+    Class that manages the experiment, including initializing it, starting it, and updating its state.
 
     Attributes:
         experiment (Experiment): The current Experiment instance.
     """
+
     experiment: Experiment
 
     def __init__(
@@ -21,7 +22,7 @@ class ExperimentManager:
     ) -> None:
         """
         Initialize a new instance of the ExperimentManager class.
-        
+
         Parameters:
             controller_manager: A ControllerManager object used to run the simulation in "simulation" mode.
             training_manager: A TrainingManager object used to run the simulation in "train" mode.

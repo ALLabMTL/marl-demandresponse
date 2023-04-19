@@ -19,6 +19,7 @@ from app.utils.settings import settings
 
 class ExtendedFastAPI(FastAPI):
     """The ExtendedFastAPI class is a subclass of FastAPI that adds a container attribute of type Container."""
+
     container: Container
 
 
@@ -28,10 +29,10 @@ def create_app(
 ) -> ExtendedFastAPI:
     """
     Create an instance of the FastAPI application and mounts the endpoint and websocket routers.
-    
+
     Parameters:
         sio (SocketManager): A SocketManager instance to handle websockets connections.
-    
+
     Returns:
         ExtendedFastAPI: An instance of the FastAPI application.
     """
@@ -50,12 +51,11 @@ def create_app(
 def app_setup() -> None:
     """
     Set up the required services for the application, such as the parser service and wandb.
-    
+
     Returns:
         None.
     """
     # TODO: setup parser service, wandb...
-    pass
 
 
 container = Container()
@@ -79,7 +79,7 @@ async def startup() -> None:
     """
     Event handler for the FastAPI startup event. Logs a message to indicate the server has started
     and calls the `app_setup` method.
-    
+
     Returns:
         None.
     """
@@ -95,7 +95,7 @@ async def startup() -> None:
 def shutdown() -> None:
     """
     Event handler for the FastAPI shutdown event. Logs a message to indicate the server is shutting down.
-    
+
     Returns:
         None.
     """

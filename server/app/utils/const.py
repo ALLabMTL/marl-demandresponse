@@ -18,6 +18,7 @@ class Color:
         UNDERLINE: A string representing the ANSI escape code for underlined text.
         END: A string representing the ANSI escape code for resetting the text color and style.
     """
+
     PURPLE = "\033[95m"
     CYAN = "\033[96m"
     DARKCYAN = "\033[36m"

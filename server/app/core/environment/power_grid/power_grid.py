@@ -14,12 +14,13 @@ from app.core.environment.simulatable import Simulatable
 
 class PowerGridObsDict(TypedDict):
     """This class is a dictionary that represents the observation space of the power grid environment"""
+
     reg_signal: float
 
 
 class PowerGrid(Simulatable):
     """
-    Simulatable object representing a power grid, with functionality to update the power supply based on the current environment and compute a signal. 
+    Simulatable object representing a power grid, with functionality to update the power supply based on the current environment and compute a signal.
 
     Attributes:
         init_props (PowerGridProperties): The initial properties of the power grid.
@@ -29,6 +30,7 @@ class PowerGrid(Simulatable):
         signal_calculator (SignalCalculator): An object used to compute the current signal of the power grid.
         power_interpolator (PowerInterpolator): An object used to interpolate the power of the power grid.
     """
+
     init_props: PowerGridProperties
     base_power: float
     current_signal: float
@@ -38,7 +40,7 @@ class PowerGrid(Simulatable):
 
     def __init__(self, power_grid_props: PowerGridProperties, cluster: Cluster) -> None:
         """Initialize a new instance of the PowerGrid class."""
-        #TODO: use parser service
+        # TODO: use parser service
         self.init_props = power_grid_props
         # Base ratio, randomly multiplying by a number between 1/artificial_signal_ratio_range and artificial_signal_ratio_range, scaled on a logarithmic scale.
         self.init_props.artificial_ratio = (
@@ -124,7 +126,6 @@ class PowerGrid(Simulatable):
         Returns:
             None
         """
-        pass
 
     def power_step(
         self, date_time: datetime, time_step: timedelta, current_od_temp: float

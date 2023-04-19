@@ -16,6 +16,7 @@ class SignalCalculator:
         signal_props (SignalProperties): The configuration of the power grid signal.
         nb_agents (int): The number of agents that will consume the power grid signal.
     """
+
     def __init__(self, signal_props: SignalProperties, nb_agents: int) -> None:
         """Initialize a SignalCalculator object."""
         self.signal_props = signal_props
@@ -45,11 +46,11 @@ class SignalCalculator:
     def sinusoidals_signal(self, date_time: datetime, base_power: float) -> float:
         """
         Compute the outdoors temperature based on the time, being the sum of several sinusoidal signals.
-        
+
         Parameters:
             date_time (datetime): The datetime for which to compute the power signal.
             base_power (float): The base power value for the signal.
-        
+
         Returns:
             signal (float): The power signal value computed as the sum of several sinusoidal signals.
         """
@@ -77,11 +78,11 @@ class SignalCalculator:
     def regular_steps_signal(self, date_time: datetime, base_power: float) -> float:
         """
         Compute the outdoors temperature based on the time using pulse width modulation.
-        
+
         Parameters:
             date_time (datetime): The datetime for which to compute the power signal.
             base_power (float): The base power value for the signal.
-        
+
         Returns:
             signal (float): The power signal value computed using pulse width modulation.
         """
@@ -103,7 +104,7 @@ class SignalCalculator:
         Parameters:
             date_time (datetime): The datetime for which to compute the power signal.
             base_power (float): The base power value for the signal.
-       
+
         Returns:
             signal (float): The power signal value computed using Perlin noise.
         """
@@ -120,7 +121,7 @@ class SignalCalculator:
         Parameters:
             base_power (float): The base power value for the signal.
             date_time (datetime): The datetime for which to compute the power signal.
-        
+
         Returns:
             signal (float): The power signal value computed based on the mode attribute in the SignalProperties object.
         """
