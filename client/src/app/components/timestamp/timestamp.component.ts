@@ -30,9 +30,9 @@ export class TimestampComponent {
 
   constructor(
     public simulationManager: SimulationManagerService,
-    public socketCommunication: SocketCommunicationService, 
-    public dialog: MatDialog,
-  ) { }
+    public socketCommunication: SocketCommunicationService,
+    public dialog: MatDialog
+  ) {}
 
   setSpeed(speed: string): void {
     this.simulationManager.speed = speed;

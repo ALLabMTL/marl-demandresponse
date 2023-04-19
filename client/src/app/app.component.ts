@@ -4,7 +4,7 @@ import { SocketCommunicationService } from './services/socket-communication/sock
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
   title = 'demandereponse-client';
@@ -27,5 +27,4 @@ export class AppComponent implements OnInit {
   checkFullscreen() {
     this.fullscreen = !!document.fullscreenElement;
   }
-
 }

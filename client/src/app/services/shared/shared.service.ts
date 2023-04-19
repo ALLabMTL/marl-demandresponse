@@ -2,10 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SharedService {
-
   public currentPage = new BehaviorSubject(1);
   currentPageCount = this.currentPage.asObservable();
 
@@ -21,12 +20,15 @@ export class SharedService {
   rowHeights = new BehaviorSubject(`repeat(10, ${100 / 10}%)`);
   rowHeightsValue = this.rowHeights.asObservable();
 
-
   changeSquareNb(squareNb: number) {
     this.squareNb.next(squareNb);
     const nbSquarePerLine = Math.sqrt(this.squareNb.getValue());
-    this.columnWidths.next(`repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`);
-    this.rowHeights.next(`repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`);
+    this.columnWidths.next(
+      `repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`
+    );
+    this.rowHeights.next(
+      `repeat(${nbSquarePerLine}, ${100 / nbSquarePerLine}%)`
+    );
   }
 
   changeCount(currentPage: number) {
@@ -46,32 +48,25 @@ export class SharedService {
     const boundRange = upperBound - middleUpperBound;
 
     if (data < lowerBound) {
-      return "rgba(0, 0, 255, 100)";
-    }
-    else if (lowerBound <= data && data < middleLowerBound) {
+      return 'rgba(0, 0, 255, 100)';
+    } else if (lowerBound <= data && data < middleLowerBound) {
       const temp = -(lowerBound - data) / boundRange;
       const color = temp * 255;
-      return "rgba(0," + color + ", 255, 100)";
-    }
-    else if (middleLowerBound <= data && data < center) {
+      return 'rgba(0,' + color + ', 255, 100)';
+    } else if (middleLowerBound <= data && data < center) {
       const temp = (boundRange + (middleLowerBound - data)) / boundRange;
       const color = temp * 255;
-      return "rgba(0, 255," + color + ", 100)";
-    }
-    else if (center <= data && data < middleUpperBound) {
+      return 'rgba(0, 255,' + color + ', 100)';
+    } else if (center <= data && data < middleUpperBound) {
       const temp = (boundRange - (middleUpperBound - data)) / boundRange;
       const color = temp * 255;
-      return "rgba(" + color + ",255, 0, 100)";
-    }
-    else if (middleUpperBound <= data && data <= upperBound) {
+      return 'rgba(' + color + ',255, 0, 100)';
+    } else if (middleUpperBound <= data && data <= upperBound) {
       const temp = (upperBound - data) / boundRange;
       const color = temp * 255;
-      return "rgba(255," + color + ", 0, 100)";
+      return 'rgba(255,' + color + ', 0, 100)';
+    } else {
+      return 'rgba(255, 0, 0, 100)';
     }
-    else {
-      return "rgba(255, 0, 0, 100)";
-    }
-
   }
-
 }

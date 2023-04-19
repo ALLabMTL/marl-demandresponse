@@ -4,61 +4,102 @@
   </p>
 
   <div class="temp_filter">
-    <mat-slide-toggle color="primary" class="temp_checkbox" #slider [(ngModel)]="this.simulationManager.isTempChecked" (click)="this.resetInput()">
+    <mat-slide-toggle
+      color="primary"
+      class="temp_checkbox"
+      #slider
+      [(ngModel)]="this.simulationManager.isTempChecked"
+      (click)="this.resetInput()"
+    >
       Temperature difference
     </mat-slide-toggle>
-    <div class = "input_boxes_temp">
+    <div class="input_boxes_temp">
       <p>Min:</p>
-    <div class="page-input">
-      <input
-        class="input_temp"
-        (keyup.enter)="this.simulationManager.filterByTempDiff()"
-        (blur)="this.simulationManager.filterByTempDiff()"
-        type="number"
-        min=" {{ this.simulationManager.tempSelectRange.min }}"
-        max="{{ this.simulationManager.tempSelectRange.max }}"
-        step="0.01"
-        value = "0"
-        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.min"
-        [disabled]="!this.simulationManager.isTempChecked"
-      />
+      <div class="page-input">
+        <input
+          class="input_temp"
+          (keyup.enter)="this.simulationManager.filterByTempDiff()"
+          (blur)="this.simulationManager.filterByTempDiff()"
+          type="number"
+          min=" {{ this.simulationManager.tempSelectRange.min }}"
+          max="{{ this.simulationManager.tempSelectRange.max }}"
+          step="0.01"
+          value="0"
+          [(ngModel)]="this.simulationManager.tempSelectRangeInput.min"
+          [disabled]="!this.simulationManager.isTempChecked"
+        />
+      </div>
+      <p>Max:</p>
+      <div class="page-input">
+        <input
+          class="input_temp"
+          (keyup.enter)="this.simulationManager.filterByTempDiff()"
+          (blur)="this.simulationManager.filterByTempDiff()"
+          type="number"
+          min=" {{ this.simulationManager.tempSelectRange.min }}"
+          max="{{ this.simulationManager.tempSelectRange.max }}"
+          step="0.01"
+          value="0"
+          [(ngModel)]="this.simulationManager.tempSelectRangeInput.max"
+          [disabled]="!this.simulationManager.isTempChecked"
+        />
+      </div>
     </div>
-    <p>Max:</p>
-    <div class="page-input">
-      <input
-        class="input_temp"
-        (keyup.enter)="this.simulationManager.filterByTempDiff()"
-        (blur)="this.simulationManager.filterByTempDiff()"
-        type="number"
-        min=" {{ this.simulationManager.tempSelectRange.min }}"
-        max="{{this.simulationManager.tempSelectRange.max }}"
-        step="0.01"
-        value = "0"
-        [(ngModel)] = "this.simulationManager.tempSelectRangeInput.max"
-        [disabled]="!this.simulationManager.isTempChecked"
-      />
-    </div>
-  </div>
     <div class="values_temp">
-    <p>Min: {{this.simulationManager.tempSelectRange.min}}</p>
-    <p>Max: {{this.simulationManager.tempSelectRange.max}}</p>
+      <p>Min: {{ this.simulationManager.tempSelectRange.min }}</p>
+      <p>Max: {{ this.simulationManager.tempSelectRange.max }}</p>
     </div>
   </div>
 
   <mat-divider></mat-divider>
 
   <div class="hvac_filter">
-    <mat-slide-toggle color="primary" class="temp_checkbox" [(ngModel)]="this.simulationManager.isHvacEnabled" (click)="this.resetHvacFilter()">
+    <mat-slide-toggle
+      color="primary"
+      class="temp_checkbox"
+      [(ngModel)]="this.simulationManager.isHvacEnabled"
+      (click)="this.resetHvacFilter()"
+    >
       HVAC status
     </mat-slide-toggle>
     <div>
-      <mat-checkbox class="on_chip" #on_check color = "primary" value = "ON" [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOnChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked, 'ON')">
+      <mat-checkbox
+        class="on_chip"
+        #on_check
+        color="primary"
+        value="ON"
+        [disabled]="!this.simulationManager.isHvacEnabled"
+        [(ngModel)]="this.simulationManager.isOnChecked"
+        (change)="
+          this.simulationManager.filterByHvacStatus($event.checked, 'ON')
+        "
+      >
         ON
       </mat-checkbox>
-      <mat-checkbox class="off_chip" #off_check color = "primary" value = "OFF"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isOffChecked"  (change)="this.simulationManager.filterByHvacStatus($event.checked,'OFF')">
+      <mat-checkbox
+        class="off_chip"
+        #off_check
+        color="primary"
+        value="OFF"
+        [disabled]="!this.simulationManager.isHvacEnabled"
+        [(ngModel)]="this.simulationManager.isOffChecked"
+        (change)="
+          this.simulationManager.filterByHvacStatus($event.checked, 'OFF')
+        "
+      >
         OFF
       </mat-checkbox>
-      <mat-checkbox class="lockout_chip" #lockout_check color = "primary" value = "Lockout"  [disabled]="!this.simulationManager.isHvacEnabled" [(ngModel)]="this.simulationManager.isLockoutChecked" (change)="this.simulationManager.filterByHvacStatus($event.checked,'Lockout')">
+      <mat-checkbox
+        class="lockout_chip"
+        #lockout_check
+        color="primary"
+        value="Lockout"
+        [disabled]="!this.simulationManager.isHvacEnabled"
+        [(ngModel)]="this.simulationManager.isLockoutChecked"
+        (change)="
+          this.simulationManager.filterByHvacStatus($event.checked, 'Lockout')
+        "
+      >
         Lockout
       </mat-checkbox>
     </div>
@@ -70,25 +111,28 @@
     <mat-form-field appearance="fill">
       <mat-label>Sort by</mat-label>
       <mat-select>
-        <mat-option 
-          style="font-size: 12px" 
+        <mat-option
+          style="font-size: 12px"
           value="indoorTempInc"
           (click)="this.simulationManager.sortByOptionSelected('indoorTempInc')"
           >Indoor temp. : increasing</mat-option
         >
         <mat-option
           style="font-size: 12px"
-          value="indoorTempDec" (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
+          value="indoorTempDec"
+          (click)="this.simulationManager.sortByOptionSelected('indoorTempDec')"
           >Indoor temp. : decreasing</mat-option
         >
         <mat-option
           style="font-size: 12px"
-          value="tempDiffInc" (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
+          value="tempDiffInc"
+          (click)="this.simulationManager.sortByOptionSelected('tempDiffInc')"
           >Temp. diff. : increasing</mat-option
         >
         <mat-option
           style="font-size: 12px"
-          value="tempDiffDec" (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
+          value="tempDiffDec"
+          (click)="this.simulationManager.sortByOptionSelected('tempDiffDec')"
           >Temp. diff. : decreasing</mat-option
         >
         <mat-option

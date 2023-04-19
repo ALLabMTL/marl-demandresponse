@@ -13,7 +13,7 @@ import { InformationsComponent } from './components/informations/informations.co
 import { GraphsComponent } from './components/graphs/graphs.component';
 import { TimestampComponent } from './components/timestamp/timestamp.component';
 import { MatIconModule } from '@angular/material/icon';
-import {MatGridListModule} from '@angular/material/grid-list';
+import { MatGridListModule } from '@angular/material/grid-list';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -51,17 +51,17 @@ import { StopSimulationDialogComponent } from './components/stop-simulation-dial
     MatSliderModule,
     MatInputModule,
     MatIconModule,
-    FormsModule, 
+    FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
     AppMaterialModule,
     MatDialogModule,
-    NgChartsModule
+    NgChartsModule,
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
 
 // providers: [SidebarComponent],
 //   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],

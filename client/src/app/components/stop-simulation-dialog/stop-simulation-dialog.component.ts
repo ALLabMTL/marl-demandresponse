@@ -4,9 +4,8 @@ import { SocketCommunicationService } from '@app/services/socket-communication/s
 @Component({
   selector: 'app-stop-simulation-dialog',
   templateUrl: './stop-simulation-dialog.component.html',
-  styleUrls: ['./stop-simulation-dialog.component.scss']
+  styleUrls: ['./stop-simulation-dialog.component.scss'],
 })
 export class StopSimulationDialogComponent {
-
-  constructor(public socketCommunication: SocketCommunicationService){}
+  constructor(public socketCommunication: SocketCommunicationService) {}
 }

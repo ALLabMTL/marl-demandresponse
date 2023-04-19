@@ -91,13 +91,15 @@ export class SimulationManagerService {
     this.isFilteredHvac = false;
     this.isTempFiltered = false;
     this.hvacStatus = ' ';
-    this.tempSelectRange = { // to get the min max from original houses data
+    this.tempSelectRange = {
+      // to get the min max from original houses data
       min: 0,
       max: 0,
     };
-    this.tempSelectRangeInput = { // interval chosen on interface
+    this.tempSelectRangeInput = {
+      // interval chosen on interface
       min: 0,
-      max: 0
+      max: 0,
     };
 
     this.sortingOptionSelected = ' ';
@@ -145,8 +147,8 @@ export class SimulationManagerService {
     this.tempSelectRange.min =
       this.originalHousesData.length > 0
         ? Math.min(
-          ...this.originalHousesData.map((data) => data.tempDifference)
-        )
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
         : 0;
 
     this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
@@ -154,8 +156,8 @@ export class SimulationManagerService {
     this.tempSelectRange.max =
       this.originalHousesData.length > 0
         ? Math.max(
-          ...this.originalHousesData.map((data) => data.tempDifference)
-        )
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
         : 0;
 
     this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));
@@ -341,10 +343,13 @@ export class SimulationManagerService {
     this.isTempFiltered = true;
     this.housesData = this.originalHousesData;
 
-    if(this.tempSelectRangeInput.min == null || this.tempSelectRangeInput.max == null) {
+    if (
+      this.tempSelectRangeInput.min == null ||
+      this.tempSelectRangeInput.max == null
+    ) {
       this.removeTempDiffFilter();
     } else {
-      console.log("temp",this.tempSelectRangeInput.min );
+      console.log('temp', this.tempSelectRangeInput.min);
 
       //if((this.tempSelectRangeInput.min >= this.tempSelectRange.min && this.tempSelectRangeInput.min <= this.tempSelectRange.max) || (this.tempSelectRangeInput.max >= this.tempSelectRange.min && this.tempSelectRangeInput.max <= this.tempSelectRange.max)) {
 

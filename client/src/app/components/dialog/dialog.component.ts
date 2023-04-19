@@ -1,4 +1,11 @@
-import { Component, Inject, OnInit, ViewChild, ViewChildren, QueryList } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnInit,
+  ViewChild,
+  ViewChildren,
+  QueryList,
+} from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HouseData } from '@app/classes/sidenav-data';
 import { SharedService } from '@app/services/shared/shared.service';
@@ -9,18 +16,17 @@ import { BaseChartDirective } from 'ng2-charts';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 
-
 @Component({
   selector: 'app-dialog',
   templateUrl: './dialog.component.html',
-  styleUrls: ['./dialog.component.scss']
+  styleUrls: ['./dialog.component.scss'],
 })
 export class DialogComponent {
-  @ViewChild("a", { static: false })
+  @ViewChild('a', { static: false })
   chartOne!: BaseChartDirective;
-  @ViewChild("b", { static: false })
+  @ViewChild('b', { static: false })
   chartTwo!: BaseChartDirective;
-  @ViewChild("c", { static: false })
+  @ViewChild('c', { static: false })
   chartThree!: BaseChartDirective;
   @ViewChildren(BaseChartDirective)
   charts!: QueryList<BaseChartDirective>;
@@ -29,9 +35,15 @@ export class DialogComponent {
   currentPage = 1;
 
   // TODO: Do this in a prettier way
-  constructor(@Inject(MAT_DIALOG_DATA) public data: number, public simulationManager: SimulationManagerService, public sharedService: SharedService) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: number,
+    public simulationManager: SimulationManagerService,
+    public sharedService: SharedService
+  ) {
     this.id = data;
-    this.sharedService.currentPageCount.subscribe(currentPage => this.currentPage = currentPage);
+    this.sharedService.currentPageCount.subscribe(
+      (currentPage) => (this.currentPage = currentPage)
+    );
   }
 
   private updateGraphsFromHousesData = (data: HouseData[][]) => {
@@ -40,7 +52,9 @@ export class DialogComponent {
       const categories = ['Actual temperature'];
       const datasets = categories.map((category) => {
         return {
-          data: data.map((e) => e.find((f) => f.id === this.id)?.indoorTemp).filter((val) => val !== undefined) as number[],
+          data: data
+            .map((e) => e.find((f) => f.id === this.id)?.indoorTemp)
+            .filter((val) => val !== undefined) as number[],
           label: category,
           fill: false,
           tension: 0,
@@ -49,10 +63,9 @@ export class DialogComponent {
           pointBackgroundColor: 'white',
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHitRadius: 10
+          pointHitRadius: 10,
         };
-      }
-      );
+      });
       this.lineChartData.datasets = datasets;
       this.lineChartData.labels = Array.from(Array(data.length).keys());
     }
@@ -61,7 +74,9 @@ export class DialogComponent {
       const categories = ['Temperature difference'];
       const datasets = categories.map((category) => {
         return {
-          data: data.map((e) => e.find((f) => f.id === this.id)?.tempDifference).filter((val) => val !== undefined) as number[],
+          data: data
+            .map((e) => e.find((f) => f.id === this.id)?.tempDifference)
+            .filter((val) => val !== undefined) as number[],
           label: category,
           fill: false,
           tension: 0,
@@ -70,10 +85,9 @@ export class DialogComponent {
           pointBackgroundColor: 'white',
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHitRadius: 10
+          pointHitRadius: 10,
         };
-      }
-      );
+      });
       this.lineChartData2.datasets = datasets;
       this.lineChartData2.labels = Array.from(Array(data.length).keys());
     }
@@ -95,7 +109,9 @@ export class DialogComponent {
 
       const datasets = categories.map((category) => {
         return {
-          data: data.map((e) => e.find((f) => f.id === this.id)?.hvacStatus).filter((val) => val !== undefined),
+          data: data
+            .map((e) => e.find((f) => f.id === this.id)?.hvacStatus)
+            .filter((val) => val !== undefined),
           label: category,
           fill: false,
           tension: 0,
@@ -104,11 +120,11 @@ export class DialogComponent {
           pointBackgroundColor: 'white',
           pointRadius: 0,
           pointHoverRadius: 5,
-          pointHitRadius: 10
+          pointHitRadius: 10,
         };
-      }
-      );
-      this.lineChartData3.datasets = datasets as unknown as ChartConfiguration<'line'>['data']['datasets'];
+      });
+      this.lineChartData3.datasets =
+        datasets as unknown as ChartConfiguration<'line'>['data']['datasets'];
       this.lineChartData3.labels = Array.from(Array(data.length).keys());
     }
     this.chartOne.chart?.update('none');
@@ -116,12 +132,12 @@ export class DialogComponent {
     this.chartThree.chart?.update('none');
   };
 
-
   ngAfterViewInit(): void {
     // we HAVE to go though a subscribe because we need to call chart.update() to update the chart
-    this.simulationManager.houseDataObservable.subscribe(this.updateGraphsFromHousesData);
+    this.simulationManager.houseDataObservable.subscribe(
+      this.updateGraphsFromHousesData
+    );
     this.updateGraphsFromHousesData(this.simulationManager.housesBufferData);
-
   }
 
   //First Graph
@@ -134,9 +150,9 @@ export class DialogComponent {
         fill: false,
         tension: 0,
         borderColor: 'white',
-        backgroundColor: 'rgba(255,0,0,0.3)'
-      }
-    ]
+        backgroundColor: 'rgba(255,0,0,0.3)',
+      },
+    ],
   };
 
   //Second Graph
@@ -149,9 +165,9 @@ export class DialogComponent {
         fill: false,
         tension: 0,
         borderColor: 'white',
-        backgroundColor: 'rgba(255,0,0,0.3)'
-      }
-    ]
+        backgroundColor: 'rgba(255,0,0,0.3)',
+      },
+    ],
   };
 
   //Third Graph
@@ -162,13 +178,12 @@ export class DialogComponent {
         data: [],
         label: 'HVAC status',
         fill: false,
-        tension: 0, 
+        tension: 0,
         borderColor: 'white',
-        backgroundColor: 'rgba(255,0,0,0.3)'
-      }
+        backgroundColor: 'rgba(255,0,0,0.3)',
+      },
     ],
   };
-
 
   //Graphs options
   public lineChartOptions: ChartOptions<'line'> = {
@@ -177,18 +192,16 @@ export class DialogComponent {
     align: 'center',
 
     scales: {
-      y: 
-        {
-          ticks: {
-            color: "white"
-          }
+      y: {
+        ticks: {
+          color: 'white',
         },
-        x: 
-        {
-          ticks: {
-            color: "white"
-          }
-        }
+      },
+      x: {
+        ticks: {
+          color: 'white',
+        },
+      },
     },
 
     plugins: {
@@ -205,7 +218,7 @@ export class DialogComponent {
         pan: {
           enabled: true,
           mode: 'xy',
-        }
+        },
       },
       legend: {
         display: true,
@@ -213,11 +226,10 @@ export class DialogComponent {
           color: 'white',
           boxWidth: 5,
           boxHeight: 5,
-        }
-      }
-    }
+        },
+      },
+    },
   } as ChartOptions<'line'>;
-
 
   //Graphs options
   public lineChartOptions3: ChartOptions<'line'> = {
@@ -228,17 +240,16 @@ export class DialogComponent {
     scales: {
       y: {
         type: 'category',
-        labels: ["ON", "Lockout", "OFF"],
+        labels: ['ON', 'Lockout', 'OFF'],
         ticks: {
-          color: "white"
-        }
-      },
-      x: 
-        {
-          ticks: {
-            color: "white"
-          }
+          color: 'white',
         },
+      },
+      x: {
+        ticks: {
+          color: 'white',
+        },
+      },
     },
 
     plugins: {
@@ -255,7 +266,7 @@ export class DialogComponent {
         pan: {
           enabled: true,
           mode: 'xy',
-        }
+        },
       },
       legend: {
         display: true,
@@ -263,19 +274,18 @@ export class DialogComponent {
           color: 'white',
           boxWidth: 5,
           boxHeight: 5,
-        }
-      }
-    }
+        },
+      },
+    },
   } as ChartOptions<'line'>;
 
   public lineChartLegend = true;
 
   public resetZoomGraph(index: number): void {
     // The code(this.charts.get(index)!.chart as any).resetZoom() is likely used to reset the zoom level of a chart.this.charts.get(index)
-    // is used to get a reference to the chart object at the specified index. .chart as 
+    // is used to get a reference to the chart object at the specified index. .chart as
     // any is used to cast the chart object to any type, which allows accessing the resetZoom() method.
     // The resetZoom() method is then called to reset the zoom level of the chart.
     (this.charts.get(index)!.chart as any).resetZoom();
   }
-
 }

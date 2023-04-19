@@ -13,7 +13,7 @@ export class SocketCommunicationService {
     public socketService: SocketService,
     private snackBarService: NotificationService,
     private simulationManager: SimulationManagerService
-  ) { }
+  ) {}
 
   connect(): void {
     if (!this.socketService.isSocketAlive()) {

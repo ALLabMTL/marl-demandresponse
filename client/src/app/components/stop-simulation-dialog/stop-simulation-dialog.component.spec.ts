@@ -8,9 +8,8 @@ describe('StopSimulationDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StopSimulationDialogComponent ]
-    })
-    .compileComponents();
+      declarations: [StopSimulationDialogComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(StopSimulationDialogComponent);
     component = fixture.componentInstance;

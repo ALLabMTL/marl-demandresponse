@@ -8,9 +8,8 @@ describe('GridFooterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GridFooterComponent ]
-    })
-    .compileComponents();
+      declarations: [GridFooterComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GridFooterComponent);
     component = fixture.componentInstance;

@@ -17,10 +17,9 @@ describe('SidebarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SidebarComponent ],
+      declarations: [SidebarComponent],
       //imports: [ MatSlideToggleModule, MatSliderModule, MatDividerModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule ]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SidebarComponent);
     component = fixture.componentInstance;
@@ -45,7 +44,6 @@ describe('SidebarComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 
   // it('should reset the slider', () => {
   //   // set some initial values

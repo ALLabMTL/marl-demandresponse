@@ -1,3 +1,3 @@
 export interface SnackbarMessage {
-    message: string;
+  message: string;
 }

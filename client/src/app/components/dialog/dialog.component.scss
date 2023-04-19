@@ -1,51 +1,51 @@
 .dialog {
-    width: 70rem;
-    height: 50rem;
-    display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    background-color: #535353;
-    color: white;
+  width: 70rem;
+  height: 50rem;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  background-color: #535353;
+  color: white;
 }
 
 .info,
 .graphs {
-    margin-left: 4rem;
-    margin-top: 5rem;
+  margin-left: 4rem;
+  margin-top: 5rem;
 }
 
 .dialog p {
-    font-weight: bold;
-    font-size: large;
+  font-weight: bold;
+  font-size: large;
 }
 
 .house {
-    margin-bottom: 3rem;
-    display: flex;
-    justify-content: center;
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
 }
 
 .graphs {
-    display: grid;
-    width: 80%;
-    height: 20%;
+  display: grid;
+  width: 80%;
+  height: 20%;
 }
 
 #zoom1 {
-    background-color: rgb(112, 134, 146);
-    left: 10%;
-    height: 1.3rem;
-    width: 6rem;
-    top: 10%;
-    font-size: 10px;
-    margin-bottom: 0.5rem;
+  background-color: rgb(112, 134, 146);
+  left: 10%;
+  height: 1.3rem;
+  width: 6rem;
+  top: 10%;
+  font-size: 10px;
+  margin-bottom: 0.5rem;
 }
 
 #zoom2 {
-    background-color: rgb(112, 134, 146);
-    left: 10%;
-    height: 1.3rem;
-    width: 6rem;
-    top: 10%;
-    font-size: 10px;
-    margin-bottom: 0.5rem;
+  background-color: rgb(112, 134, 146);
+  left: 10%;
+  height: 1.3rem;
+  width: 6rem;
+  top: 10%;
+  font-size: 10px;
+  margin-bottom: 0.5rem;
 }

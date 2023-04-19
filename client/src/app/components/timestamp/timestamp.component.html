@@ -1,29 +1,65 @@
 <div class="container">
-  <button mat-mini-fab color="accent" class="button" (click)="this.socketCommunication.startSimulation()"
-    [disabled]="this.simulationManager.started">
+  <button
+    mat-mini-fab
+    color="accent"
+    class="button"
+    (click)="this.socketCommunication.startSimulation()"
+    [disabled]="this.simulationManager.started"
+  >
     <mat-icon>play_arrow</mat-icon>
   </button>
 
-  <button mat-mini-fab color="warn" class="button" (click)="this.socketCommunication.pauseSimulation()"
-    [disabled]="this.simulationManager.stopped || this.simulationManager.paused">
+  <button
+    mat-mini-fab
+    color="warn"
+    class="button"
+    (click)="this.socketCommunication.pauseSimulation()"
+    [disabled]="this.simulationManager.stopped || this.simulationManager.paused"
+  >
     <mat-icon>pause</mat-icon>
   </button>
 
-  <button mat-mini-fab color="warn" class="button" (click)="openDialog()" [disabled]="this.simulationManager.stopped">
+  <button
+    mat-mini-fab
+    color="warn"
+    class="button"
+    (click)="openDialog()"
+    [disabled]="this.simulationManager.stopped"
+  >
     <mat-icon>stop</mat-icon>
   </button>
 
-  <mat-slider class="example-margin" [disabled]="this.simulationManager.started"
-    [max]="this.simulationManager.nbTimeSteps" min="1" step="1" discrete="true" showTickMarks="true"
-    (change)="changeTimeStep()" (value)="(this.simulationManager.currentTimeStep)">
-    <input matSliderThumb [(ngModel)]="this.simulationManager.currentTimeStep" />
+  <mat-slider
+    class="example-margin"
+    [disabled]="this.simulationManager.started"
+    [max]="this.simulationManager.nbTimeSteps"
+    min="1"
+    step="1"
+    discrete="true"
+    showTickMarks="true"
+    (change)="changeTimeStep()"
+    (value)="(this.simulationManager.currentTimeStep)"
+  >
+    <input
+      matSliderThumb
+      [(ngModel)]="this.simulationManager.currentTimeStep"
+    />
   </mat-slider>
 
   <div class="speed">
     <form>
-      <select class="speed-value" id="speed-value" [(ngModel)]="speed" (ngModelChange)="setSpeed($event)"
-        [ngModelOptions]="{ standalone: true }">
-        <option *ngFor="let option of speedOptionsMapped" style="font-size: 12px" [value]="option.value">
+      <select
+        class="speed-value"
+        id="speed-value"
+        [(ngModel)]="speed"
+        (ngModelChange)="setSpeed($event)"
+        [ngModelOptions]="{ standalone: true }"
+      >
+        <option
+          *ngFor="let option of speedOptionsMapped"
+          style="font-size: 12px"
+          [value]="option.value"
+        >
           {{ option.label }}
         </option>
       </select>

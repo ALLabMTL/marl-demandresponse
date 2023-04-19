@@ -18,7 +18,10 @@ export class SidebarComponent {
   posMidMax = 0.25;
   posMax = 0.5;
 
-  numberFormControl = new FormControl('', [Validators.required, Validators.min(0)]);
+  numberFormControl = new FormControl('', [
+    Validators.required,
+    Validators.min(0),
+  ]);
 
   nbSquares = 100;
   nbSquareOptions = [25, 36, 49, 64, 81, 100, 121, 144, 169, 196, 225, 256];
@@ -27,13 +30,22 @@ export class SidebarComponent {
   @ViewChild('lockout_check', { static: false }) lockoutChecked!: MatCheckbox;
   @ViewChild('off_check', { static: false }) offChecked!: MatCheckbox;
 
-  constructor(public sharedService: SharedService, public simulationManager: SimulationManagerService) {
-    this.simulationManager.originalHousesData = this.simulationManager.housesData.slice(); // deep copy
+  constructor(
+    public sharedService: SharedService,
+    public simulationManager: SimulationManagerService
+  ) {
+    this.simulationManager.originalHousesData =
+      this.simulationManager.housesData.slice(); // deep copy
   }
 
   ngOnInit() {
-    this.sharedService.currentPrecisionValue.subscribe(houseColorPrecisionValue => this.precisionValueSelected = houseColorPrecisionValue);
-    this.sharedService.squareNbValue.subscribe(nbSquares => this.nbSquares = nbSquares);
+    this.sharedService.currentPrecisionValue.subscribe(
+      (houseColorPrecisionValue) =>
+        (this.precisionValueSelected = houseColorPrecisionValue)
+    );
+    this.sharedService.squareNbValue.subscribe(
+      (nbSquares) => (this.nbSquares = nbSquares)
+    );
   }
 
   formatLabel(value: number): string {
@@ -62,10 +74,12 @@ export class SidebarComponent {
   // }
 
   scaleChartPrecision(): void {
-    const precisionValue = (<HTMLInputElement>document.getElementById("precisionValue")).value;
+    const precisionValue = (<HTMLInputElement>(
+      document.getElementById('precisionValue')
+    )).value;
     this.sharedService.changePrecisionValue(parseFloat(precisionValue));
     if (this.precisionValueSelected >= 0) {
-      this.negMin = -(this.precisionValueSelected);
+      this.negMin = -this.precisionValueSelected;
       this.negMidMin = this.negMin / 2;
       this.posMax = Math.abs(this.precisionValueSelected);
       this.posMidMax = this.posMax / 2;
@@ -74,8 +88,9 @@ export class SidebarComponent {
 
   setSquareNb(event: Event): void {
     this.sharedService.changeSquareNb(Number(event));
-    this.simulationManager.maxPage = Math.ceil(this.simulationManager.housesData.length / this.nbSquares);
+    this.simulationManager.maxPage = Math.ceil(
+      this.simulationManager.housesData.length / this.nbSquares
+    );
     this.sharedService.changeCount(1);
   }
-
 }
