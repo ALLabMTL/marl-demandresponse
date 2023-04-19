@@ -131,7 +131,10 @@ export class SimulationManagerService {
   updateHousesData(data: HouseData[]): void {
     this.housesData = data; // every house
     this.originalHousesData = data;
+    this.updateFilter();
+  }
 
+  updateFilter(): void {
     if (this.isSortingSelected) {
       this.sortByOptionSelected(this.sortingOptionSelected);
     }
@@ -243,7 +246,7 @@ export class SimulationManagerService {
   sortByTempDiffIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) =>
+    this.houseDataFiltered = this.originalHousesData.sort((a, b) =>
       a.tempDifference < b.tempDifference ? -1 : 1
     ); // a negative, then a comes before b
   }
@@ -251,7 +254,7 @@ export class SimulationManagerService {
   sortByTempDiffDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) =>
+    this.houseDataFiltered = this.originalHousesData.sort((a, b) =>
       a.tempDifference > b.tempDifference ? -1 : 1
     ); // a negative, then a comes before b
   }
@@ -259,7 +262,7 @@ export class SimulationManagerService {
   sortByIndoorTempIncreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) =>
+    this.houseDataFiltered = this.originalHousesData.sort((a, b) =>
       a.indoorTemp < b.indoorTemp ? -1 : 1
     ); // a negative, then a comes before b
   }
@@ -267,7 +270,7 @@ export class SimulationManagerService {
   sortByIndoorTempDecreasing(): void {
     this.isSortingSelected = true;
 
-    this.houseDataFiltered = this.housesData.sort((a, b) =>
+    this.houseDataFiltered = this.originalHousesData.sort((a, b) =>
       a.indoorTemp > b.indoorTemp ? -1 : 1
     ); // a negative, then a comes before b
   }
@@ -297,8 +300,10 @@ export class SimulationManagerService {
   }
 
   removeSorting(): void {
-    this.isSortingSelected = false;
-    this.housesData = this.originalHousesData;
+    this.isSortingSelected = true;
+    this.houseDataFiltered = this.originalHousesData.sort((a, b) =>
+      a.id < b.id ? -1 : 1
+    ); // a negative, then a comes before b
   }
 
   filterByHvacStatus(checked: boolean, hvac: string): void {

@@ -56,6 +56,7 @@ export class SidebarComponent {
     this.simulationManager.tempSelectRangeInput.min = 0;
     this.simulationManager.tempSelectRangeInput.max = 0;
     this.simulationManager.removeTempDiffFilter();
+    this.simulationManager.updateFilter();
   }
 
   resetHvacFilter(): void {
@@ -63,6 +64,7 @@ export class SidebarComponent {
     this.offChecked.checked = false;
     this.lockoutChecked.checked = false;
     this.simulationManager.removeHvacFilter();
+    this.simulationManager.updateFilter();
   }
 
   // tempCheckbox(): void {
