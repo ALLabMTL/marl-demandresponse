@@ -10,18 +10,14 @@ import os, sys
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Mila - Demande Réponse"
+project = "Mila - Demand Response"
 copyright = "2023, Polytechnique Montréal"
 author = "Polytechnique Montréal"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [
-    "sphinx.ext.autodoc",
-    "sphinxcontrib.autodoc_pydantic",
-    "sphinx.ext.napoleon",
-]
+extensions = ["sphinx.ext.autodoc", "sphinxcontrib.autodoc_pydantic"]
 sys.path.insert(0, os.path.abspath("../../.."))
 sys.path.insert(0, os.path.abspath("../.."))
 sys.path.insert(0, os.path.abspath(".."))
