@@ -118,7 +118,7 @@
                 },
                 "shading_coeff": 0.67,
                 "solar_gain": true,
-                "target_temp": 20.0,
+                "target_temp": 19.0,
                 "window_area": 7.175
             },
             "message_prop": {
@@ -169,7 +169,7 @@
             },
             "sig_penalty_mode": "common_L2"
         },
-        "start_datetime": "2021-01-01T00:00:00",
+        "start_datetime": "2021-01-01T12:00:00",
         "start_datetime_mode": "random",
         "state_prop": {
             "day": false,
@@ -188,7 +188,7 @@
         "time_step": 4.0
     },
     "simulation_props": {
-        "agent": "BangBang",
+        "agent": "DeadbandBangBang",
         "log_metrics_path": "",
         "mode": "simulation",
         "nb_episodes": 3,
