@@ -23,12 +23,9 @@ The previous code is in server/v0
 8. Run the client with `npm start` 
 9. The client should be running and you should be able to access the web page at `http://localhost:4200` 
 
-## Troubleshooting
+#### Troubleshooting
 - Python 3.9 not installed
     - Install python 3.9 with `sudo apt install python3.9`, `brew install python3.9` or manually on Windows
-- sphynx-apidoc not found
-    - On Windows, run `python -m pip install sphinx-apidoc` in the server folder
-    - On Ubuntu, run `sudo apt install python3-sphinx`
 - CVXPY solver errors 
     - You need an institutional license to use gurobi, cplex or mosek.
 - `WARNING:  MARLconfig.json not found, using default config.`
@@ -65,12 +62,19 @@ black .
 ### Documentation
 
 ```bash
-cd docs
-sphinx-apidoc sphinx-apidoc -f -o source/api/ ../app/
-make html
+cd server/docs
+sphinx-apidoc -f -o source/api/ ../app/
+make html # .\make.bat html on Windows
 python -m http.server -d build/html
 python -m webbrowser -t "http://localhost:8000"
 ```
+#### Troubleshooting
+- sphynx-apidoc not found
+    - Make sure your are in your virtual environment
+    - On Ubuntu, run `sudo apt install python3-sphinx`
+- `make` not found
+    - On Windows, run  instead.
+
 ### Generating UML diagrams
 Requirements:
 - pyreverse (included in pylint, in requirements.txt)

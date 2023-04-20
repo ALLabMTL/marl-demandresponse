@@ -1,28 +1,45 @@
 marl-demandresponse projet 4
 ============================
 
+The previous code is in server/v0
+
 Quickstart
 ----------
 
 1. Clone the repository
-2. Install the virtual environment and activate it
-   .. code:: bash
+2. Navigate to the root of the project then inside the ``server/``
+   folder.
+3. Install the virtual environment and activate it
+   ``bash     python3.9 -m venv .venv     source ./.venv/bin/activate # or ./.venv/Scripts/activate.bat on Windows``
+4. Install the requirements
+   ``bash     pip install -r requirements.txt # Python 3.9 is required``
+5. Run the code ``bash     python app/main.py``
+6. In a new terminal, navigate back up to the root and then inside the
+   ``client/`` folder.
+7. Install the dependencies with ``npm i``
+8. Run the client with ``npm start``
+9. The client should be running and you should be able to access the web
+   page at ``http://localhost:4200``
 
-      python3.9 -m venv .venv
-      source ./.venv/bin/activate
+Troubleshooting
+^^^^^^^^^^^^^^^
 
-3. Install the requirements
-   .. code:: bash
+-  Python 3.9 not installed
 
-      pip install -r requirements.txt
+   -  Install python 3.9 with ``sudo apt install python3.9``,
+      ``brew install python3.9`` or manually on Windows
 
-4. Run the code
-   .. code:: bash
+-  CVXPY solver errors
 
-      python main.py --exp 10 --agent_type ppo --no_wandb --render
+   -  You need an institutional license to use gurobi, cplex or mosek.
 
-Quickstart (VSCode)
--------------------
+-  ``WARNING:  MARLconfig.json not found, using default config.``
+
+   -  Make sure you are running ``main.py`` from ``server/app`` and not
+      ``server/``
+
+Quickstart (VSCode, server only)
+--------------------------------
 
 0. Ignore errors related to missing packages such as pylint, mypy or
    pydocstyle.
@@ -37,44 +54,67 @@ Development
 
 VScode is recommended for development. Default settings are provided in
 the ``.vscode`` folder, most notably the following settings are
-provided:
-
--  ``"python.formatting.provider": "black"`` and
-   ``"editor.formatOnSave": true`` to format the code on save with black
--  ``"python.linting.pylintEnabled": true`` to lint the code with pylint
-
-Run the tests
-~~~~~~~~~~~~~
-
-.. code:: bash
-
-   python -m pytest
+provided: - ``"python.formatting.provider": "black"`` and
+``"editor.formatOnSave": true`` to format the code on save with black -
+``"python.linting.pylintEnabled": true`` to lint the code with pylint
 
 Debug the code
 ~~~~~~~~~~~~~~
 
 .. code:: bash
 
-   python -m debugpy --listen localhost:5678 --wait-for-client main.py --exp 10 --agent_type ppo --no_wandb
+   python -m debugpy --listen localhost:5679 --wait-for-client app/main.py
    # then attach the debugger in VScode (F5)
 
 Run linters
 ~~~~~~~~~~~
 
+Inside the ``server/app`` folder, run the following commands:
+
 .. code:: bash
 
-   isort -i $(git ls-files '*.py')
-   pylint $(git ls-files '*.py')
-   mypy $(git ls-files '*.py') --ignore-missing-imports --install-types
-   black $(git ls-files '*.py')
+   isort -i . # Run first
+   autoflake -i -r . --remove-unused-variables --remove-rhs-for-unused-variables --ignore-init-module-imports --remove-all-unused-imports # (Optional, not installed by default)
+   flake8 ./ --statistics --ignore E501 # (Optional, not installed by default, install optional dependency flake8-bugbear)
+   pylint .
+   mypy . --ignore-missing-imports --install-types
+   black .
 
 Documentation
 ~~~~~~~~~~~~~
 
 .. code:: bash
 
-   sphinx-apidoc -f -o docs/source/api/ .
-   cd docs
-   make html
+   cd server/docs
+   sphinx-apidoc -f -o source/api/ ../app/
+   make html # .\make.bat html on Windows
    python -m http.server -d build/html
    python -m webbrowser -t "http://localhost:8000"
+
+.. _troubleshooting-1:
+
+Troubleshooting
+^^^^^^^^^^^^^^^
+
+-  sphynx-apidoc not found
+
+   -  Make sure your are in your virtual environment
+   -  On Ubuntu, run ``sudo apt install python3-sphinx``
+
+-  ``make`` not found
+
+   -  On Windows, run instead.
+
+Generating UML diagrams
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Requirements: - pyreverse (included in pylint, in requirements.txt) -
+`plantuml <https://plantuml.com/download>`__ For one class at a time:
+
+.. code:: bash
+
+   set PLANTUML_LIMIT_SIZE=18908
+   pyreverse app -o plantuml -m n
+   plantuml *.plantuml -progress
+   # resulting png file likely huge, consider one class at a time such as:
+   # pyreverse [...] --class=app.services.experiment_manager.ExperimentManager
