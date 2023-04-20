@@ -1,15 +1,14 @@
 import {
-  Component,
   AfterViewInit,
-  ViewChild,
-  ViewChildren,
+  Component,
   QueryList,
-  ElementRef,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
-import { Chart, ChartConfiguration, ChartOptions, Color } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { BaseChartDirective } from 'ng2-charts';
 Chart.register(zoomPlugin);
 
 @Component({

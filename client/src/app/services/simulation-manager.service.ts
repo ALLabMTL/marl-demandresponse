@@ -62,7 +62,6 @@ export class SimulationManagerService {
   currentPage = 1;
   nbSquares = 100;
 
-
   // houseData1: HouseData[];
   // houseData2: HouseData[];
 
@@ -152,8 +151,8 @@ export class SimulationManagerService {
     this.tempSelectRange.min =
       this.originalHousesData.length > 0
         ? Math.min(
-          ...this.originalHousesData.map((data) => data.tempDifference)
-        )
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
         : 0;
 
     this.tempSelectRange.min = Number(this.tempSelectRange.min.toFixed(3));
@@ -161,8 +160,8 @@ export class SimulationManagerService {
     this.tempSelectRange.max =
       this.originalHousesData.length > 0
         ? Math.max(
-          ...this.originalHousesData.map((data) => data.tempDifference)
-        )
+            ...this.originalHousesData.map((data) => data.tempDifference)
+          )
         : 0;
 
     this.tempSelectRange.max = Number(this.tempSelectRange.max.toFixed(3));

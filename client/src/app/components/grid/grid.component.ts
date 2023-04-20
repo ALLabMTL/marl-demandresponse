@@ -1,10 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { SharedService } from '@app/services/shared/shared.service';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogComponent } from '../dialog/dialog.component';
-import { SimulationManagerService } from '@app/services/simulation-manager.service';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 import { HouseData } from '@app/classes/sidenav-data';
+import { SharedService } from '@app/services/shared/shared.service';
+import { SimulationManagerService } from '@app/services/simulation-manager.service';
+import { DialogComponent } from '../dialog/dialog.component';
 
 interface PageData {
   id: number;
@@ -19,8 +18,6 @@ interface PageData {
 export class GridComponent implements OnInit {
   @Input() pages: PageData[];
   currentPage = 1;
-  // maxPage: number = 1;
-  // housesPerPage: number = 100;
   precisionValueSelected = 0;
   nbSquares = 100;
   nbSquarePerLine = Math.sqrt(this.nbSquares);
@@ -73,17 +70,6 @@ export class GridComponent implements OnInit {
     this.currentPage = pageNumber;
     this.sharedService.changeCount(pageNumber);
   }
-
-  // updatePages() {
-  //   const pages = [];
-  //   for (let i = 0; i < this.maxPage; i++) {
-  //     const startIndex = i * this.housesPerPage;
-  //     const endIndex = Math.min(startIndex + this.housesPerPage, this.simulationManager.housesData.length);
-  //     const pageContent: HouseData[] = this.simulationManager.housesData.slice(startIndex, endIndex);
-  //     pages.push({ id: i + 1, content: pageContent });
-  //   }
-  //   return pages;
-  // }
 
   openDialog(index: number) {
     this.dialog.open(DialogComponent, {

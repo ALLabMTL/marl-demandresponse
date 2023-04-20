@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 import { SocketCommunicationService } from '@app/services/socket-communication/socket-communication.service';
-import { DialogComponent } from '../dialog/dialog.component';
 import { StopSimulationDialogComponent } from '../stop-simulation-dialog/stop-simulation-dialog.component';
 
 interface SpeedOption {
@@ -17,8 +16,6 @@ interface SpeedOption {
 })
 export class TimestampComponent {
   speed = '4';
-  // speedOptions: number[] = [0, 1, 2, 3, 4];
-  // speedOpt: string[] = ["Max", "4x", "2x", "1.5x", "1x"];
 
   speedOptionsMapped: SpeedOption[] = [
     { value: 0, label: 'Max' },

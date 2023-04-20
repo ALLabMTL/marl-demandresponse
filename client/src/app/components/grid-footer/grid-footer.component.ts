@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 

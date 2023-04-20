@@ -1,19 +1,17 @@
 import {
   Component,
   Inject,
-  OnInit,
-  ViewChild,
-  ViewChildren,
   QueryList,
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HouseData } from '@app/classes/sidenav-data';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
-import { GridComponent } from '../grid/grid.component';
 import { Chart, ChartConfiguration, ChartOptions } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { BaseChartDirective } from 'ng2-charts';
 Chart.register(zoomPlugin);
 
 @Component({

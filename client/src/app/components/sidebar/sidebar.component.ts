@@ -1,7 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, Validators, NgControl } from '@angular/forms';
+import { FormControl, Validators } from '@angular/forms';
 import { MatCheckbox } from '@angular/material/checkbox';
-import { MatSlider } from '@angular/material/slider';
 import { SharedService } from '@app/services/shared/shared.service';
 import { SimulationManagerService } from '@app/services/simulation-manager.service';
 
@@ -66,14 +65,6 @@ export class SidebarComponent {
     this.simulationManager.removeHvacFilter();
     this.simulationManager.updateFilter();
   }
-
-  // tempCheckbox(): void {
-  //   this.isTempChecked = !this.isTempChecked;
-  // }
-
-  // floorCheckbox(): void {
-  //   this.isFloorChecked = !this.isFloorChecked;
-  // }
 
   scaleChartPrecision(): void {
     const precisionValue = (<HTMLInputElement>(

@@ -62,6 +62,3 @@ import { StopSimulationDialogComponent } from './components/stop-simulation-dial
   bootstrap: [AppComponent],
 })
 export class AppModule {}
-
-// providers: [SidebarComponent],
-//   exports: [MatFormFieldModule, MatSliderModule, MatCheckboxModule, MatFormFieldModule, MatSelectModule, FormsModule],
