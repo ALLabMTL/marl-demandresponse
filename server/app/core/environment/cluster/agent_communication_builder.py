@@ -198,7 +198,6 @@ class AgentCommunicationBuilder:
         Returns:
             List[int]: A list of `nb_comm` randomly selected agent IDs, excluding the given `agent_id`.
         """
-        possible_ids = d
         possible_ids = deepcopy(self.agent_ids)
         possible_ids.remove(agent_id)
         return random.sample(possible_ids, k=self.nb_comm)
