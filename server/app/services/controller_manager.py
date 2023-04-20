@@ -124,12 +124,6 @@ class ControllerManager(Experiment):
             endpoint="agent",
             data=self.static_props.agent,
         )
-        await self.client_manager_service.log(
-            text="Starting simulation...",
-            emit=True,
-            endpoint="success",
-            data={"message": "Starting simulation"},
-        )
         self.obs_dict = self.env.reset()
 
     async def start(self, config: MarlConfig) -> None:
@@ -144,6 +138,7 @@ class ControllerManager(Experiment):
             None
         """
         if not self.pause or self.stop:
+            await self.initialize(config)
             await self.client_manager_service.log(
                 text="Starting simulation...",
                 emit=True,
@@ -152,17 +147,16 @@ class ControllerManager(Experiment):
             )
         else:
             await self.client_manager_service.log(
-                text=f"Continuing simulation",
+                text="Continuing simulation",
                 emit=True,
                 endpoint="success",
-                data={"message": f"Continuing simulation"},
+                data={"message": "Continuing simulation"},
             )
 
         self.pause = False
+        self.stop = False
 
         for step in range(self.current_time_step, self.static_props.nb_time_steps):
-            if self.current_time_step == 0:
-                print(self.obs_dict[0])
             # Check if UI stopped or paused simulation
             if await self.should_stop(step):
                 break
@@ -358,7 +352,7 @@ class ControllerManager(Experiment):
         Returns:
             None.
         """
-        if stop_state:
+        if stop_state and self.pause:
             await self.end_simulation()
 
         self.stop = stop_state
