@@ -23,7 +23,7 @@ The previous code is in server/v0
 8. Run the client with `npm start` 
 9. The client should be running and you should be able to access the web page at `http://localhost:4200` 
 
-#### Troubleshooting
+### Troubleshooting
 - Python 3.9 not installed
     - Install python 3.9 with `sudo apt install python3.9`, `brew install python3.9` or manually on Windows
 - CVXPY solver errors 
@@ -41,14 +41,14 @@ VScode is recommended for development. Default settings are provided in the `.vs
 - `"python.formatting.provider": "black"` and `"editor.formatOnSave": true` to format the code on save with black
 - `"python.linting.pylintEnabled": true` to lint the code with pylint
 
-### Debug the code
+## Debug the code
 
 ```bash
 python -m debugpy --listen localhost:5679 --wait-for-client app/main.py
 # then attach the debugger in VScode (F5)
 ```
 
-### Run linters
+## Run linters
 Inside the `server/app` folder, run the following commands:
 ```bash
 isort -i . # Run first
@@ -59,7 +59,7 @@ mypy . --ignore-missing-imports --install-types
 black .
 ```
 
-### Documentation
+## Generating documentation
 
 ```bash
 cd server/docs
@@ -68,14 +68,14 @@ make html # .\make.bat html on Windows
 python -m http.server -d build/html
 python -m webbrowser -t "http://localhost:8000"
 ```
-#### Troubleshooting
+### Troubleshooting
 - sphynx-apidoc not found
     - Make sure your are in your virtual environment
     - On Ubuntu, run `sudo apt install python3-sphinx`
 - `make` not found
-    - On Windows, run  instead.
+    - On Windows, run instead.
 
-### Generating UML diagrams
+## Generating UML diagrams
 Requirements:
 - pyreverse (included in pylint, in requirements.txt)
 - [plantuml](https://plantuml.com/download)

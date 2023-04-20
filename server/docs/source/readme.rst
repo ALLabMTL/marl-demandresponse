@@ -22,7 +22,7 @@ Quickstart
    page at ``http://localhost:4200``
 
 Troubleshooting
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 -  Python 3.9 not installed
 
@@ -59,7 +59,7 @@ provided: - ``"python.formatting.provider": "black"`` and
 ``"python.linting.pylintEnabled": true`` to lint the code with pylint
 
 Debug the code
-~~~~~~~~~~~~~~
+--------------
 
 .. code:: bash
 
@@ -67,7 +67,7 @@ Debug the code
    # then attach the debugger in VScode (F5)
 
 Run linters
-~~~~~~~~~~~
+-----------
 
 Inside the ``server/app`` folder, run the following commands:
 
@@ -80,8 +80,8 @@ Inside the ``server/app`` folder, run the following commands:
    mypy . --ignore-missing-imports --install-types
    black .
 
-Documentation
-~~~~~~~~~~~~~
+Generating documentation
+------------------------
 
 .. code:: bash
 
@@ -94,7 +94,7 @@ Documentation
 .. _troubleshooting-1:
 
 Troubleshooting
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 -  sphynx-apidoc not found
 
@@ -106,7 +106,7 @@ Troubleshooting
    -  On Windows, run instead.
 
 Generating UML diagrams
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 Requirements: - pyreverse (included in pylint, in requirements.txt) -
 `plantuml <https://plantuml.com/download>`__ For one class at a time:
