@@ -108,3 +108,10 @@ class ParserService:
         except FileNotFoundError:
             logger.warning("MARLconfig.json not found, using default config.")
             self.config = MarlConfig()
+
+
+if __name__ == "__main__":
+    # export MarlConfig to JSON
+    config = MarlConfig()
+    config_json = config.json(indent=4)
+    print(config_json)

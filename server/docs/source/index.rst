@@ -11,6 +11,7 @@ Welcome to Mila - Demand Response's documentation!
    :caption: Contents:
    
    readme
+   new_agent
 
 Indices and tables
 ==================
