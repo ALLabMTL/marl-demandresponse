@@ -1,6 +1,6 @@
-# marl-demandresponse projet 4
+# marl-demandresponse
 
-The previous code is in server/v0
+The original version of the code can be found at https://github.com/maivincent/marl-demandresponse-original
 
 ## Quickstart
 1. Clone the repository
