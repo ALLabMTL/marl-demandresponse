@@ -1,5 +1,4 @@
-# marl-demandresponse
-# Frequency Regulation Simulator
+# Multi-Agent Reinforcement Learning - Demand Response - Frequency Regulation Simulator
 
 Welcome to the Frequency Regulation Simulator, an advanced open-source platform designed to address the critical challenge of frequency regulation through demand response, executed at the granularity of seconds. This simulator leverages the robust OpenAI Gym framework, making it a potent tool for researchers and practitioners aiming to innovate within the domain of demand response management.
 
