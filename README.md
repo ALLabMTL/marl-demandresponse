@@ -19,8 +19,10 @@ The original version of the code can be found at https://github.com/maivincent/m
   - **Model Predictive Control (MPC)**: This centralized strategy models the environment and forecasts actions over a set horizon to maximize rewards. While theoretically optimal, MPC's performance degrades with increasing number of agents and extended time horizons due to its computational complexity.
 - **Fully Controllable Interface**: Our simulator features a highly interactive and controllable interface, divided into several functionalities:
   - **Manual Action Overwrite**: Users can manually override the decisions made by the algorithm at any point during the simulation. This allows for experimental adjustments and real-time interaction.
+
     ![Manual Action Overwrite Example](https://i.ibb.co/PGBdqqL/image-Interface1.png)
   - **Individual House Monitoring**: The interface enables detailed observation and monitoring of individual houses, providing granular data on each unit's performance and status.
+
     ![Individual House Monitoring Example](https://i.ibb.co/HnswFZx/image-Interface2.png)
   - **Free Navigation Through Timesteps**: Users can move freely across any timestep in the simulation, facilitating thorough analysis and review of different scenarios and outcomes.
 
