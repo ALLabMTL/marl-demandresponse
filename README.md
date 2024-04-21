@@ -1,6 +1,30 @@
 # marl-demandresponse
+# Frequency Regulation Simulator
+
+Welcome to the Frequency Regulation Simulator, an advanced open-source platform designed to address the critical challenge of frequency regulation through demand response, executed at the granularity of seconds. This simulator leverages the robust OpenAI Gym framework, making it a potent tool for researchers and practitioners aiming to innovate within the domain of demand response management.
+
+For more detailed insights into the theoretical framework and experimental validation, refer to our research paper: [Read the paper](https://arxiv.org/abs/2301.02593).
 
 The original version of the code can be found at https://github.com/maivincent/marl-demandresponse-original
+
+## Features
+
+- **OpenAI Gym Integration**: Fully compatible with the OpenAI Gym framework, our simulator provides a familiar and accessible environment for conducting machine learning research.
+- **Decentralized Agents**: The simulator includes two sophisticated decentralized agents trained via Multi-Agent Proximal Policy Optimization (MA-PPO):
+  - **Agent with Hand-Engineered Communication**: This agent operates based on a meticulously crafted communication strategy designed to optimize coordination and efficiency.
+  - **Agent with Dynamic Communication (TarMAC)**: Utilizing Targeted Multi-Agent Communication (TarMAC), this agent dynamically learns the most effective data-sharing strategies in response to environmental stimuli.
+- **Baseline**: In addition to our advanced agents, the simulator also evaluates against several baseline control strategies:
+  - **Bang-bang Controller (BBC)**: This decentralized algorithm operates by turning the AC on when the air temperature exceeds a target and off when it falls below, controlling the temperature near-optimally when lockout duration is zero. However, it struggles with signal tracking due to high-frequency variations.
+  - **Greedy Myopic**: A centralized approach that operates like solving a knapsack problem at each timestep, choosing ACs based on their immediate value to temperature regulation versus power consumption. This method does not plan for the future, quickly depleting available AC units due to lockout constraints.
+  - **Model Predictive Control (MPC)**: This centralized strategy models the environment and forecasts actions over a set horizon to maximize rewards. While theoretically optimal, MPC's performance degrades with increasing number of agents and extended time horizons due to its computational complexity.
+- **Fully Controllable Interface**: Our simulator features a highly interactive and controllable interface, divided into several functionalities:
+  - **Manual Action Overwrite**: Users can manually override the decisions made by the algorithm at any point during the simulation. This allows for experimental adjustments and real-time interaction.
+    ![Manual Action Overwrite Example](path/to/manual_action_image.png) >
+  - **Individual House Monitoring**: The interface enables detailed observation and monitoring of individual houses, providing granular data on each unit's performance and status.
+    ![Individual House Monitoring Example](path/to/individual_house_image.png) 
+  - **Free Navigation Through Timesteps**: Users can move freely across any timestep in the simulation, facilitating thorough analysis and review of different scenarios and outcomes.
+    ![Navigation Through Timesteps Example](path/to/timesteps_navigation_image.png)  
+
 
 ## Quickstart
 1. Clone the repository
