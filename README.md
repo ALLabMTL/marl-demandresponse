@@ -8,7 +8,11 @@ For more detailed insights into the theoretical framework and experimental valid
 The original version of the code can be found at https://github.com/maivincent/marl-demandresponse-original
 
 ## Features
-
+- **Flexible Simulation**: 
+  - **Diverse Building Models**: Simulate energy consumption and thermal dynamics in various types of buildings. Each building can be modeled with specific thermal characteristics such as wall conductance, thermal mass, and insulation quality, reflecting real-world diversity.
+  - **Customizable Components**: The simulator's architecture allows for the addition of custom elements like battery dynamics, enabling researchers to explore the impacts of different energy storage solutions on demand response.
+  - **Advanced AC Modeling**: Air conditioners are simulated with detailed characteristics including cooling capacity, performance coefficients, and dynamic constraints such as compressor lockout to realistically model their operational limitations.
+  - **Regulation Signal Adaptation**: The simulation includes a complex model of the regulation signal, incorporating high-frequency variations to mimic the intermittency of renewable energy sources. This feature challenges the system to maintain stability under realistic and dynamic conditions.
 - **OpenAI Gym Integration**: Fully compatible with the OpenAI Gym framework, our simulator provides a familiar and accessible environment for conducting machine learning research.
 - **Decentralized Agents**: The simulator includes two sophisticated decentralized agents trained via Multi-Agent Proximal Policy Optimization (MA-PPO):
   - **Agent with Hand-Engineered Communication**: This agent operates based on a meticulously crafted communication strategy designed to optimize coordination and efficiency.
